@@ -1,4 +1,3 @@
-"use strict";
 
 const { playerHitboxHeight, playerHitboxWidth } = require('./../globalhandler/config');
 

@@ -1,7 +1,6 @@
 
 // td in matchtype means team match knockout
 
-
 const gamemodeconfig = {
     1: {
       can_hit_dummies: false,

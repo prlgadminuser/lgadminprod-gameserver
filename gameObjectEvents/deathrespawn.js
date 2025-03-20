@@ -1,4 +1,3 @@
-"use strict";
 
 function spawnAnimation(room, player, animationType) {
   if (!player) return; // Ensure the player exists

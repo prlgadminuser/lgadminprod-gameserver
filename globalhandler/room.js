@@ -1,4 +1,3 @@
-"use strict";
 
 const { LZString, axios, Limiter } = require('./..//index.js');
 const { matchmaking_timeout, server_tick_rate, game_start_time, rooms, mapsconfig, gunsconfig, gamemodeconfig, matchmakingsp, player_idle_timeout, room_max_open_time } = require('./config.js');
@@ -303,13 +302,9 @@ async function joinRoom(ws, gamemode, playerVerified) {
     const newPlayer = {
       ws,
       lastmsg: 0,
-      lastplayeridshash: 0,
-      pids_send_allowed: true,
       intervalIds: [],
       timeoutIds: [],
       direction: null,
-      prevX: 0,
-      prevY: 0,
       playerId: playerId,
       finalrewards_awarded: false,
       spectateid: 0,
@@ -608,6 +603,8 @@ player.bullets.forEach(bullet => {
   ? "$b" + Object.values(formattedBullets).join("") 
   : undefined;
 
+ // player.finalbullets = finalBullets
+
 
       if (room.state === "playing") {
 
@@ -681,6 +678,7 @@ player.bullets.forEach(bullet => {
     const selfdata = {
       id: player.nmb,
       state: player.state,
+     // b: player.finalbullets,
       h: player.health,
       sh: player.starthealth,
       s: player.shooting ? 1 : 0,
@@ -707,6 +705,8 @@ player.bullets.forEach(bullet => {
     const changedSelfData = Object.fromEntries(
       Object.entries(selfdata).filter(([key, value]) => lastSelfData[key] !== value)
     );
+
+    //changedSelfData.b = player.finalbullets
 
     player.lastSelfData = selfdata
     // Ensure an empty object is returned if nothing changed
@@ -785,6 +785,7 @@ player.bullets.forEach(bullet => {
         { key: 'td', value: player.teamdata && room.state !== "playing" ? player.teamdata : undefined },
         { key: 'sb', value: room.scoreboard },
         { key: 'sd', value: finalselfdata },
+      //  { key: 'b', value: player.finalbullets },
         { key: 'pd', value: player.pd },
         //{ key: 'np', value: player.nearbyfinalids ? Array.from(player.nearbyfinalids) : ["-1"] },
 

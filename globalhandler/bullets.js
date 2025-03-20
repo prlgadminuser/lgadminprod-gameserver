@@ -1,4 +1,3 @@
-"use strict";
 
 const { isCollisionWithBullet, adjustBulletDirection, findCollidedWall } = require('./collisions');
 const { handlePlayerCollision, handleDummyCollision } = require('./player');
