@@ -564,7 +564,7 @@ const transformData = (data) => {
   return transformed;
 };
 
-const dummiesfiltered = transformData(room.dummies);
+const dummiesfiltered = room.dummies ? transformData(room.dummies) : undefined;
 
   Array.from(room.players.values()).forEach(player => {
 
