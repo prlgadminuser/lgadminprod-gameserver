@@ -335,6 +335,11 @@ async function joinRoom(ws, gamemode, playerVerified) {
       shooting: false,
       shoot_direction: 90,
       loadout: loadout || fallbackloadout,
+      loadout_formatted: [
+        loadout[1],
+        loadout[2],
+        loadout[3],
+      ].join('$'),
       //loadout: fallbackloadout,
       bullets: new Map(),
       spectatingPlayer: playerId,
@@ -551,12 +556,46 @@ function SendPreStartMessage(room) {
 });
 
   
+const transformData = (data) => {
+  const transformed = {};
+  for (const [key, value] of Object.entries(data)) {
+    transformed[key] = `${value.x}:${value.y}:${value.h}:${value.sh}:${value.t}`;
+  }
+  return transformed;
+};
+
+const dummiesfiltered = transformData(room.dummies);
 
   Array.from(room.players.values()).forEach(player => {
+
+    const selfinfo = {
+      id: player.nmb,
+      state: player.state,
+      h: player.health,
+      sh: player.starthealth,
+      s: player.shooting ? 1 : 0,
+      g: player.gun,
+      kil: player.kills,
+      dmg: player.damage,
+      rwds: [player.place, player.skillpoints_inc, player.seasoncoins_inc].join('$'),
+      killer: player.eliminator,
+      cg: player.canusegadget ? 1 : 0,
+      lg: player.gadgetuselimit,
+      x: player.x,
+      y: player.y,
+      hit: player.hitdata,
+      el: player.elimlast,
+      em: player.emote,
+      spc: player.spectateid,
+      guns: player.loadout_formatted,
+      np: player.npfix
+    };
 
     const selfdata = {
       teamdata: player.teamdata,
       pid: player.nmb,
+      self_info: selfinfo,
+      dummies: room.dummies ? dummiesfiltered : undefined
   };
          
   const MessageToSend = {
@@ -670,11 +709,6 @@ function sendBatchedMessages(roomId) {
   };
 
   room.players.forEach(player => {
-    const playerloadout = [
-      player.loadout[1],
-      player.loadout[2],
-      player.loadout[3],
-    ].join('$')
 
     player.npfix = JSON.stringify(player.nearbyfinalids ? Array.from(player.nearbyfinalids) : [])
     const selfdata = {
@@ -696,7 +730,7 @@ function sendBatchedMessages(roomId) {
       el: player.elimlast,
       em: player.emote,
       spc: player.spectateid,
-      guns: playerloadout,
+      guns: player.loadout_formatted,
       np: player.npfix
     };
 
@@ -767,11 +801,11 @@ function sendBatchedMessages(roomId) {
       playerSpecificMessage = [
         { key: 'rd', value: newMessage.rd },
         { key: 'kf', value: newMessage.kf },
-        { key: 'dm', value: newMessage.dm },
+        { key: 'dm', value: room.state === "playing" ? newMessage.dm : undefined },
         { key: 'cl', value: player.nearbycircles },
         { key: 'an', value: player.nearbyanimations },
         { key: 'sb', value: room.scoreboard },
-        { key: 'sd', value: finalselfdata },
+        { key: 'sd', value: room.state === "playing" ? finalselfdata : undefined},
         { key: 'b', value: player.finalbullets },
         { key: 'pd', value: player.pd },
 
