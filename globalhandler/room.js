@@ -305,6 +305,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
       intervalIds: [],
       timeoutIds: [],
       direction: null,
+      direction2: 90,
       playerId: playerId,
       finalrewards_awarded: false,
       spectateid: 0,
@@ -393,6 +394,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
       try {
 
         room.state = "await";
+
         setTimeout(() => {
           if (!rooms.has(roomId)) {
             roomStateLock.delete(roomId);
@@ -414,7 +416,10 @@ async function joinRoom(ws, gamemode, playerVerified) {
           }
 
 
+     
+
           playerchunkrenderer(room)
+          SendPreStartMessage(room)
           room.state = "countdown";
           //  console.log(`Room ${roomId} entering countdown phase`);
 
@@ -523,6 +528,54 @@ const getAllKeys = (data) => {
 };
 
 
+
+function SendPreStartMessage(room) {
+  let AllPlayerData = {};
+
+     room.players.forEach(player => { 
+    AllPlayerData[player.nmb] = {
+        hat: player.hat,
+        top: player.top,
+        color: player.player_color,
+        hat_color: player.hat_color,
+        top_color: player.top_color,
+        starthealth: player.starthealth,
+        nickname: player.nickname,
+        x: player.x,
+        y: player.y,
+        direction: player.direction2,
+        health: player.health,
+        gun: player.gun,
+        emote: player.emote
+    };
+});
+
+  
+
+  Array.from(room.players.values()).forEach(player => {
+
+    const selfdata = {
+      teamdata: player.teamdata,
+      pid: player.nmb,
+  };
+         
+  const MessageToSend = {
+    AllPlayerData: AllPlayerData,
+    SelfData: selfdata,
+    clientVersion: "v3.5678",
+    roomid: room.roomId
+};
+
+  const FinalPreMessage =  JSON.stringify(MessageToSend)
+
+    const compressedPlayerMessage = FinalPreMessage
+    player.ws.send(LZString.compressToUint8Array(compressedPlayerMessage), { binary: true })
+
+  });
+}
+
+
+
 function sendBatchedMessages(roomId) {
   const room = rooms.get(roomId);
 
@@ -586,6 +639,7 @@ function sendBatchedMessages(roomId) {
   let playerData = {};
 
   Array.from(room.players.values()).forEach(player => {
+
     if (player.visible !== false) {
       // Create a plain object where the key is bullet.timestamp
       const formattedBullets = {};
@@ -603,50 +657,21 @@ player.bullets.forEach(bullet => {
   ? "$b" + Object.values(formattedBullets).join("") 
   : undefined;
 
- // player.finalbullets = finalBullets
+   player.finalbullets = finalBullets
 
 
       if (room.state === "playing") {
 
         const currentPlayerData = [
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",//player.starthealth,
-          "",
           player.x,
           player.y,
           player.direction2,
           player.health,
-          player.shooting ? 1 : 0,
           player.gun,
           player.emote,
           finalBullets, 
         ].join(':');
 
-
-        playerData[player.nmb] = currentPlayerData;
-
-      } else {
-
-        const currentPlayerData = [
-          player.hat,
-          player.top,
-          player.player_color,
-          player.hat_color,
-          player.top_color,
-          player.starthealth,
-          player.nickname,
-          player.x,
-          player.y,
-          player.direction2,
-          player.health,
-          player.shooting ? 1 : 0,
-          player.gun,
-          player.emote,   // Compact bullets or undefined
-        ].join(':');
 
         playerData[player.nmb] = currentPlayerData;
 
@@ -782,10 +807,9 @@ player.bullets.forEach(bullet => {
         { key: 'dm', value: newMessage.dm },
         { key: 'cl', value: player.nearbycircles },
         { key: 'an', value: player.nearbyanimations },
-        { key: 'td', value: player.teamdata && room.state !== "playing" ? player.teamdata : undefined },
         { key: 'sb', value: room.scoreboard },
         { key: 'sd', value: finalselfdata },
-      //  { key: 'b', value: player.finalbullets },
+      { key: 'b', value: player.finalbullets },
         { key: 'pd', value: player.pd },
         //{ key: 'np', value: player.nearbyfinalids ? Array.from(player.nearbyfinalids) : ["-1"] },
 
