@@ -539,8 +539,8 @@ function SendPreStartMessage(room) {
 
      room.players.forEach(player => { 
     AllPlayerData[player.nmb] = {
-        hat: player.hat,
-        top: player.top,
+        hat: player.hat || 0,
+        top: player.top || 0,
         color: player.player_color,
         hat_color: player.hat_color,
         top_color: player.top_color,
