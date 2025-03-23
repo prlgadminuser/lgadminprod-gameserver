@@ -8,7 +8,7 @@ const gunsconfig = {
       maxexistingtime: 400,
       maxbounces: 5,
       damage: 12,
-      width: 6,
+      width: 26,
       height: 8,
       useplayerangle: true,
       bullets: [
@@ -40,8 +40,8 @@ const gunsconfig = {
       maxexistingtime: 500,
       maxbounces: 5,
       damage: 10,
-      width: 6,
-      height: 3,
+      width: 34,
+      height: 8,
       useplayerangle: true,
       //can_bullets_bounce: false,
       bullets: [
@@ -60,11 +60,11 @@ const gunsconfig = {
       cooldown: 600,
       distance: 300,
       maxexistingtime: 2000,
-      maxbounces: 5,
       damage: 25,
-      width: 6,
+      width: 34,
       height: 8,
       useplayerangle: true,
+    //  can_bullets_bounce: true,
       bullets: [
         { angle: 0, speed: 37, delay: 0, offset: 0 },
         
@@ -84,8 +84,8 @@ const gunsconfig = {
       maxexistingtime: 400,
       maxbounces: 1,
       damage: 4,
-      width: 6,
-      height: 3,
+      width: 34,
+      height: 7,
       useplayerangle: true,
       //can_bullets_bounce: true,
       bullets: [

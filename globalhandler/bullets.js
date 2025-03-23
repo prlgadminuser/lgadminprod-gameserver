@@ -10,18 +10,44 @@ const calculateDistance = (x1, y1, x2, y2) => Math.sqrt(Math.pow(x2 - x1, 2) + M
 const toRadians = degrees => degrees * (Math.PI / 180);
 
 
-const playerHalfWidth = playerHitboxWidth / 2.4;
-const playerHalfHeight = playerHitboxHeight / 2.4;
+const playerHalfWidth = playerHitboxWidth / 3.2;
+const playerHalfHeight = playerHitboxHeight / 2.6;
 // Collision Detection
-function isCollisionWithPlayer(bullet, player, height, width) {
+function isCollisionWithPlayer(bullet, player, bulletHeight, bulletWidth, bulletAngle) { 
 
-  return (
-    bullet.x + width / 2 >= player.x - playerHalfWidth &&
-    bullet.x - width / 2 <= player.x + playerHalfWidth &&
-    bullet.y + height / 2 >= player.y - playerHalfHeight &&
-    bullet.y - height / 2 <= player.y + playerHalfHeight
-  );
+  // Get bullet's center position
+  let bulletCenterX = bullet.x;
+  let bulletCenterY = bullet.y;
+
+  // Calculate the rotated corners of the bullet
+  let halfWidth = bulletWidth / 2;
+  let halfHeight = bulletHeight / 2;
+
+  let cosA = Math.cos(bulletAngle);
+  let sinA = Math.sin(bulletAngle);
+
+  let corners = [
+      { x: bulletCenterX + halfWidth * cosA - halfHeight * sinA, y: bulletCenterY + halfWidth * sinA + halfHeight * cosA },
+      { x: bulletCenterX - halfWidth * cosA - halfHeight * sinA, y: bulletCenterY - halfWidth * sinA + halfHeight * cosA },
+      { x: bulletCenterX - halfWidth * cosA + halfHeight * sinA, y: bulletCenterY - halfWidth * sinA - halfHeight * cosA },
+      { x: bulletCenterX + halfWidth * cosA + halfHeight * sinA, y: bulletCenterY + halfWidth * sinA - halfHeight * cosA }
+  ];
+
+  // Check if any bullet corner is inside the player's bounding box
+  for (let corner of corners) {
+      if (
+          corner.x >= player.x - playerHalfWidth &&
+          corner.x <= player.x + playerHalfWidth &&
+          corner.y >= player.y - playerHalfHeight &&
+          corner.y <= player.y + playerHalfHeight
+      ) {
+          return true; // Collision detected
+      }
+  }
+
+  return false; // No collision
 }
+
 
 function isHeadHit(bullet, player, height, width) {
   const headshotTop = player.y - playerHitboxHeight / 3; 
@@ -68,7 +94,7 @@ function moveBullet(room, player, bullet) {
   }
 
 
-  if (!isCollisionWithBullet(room.grid, newX, newY, height, width)) {
+  if (!isCollisionWithBullet(room.grid, newX, newY, height, width, direction)) {
     bullet.x = newX;
     bullet.y = newY;
 
@@ -83,7 +109,7 @@ function moveBullet(room, player, bullet) {
       );
 
       for (const otherPlayer of potentialTargets) {
-        if (isCollisionWithPlayer(bullet, otherPlayer, height, width)) {
+        if (isCollisionWithPlayer(bullet, otherPlayer, height, width, direction)) {
           let finalDamage
 
           finalDamage = calculateFinalDamage(distanceTraveled, distance, damage, damageconfig);
@@ -100,7 +126,7 @@ function moveBullet(room, player, bullet) {
       if (room.dummies.hasOwnProperty(key)) {
         const dummy = room.dummies[key];
         
-        if (isCollisionWithPlayer(bullet, dummy, height, width)) { // Reuse the same collision function
+        if (isCollisionWithPlayer(bullet, dummy, height, width, direction)) { // Reuse the same collision function
           // Handle the dummy collision
 
           let finalDamage
@@ -128,7 +154,8 @@ function moveBullet(room, player, bullet) {
   } else {
     // Check if the bullet can bounce
     if (canbounce === true) {
-      const collidedWall = findCollidedWall(room.grid, newX, newY, height, width); // Find the wall the bullet collided with
+      const collidedWall = findCollidedWall(room.grid, newX, newY, height, width, direction); 
+      //console.log(collidedWall)// Find the wall the bullet collided with
       if (collidedWall) {
         adjustBulletDirection(bullet, collidedWall, 50);
        // bullet.bouncesLeft = bouncesLeft - 1; // Decrease bouncesLeft
