@@ -2,7 +2,7 @@
 
 const wallblocksize = 50
 
-const halfBlockSize = wallblocksize / 2;
+const halfBlockSize = 25;
 const { playerhitbox } = require('./config.js')
 
 function isCollisionWithWalls(grid, x, y) {
@@ -86,8 +86,8 @@ function isCollisionWithBullet(grid, x, y, height, width, angle) {
   ];
 
   return nearbyWalls.some((wall) => {
-    const wallHalfWidth = 50 / 1;
-    const wallHalfHeight = 50 / 1;
+    const wallHalfWidth = halfBlockSize
+    const wallHalfHeight = halfBlockSize
 
     const wallLeft = wall.x - wallHalfWidth;
     const wallRight = wall.x + wallHalfWidth;
@@ -129,8 +129,8 @@ function findCollidedWall(grid, x, y, height, width, angle) {
   ];
 
   return nearbyWalls.find((wall) => {
-    const wallHalfWidth = 50 / 1;
-    const wallHalfHeight = 50 / 1;
+    const wallHalfWidth = halfBlockSize
+    const wallHalfHeight = halfBlockSize
 
     const wallLeft = wall.x - wallHalfWidth;
     const wallRight = wall.x + wallHalfWidth;
@@ -154,7 +154,7 @@ function toRadians(degrees) {
 }
 
 function adjustBulletDirection(bullet, wall, wallBlockSize) {
-  const halfBlockSize = wallBlockSize / 1;
+  const halfBlockSize = halfBlockSize;
 
   // Calculate differences between bullet and wall center
   const deltaX = bullet.x - wall.x;
