@@ -20,8 +20,8 @@ function isCollisionWithPlayer(bullet, player, bulletHeight, bulletWidth, bullet
   let bulletCenterY = bullet.y;
 
   // Calculate the rotated corners of the bullet
-  let halfWidth = bulletWidth / 2;
-  let halfHeight = bulletHeight / 2;
+  let halfWidth = bulletWidth;
+  let halfHeight = bulletHeight;
 
   let cosA = Math.cos(bulletAngle);
   let sinA = Math.sin(bulletAngle);
@@ -56,10 +56,10 @@ function isHeadHit(bullet, player, height, width) {
   const playerLeft = player.x - playerHitboxWidth / 2.4;
   const playerRight = player.x + playerHitboxWidth / 2.4;
 
-  const bulletLeft = bullet.x - width / 2;
-  const bulletRight = bullet.x + width / 2;
-  const bulletTop = bullet.y - height / 2;
-  const bulletBottom = bullet.y + height / 2;
+  const bulletLeft = bullet.x - width;
+  const bulletRight = bullet.x + width;
+  const bulletTop = bullet.y - height;
+  const bulletBottom = bullet.y + height;
 
   const isHeadshot = (
     bulletBottom <= headshotBottom &&

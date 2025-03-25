@@ -63,16 +63,16 @@ function isCollisionWithCachedWalls(walls, x, y) {
   
 
 function isCollisionWithBullet(grid, x, y, height, width, angle) {
-  const xMin = x - width / 2;
-  const xMax = x + width / 2;
-  const yMin = y - height / 2;
-  const yMax = y + height / 2;
+  const xMin = x - width;
+  const xMax = x + width;
+  const yMin = y - height;
+  const yMax = y + height;
 
   // Get nearby walls to optimize performance
   const nearbyWalls = grid.getWallsInArea(xMin, xMax, yMin, yMax);
 
-  const halfWidth = width / 2;
-  const halfHeight = height / 2;
+  const halfWidth = width;
+  const halfHeight = height;
 
   // Calculate the rotated bullet corners
   let cosA = Math.cos(angle);
@@ -86,8 +86,8 @@ function isCollisionWithBullet(grid, x, y, height, width, angle) {
   ];
 
   return nearbyWalls.some((wall) => {
-    const wallHalfWidth = 50 / 2;
-    const wallHalfHeight = 50 / 2;
+    const wallHalfWidth = 50 / 1;
+    const wallHalfHeight = 50 / 1;
 
     const wallLeft = wall.x - wallHalfWidth;
     const wallRight = wall.x + wallHalfWidth;
@@ -106,16 +106,16 @@ function isCollisionWithBullet(grid, x, y, height, width, angle) {
 
 
 function findCollidedWall(grid, x, y, height, width, angle) {
-  const xMin = x - width / 2;
-  const xMax = x + width / 2;
-  const yMin = y - height / 2;
-  const yMax = y + height / 2;
+  const xMin = x - width;
+  const xMax = x + width;
+  const yMin = y - height;
+  const yMax = y + height;
 
   // Get nearby walls to optimize performance
   const nearbyWalls = grid.getWallsInArea(xMin, xMax, yMin, yMax);
 
-  const halfWidth = width / 2;
-  const halfHeight = height / 2;
+  const halfWidth = width;
+  const halfHeight = height;
 
   // Calculate the rotated bullet corners
   let cosA = Math.cos(angle);
@@ -129,8 +129,8 @@ function findCollidedWall(grid, x, y, height, width, angle) {
   ];
 
   return nearbyWalls.find((wall) => {
-    const wallHalfWidth = 50 / 2;
-    const wallHalfHeight = 50 / 2;
+    const wallHalfWidth = 50 / 1;
+    const wallHalfHeight = 50 / 1;
 
     const wallLeft = wall.x - wallHalfWidth;
     const wallRight = wall.x + wallHalfWidth;
@@ -154,7 +154,7 @@ function toRadians(degrees) {
 }
 
 function adjustBulletDirection(bullet, wall, wallBlockSize) {
-  const halfBlockSize = wallBlockSize / 2;
+  const halfBlockSize = wallBlockSize / 1;
 
   // Calculate differences between bullet and wall center
   const deltaX = bullet.x - wall.x;
