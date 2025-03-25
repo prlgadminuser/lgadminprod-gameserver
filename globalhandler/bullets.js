@@ -109,7 +109,7 @@ function moveBullet(room, player, bullet) {
       );
 
       for (const otherPlayer of potentialTargets) {
-        if (isCollisionWithPlayer(bullet, otherPlayer, height, width)) {
+        if (isCollisionWithPlayer(bullet, otherPlayer, height, width, direction)) {
           let finalDamage
 
           finalDamage = calculateFinalDamage(distanceTraveled, distance, damage, damageconfig);
