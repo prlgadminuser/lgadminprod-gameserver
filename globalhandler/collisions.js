@@ -2,7 +2,7 @@
 
 const wallblocksize = 50
 
-const halfBlockSize = 25;
+const halfBlockSize = wallblocksize / 2;
 const { playerhitbox } = require('./config.js')
 
 function isCollisionWithWalls(grid, x, y) {
@@ -34,7 +34,6 @@ function isCollisionWithWalls(grid, x, y) {
 
 function isCollisionWithCachedWalls(walls, x, y) {
 
-  
   const xMin = x - playerhitbox.xMin;
   const xMax = x + playerhitbox.xMax;
   const yMin = y - playerhitbox.yMin;
@@ -62,99 +61,72 @@ function isCollisionWithCachedWalls(walls, x, y) {
 }
   
 
-function isCollisionWithBullet(grid, x, y, height, width, angle) {
-  const xMin = x - width;
-  const xMax = x + width;
-  const yMin = y - height;
-  const yMax = y + height;
+function isCollisionWithBullet(grid, x, y, height, width) {
 
-  // Get nearby walls to optimize performance
+  const xMin = x - 20;
+  const xMax = x + 20;
+  const yMin = y - 45;
+  const yMax = y + 45;
+  const halfWidth = width / 2;
+  const halfHeight = height / 2;
+
   const nearbyWalls = grid.getWallsInArea(xMin, xMax, yMin, yMax);
 
-  const halfWidth = width;
-  const halfHeight = height;
+  // Iterate through each wall
+  for (const wall of nearbyWalls) {
+    // Determine the boundaries of the wall
+    const wallLeft = wall.x - halfBlockSize;
+    const wallRight = wall.x + halfBlockSize;
+    const wallTop = wall.y - halfBlockSize;
+    const wallBottom = wall.y + halfBlockSize;
 
-  // Calculate the rotated bullet corners
-  let cosA = Math.cos(angle);
-  let sinA = Math.sin(angle);
-
-  let corners = [
-    { x: x + halfWidth * cosA - halfHeight * sinA, y: y + halfWidth * sinA + halfHeight * cosA },
-    { x: x - halfWidth * cosA - halfHeight * sinA, y: y - halfWidth * sinA + halfHeight * cosA },
-    { x: x - halfWidth * cosA + halfHeight * sinA, y: y - halfWidth * sinA - halfHeight * cosA },
-    { x: x + halfWidth * cosA + halfHeight * sinA, y: y + halfWidth * sinA - halfHeight * cosA }
-  ];
-
-  return nearbyWalls.some((wall) => {
-    const wallHalfWidth = halfBlockSize
-    const wallHalfHeight = halfBlockSize
-
-    const wallLeft = wall.x - wallHalfWidth;
-    const wallRight = wall.x + wallHalfWidth;
-    const wallTop = wall.y - wallHalfHeight;
-    const wallBottom = wall.y + wallHalfHeight;
-
-    // Check if any of the bullet's corners are inside the wall's bounding box
-    return corners.some(corner =>
-      corner.x >= wallLeft &&
-      corner.x <= wallRight &&
-      corner.y >= wallTop &&
-      corner.y <= wallBottom
-    );
-  });
+    // Check if the bullet's bounding box intersects with the wall's bounding box
+    if (
+      x - halfWidth < wallRight &&
+      x + halfWidth > wallLeft &&
+      y - halfHeight < wallBottom &&
+      y + halfHeight > wallTop
+    ) {
+      return true; // Collision detected
+    }
+  }
+  return false; // No collision detected
 }
 
 
-function findCollidedWall(grid, x, y, height, width, angle) {
-  const xMin = x - width;
-  const xMax = x + width;
-  const yMin = y - height;
-  const yMax = y + height;
+function findCollidedWall(grid, x, y, height, width) {
+  const xMin = x - width / 2;
+  const xMax = x + width / 2;
+  const yMin = y - height / 2;
+  const yMax = y + height / 2;
 
-  // Get nearby walls to optimize performance
   const nearbyWalls = grid.getWallsInArea(xMin, xMax, yMin, yMax);
 
-  const halfWidth = width;
-  const halfHeight = height;
-
-  // Calculate the rotated bullet corners
-  let cosA = Math.cos(angle);
-  let sinA = Math.sin(angle);
-
-  let corners = [
-    { x: x + halfWidth * cosA - halfHeight * sinA, y: y + halfWidth * sinA + halfHeight * cosA },
-    { x: x - halfWidth * cosA - halfHeight * sinA, y: y - halfWidth * sinA + halfHeight * cosA },
-    { x: x - halfWidth * cosA + halfHeight * sinA, y: y - halfWidth * sinA - halfHeight * cosA },
-    { x: x + halfWidth * cosA + halfHeight * sinA, y: y + halfWidth * sinA - halfHeight * cosA }
-  ];
-
+  const halfWidth = 50 / 2;
+  const halfHeight = 50 / 2;
   return nearbyWalls.find((wall) => {
-    const wallHalfWidth = halfBlockSize
-    const wallHalfHeight = halfBlockSize
 
-    const wallLeft = wall.x - wallHalfWidth;
-    const wallRight = wall.x + wallHalfWidth;
-    const wallTop = wall.y - wallHalfHeight;
-    const wallBottom = wall.y + wallHalfHeight;
 
-    // Check if any of the bullet's corners are inside the wall's bounding box
-    return corners.some(corner =>
-      corner.x >= wallLeft &&
-      corner.x <= wallRight &&
-      corner.y >= wallTop &&
-      corner.y <= wallBottom
+    const wallLeft = wall.x - halfWidth;
+    const wallRight = wall.x + halfWidth;
+    const wallTop = wall.y - halfHeight;
+    const wallBottom = wall.y + halfHeight;
+
+    return (
+      xMax > wallLeft &&
+      xMin < wallRight &&
+      yMax > wallTop &&
+      yMin < wallBottom
     );
   });
 }
-
-
 
 function toRadians(degrees) {
   return degrees * (Math.PI / 180);
 }
 
 function adjustBulletDirection(bullet, wall, wallBlockSize) {
-  const halfBlockSize = halfBlockSize;
+  const halfBlockSize = wallBlockSize / 2;
 
   // Calculate differences between bullet and wall center
   const deltaX = bullet.x - wall.x;
@@ -203,13 +175,7 @@ function adjustBulletDirection(bullet, wall, wallBlockSize) {
 
   // Update bullet direction
   bullet.direction = reflectionAngleDegrees;
-} 
-
-// Helper function to convert degrees to radians
-function toRadians(degrees) {
-  return (degrees * Math.PI) / 180;
 }
-
 
 
 module.exports = {
