@@ -63,12 +63,12 @@ function isCollisionWithCachedWalls(walls, x, y) {
 
 function isCollisionWithBullet(grid, x, y, height, width) {
 
-  const xMin = x - 20;
-  const xMax = x + 20;
-  const yMin = y - 45;
-  const yMax = y + 45;
-  const halfWidth = width / 2;
-  const halfHeight = height / 2;
+  const xMin = x - width;
+  const xMax = x + width;
+  const yMin = y - height;
+  const yMax = y + width;
+  const halfWidth = width;
+  const halfHeight = height;
 
   const nearbyWalls = grid.getWallsInArea(xMin, xMax, yMin, yMax);
 
@@ -95,15 +95,15 @@ function isCollisionWithBullet(grid, x, y, height, width) {
 
 
 function findCollidedWall(grid, x, y, height, width) {
-  const xMin = x - width / 2;
-  const xMax = x + width / 2;
-  const yMin = y - height / 2;
-  const yMax = y + height / 2;
+  const xMin = x - width;
+  const xMax = x + width;
+  const yMin = y - height;
+  const yMax = y + height;
 
   const nearbyWalls = grid.getWallsInArea(xMin, xMax, yMin, yMax);
 
-  const halfWidth = 50 / 2;
-  const halfHeight = 50 / 2;
+  const halfWidth = halfBlockSize;
+  const halfHeight = halfBlockSize;
   return nearbyWalls.find((wall) => {
 
 
