@@ -617,24 +617,17 @@ const dummiesfiltered = room.dummies ? transformData(room.dummies) : undefined;
 
 function sendBatchedMessages(roomId) {
   const room = rooms.get(roomId);
-
   handlePlayerMoveIntervalAll(room)
 
   const playercountroom = Array.from(room.players.values()).filter(player => !player.eliminated).length;
 
   if (room.dummies) {
-    const transformData = (data) => {
-      const transformed = {};
-      for (const [key, value] of Object.entries(data)) {
-        transformed[key] = `${value.x}:${value.y}:${value.h}:${value.sh}:${value.t}`;
-      }
-      return transformed;
-    };
+    const transformData = (data) => 
+      Object.fromEntries(Object.entries(data).map(([key, value]) => [key, `${value.x}:${value.y}:${value.h}:${value.sh}:${value.t}`]));
 
     const dummiesfiltered = transformData(room.dummies);
 
     if (room.state === "playing") {
-
       if (generateHash(JSON.stringify(dummiesfiltered)) !== room.previousdummies) {
         room.dummiesfiltered = dummiesfiltered;
       } else {
@@ -822,7 +815,7 @@ function sendBatchedMessages(roomId) {
 
     const currentMessageHash = generateHash(playerSpecificMessage);
     const playermsg = JSON.stringify(playerSpecificMessage)
-    if (player.ws && currentMessageHash !== player.lastMessageHash) {
+    if (player.ws && currentMessageHash !== player.lastMessageHash && playermsg !== "{}" ) {
       const compressedPlayerMessage = LZString.compressToUint8Array(playermsg)
       player.ws.send(compressedPlayerMessage, { binary: true });
       player.lastMessageHash = currentMessageHash;
