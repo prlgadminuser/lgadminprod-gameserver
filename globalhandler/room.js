@@ -616,8 +616,6 @@ const dummiesfiltered = room.dummies ? transformData(room.dummies) : undefined;
 function sendBatchedMessages(roomId) {
   const room = rooms.get(roomId);
 
-  const playerData = new Map();
-
   handlePlayerMoveIntervalAll(room)
 
   const playercountroom = Array.from(room.players.values()).filter(player => !player.eliminated).length;
@@ -663,6 +661,7 @@ function sendBatchedMessages(roomId) {
     roomdata = undefined;  
   }
 
+  let playerData = {};
 
   Array.from(room.players.values()).forEach(player => {
 
@@ -674,7 +673,7 @@ function sendBatchedMessages(roomId) {
         const y = Math.round(bullet.y);
         const direction = Math.round(bullet.direction);
         const gunid = bullet.gunid;
-        formattedBullets[timestamp] = `${timestamp}=${x},${y},${direction},${gunid};`
+        formattedBullets[timestamp] = `${timestamp}=${x},${y},${direction},${gunid};`;
       });
 
       const finalBullets = Object.keys(formattedBullets).length > 0
@@ -684,7 +683,8 @@ function sendBatchedMessages(roomId) {
       player.finalbullets = finalBullets
 
       if (room.state === "playing") {
-        playerData.set(player.nmb, [
+
+        const currentPlayerData = [
           player.x,
           player.y,
           player.direction2,
@@ -692,10 +692,12 @@ function sendBatchedMessages(roomId) {
           player.gun,
           player.emote,
           finalBullets,
-        ].join(':'));
+        ].join(':');
+
+        playerData[player.nmb] = currentPlayerData;
       }
     }
-  })
+  });
 
   const newMessage = {
     pd: playerData, 
@@ -824,7 +826,7 @@ function sendBatchedMessages(roomId) {
       player.lastMessageHash = currentMessageHash;
     }
   });
-}
+} 
 
 
 function generateHashFive(obj) {
