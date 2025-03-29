@@ -38,7 +38,7 @@ const gamemodeconfig = {
     3: {
       can_hit_dummies: true,
       can_hit_players: false,
-      maxplayers: 2,
+      maxplayers: 1,
       respawns_allowed: 1,
       playerhealth: 50,
       playerspeed: 2.2,
@@ -49,7 +49,7 @@ const gamemodeconfig = {
       seasoncoinsreward: [0],
       show_timer: true,
       custom_map: 3,
-      teamsize: 2,
+      teamsize: 1,
       //health_autodamage: true,
     },
     4: {
