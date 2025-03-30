@@ -820,7 +820,7 @@ function sendBatchedMessages(roomId) {
 
     const currentMessageHash = generateHash(playerSpecificMessage);
     const playermsg = JSON.stringify(playerSpecificMessage)
-    if (player.ws && currentMessageHash !== player.lastMessageHash) { // && playermsg !== "{}" 
+    if (player.ws && currentMessageHash !== player.lastMessageHash && playermsg !== "{}") { // && playermsg !== "{}" 
       const compressedPlayerMessage = LZString.compressToUint8Array(playermsg)
       player.ws.send(compressedPlayerMessage, { binary: true });
       player.lastMessageHash = currentMessageHash;
