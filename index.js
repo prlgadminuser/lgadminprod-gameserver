@@ -9,9 +9,9 @@ const http = require('http');
 const axios = require("axios");
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const jwt = require("jsonwebtoken");
-const LZString = require("lz-string");
 const { RateLimiterMemory } = require("rate-limiter-flexible");
 const { uri } = require("./idbconfig");
+const msgpack = require("msgpack-lite");
 
 //app.use(limiter);
 
@@ -124,7 +124,6 @@ const battlePassCollection = db.collection("battlepass_users");
 const shopcollection = db.collection("serverconfig");
 
 module.exports = {
-  LZString,
   axios,
   Limiter,
   WebSocket,
@@ -137,6 +136,7 @@ module.exports = {
   battlePassCollection,
   shopcollection,
   jwt,
+  msgpack,
 };
 
 const {
