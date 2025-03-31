@@ -7,6 +7,7 @@ const testmode = true
 const WebSocket = require("ws");
 const http = require('http');
 const axios = require("axios");
+const LZString = require("lz-string")
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const jwt = require("jsonwebtoken");
 const { RateLimiterMemory } = require("rate-limiter-flexible");
@@ -137,6 +138,7 @@ module.exports = {
   shopcollection,
   jwt,
   msgpack,
+  LZString,
 };
 
 const {

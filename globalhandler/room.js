@@ -1,5 +1,5 @@
 
-const { axios, Limiter, msgpack} = require('./..//index.js');
+const { axios, Limiter, msgpack, LZString } = require('./..//index.js');
 const { matchmaking_timeout, server_tick_rate, game_start_time, rooms, mapsconfig, gunsconfig, gamemodeconfig, matchmakingsp, player_idle_timeout, room_max_open_time } = require('./config.js');
 const { handleBulletFired } = require('./bullets.js');
 const { handleMovement } = require('./player.js');
@@ -16,6 +16,7 @@ const { SpatialGrid, gridcellsize } = require('./config.js');
 const roomStateLock = new Map();
 const roomIndex = new Map();
 const { Mutex } = require('async-mutex');
+const { compressToUint8Array } = require('lz-string');
 
 const roomLock = new Mutex();
 async function acquireRoomLock() {
@@ -608,7 +609,8 @@ const dummiesfiltered = room.dummies ? transformData(room.dummies) : undefined;
   const FinalPreMessage =  JSON.stringify(MessageToSend)
 
 
-  const compressedPlayerMessage = msgpack.encode(FinalPreMessage)
+  //const compressedPlayerMessage = msgpack.encode(FinalPreMessage)
+  const compressedPlayerMessage = LZString.compressToUint8Array(FinalPreMessage)
     player.ws.send(compressedPlayerMessage, { binary: true })
   });
 }
@@ -825,7 +827,10 @@ function sendBatchedMessages(roomId) {
     const currentMessageHash = generateHash(playerSpecificMessage);
     const playermsg = JSON.stringify(playerSpecificMessage)
     if (player.ws && currentMessageHash !== player.lastMessageHash) { // && playermsg !== "{}" 
-      const compressedPlayerMessage = msgpack.encode(playermsg)
+      
+    
+      //const compressedPlayerMessage = msgpack.encode(playermsg)
+      const compressedPlayerMessage = LZString.compressToUint8Array(FinalPreMessage)
 
 
       player.ws.send(compressedPlayerMessage, { binary: true });
