@@ -830,7 +830,7 @@ function sendBatchedMessages(roomId) {
       
     
       //const compressedPlayerMessage = msgpack.encode(playermsg)
-      const compressedPlayerMessage = LZString.compressToUint8Array(FinalPreMessage)
+      const compressedPlayerMessage = LZString.compressToUint8Array(playermsg)
 
 
       player.ws.send(compressedPlayerMessage, { binary: true });
