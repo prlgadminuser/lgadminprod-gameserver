@@ -545,14 +545,7 @@ function SendPreStartMessage(room) {
         color: player.player_color,
         hat_color: player.hat_color,
         top_color: player.top_color,
-        starthealth: player.starthealth,
         nickname: player.nickname,
-        x: player.x,
-        y: player.y,
-        direction: player.direction2,
-        health: player.health,
-        gun: player.gun,
-        emote: player.emote
     };
 });
 
