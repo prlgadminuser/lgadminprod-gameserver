@@ -546,6 +546,7 @@ function SendPreStartMessage(room) {
         hat_color: player.hat_color,
         top_color: player.top_color,
         nickname: player.nickname,
+        starthealth: player.starthealth
     };
 });
 
