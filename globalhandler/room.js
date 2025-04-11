@@ -538,28 +538,27 @@ const getAllKeys = (data) => {
 function SendPreStartMessage(room) {
   let AllPlayerData = {};
 
-     room.players.forEach(player => { 
+  room.players.forEach(player => {
     AllPlayerData[player.nmb] = {
-        hat: player.hat || 0,
-        top: player.top || 0,
-        color: player.player_color,
-        hat_color: player.hat_color,
-        top_color: player.top_color,
-        nickname: player.nickname,
-        starthealth: player.starthealth
+      hat: player.hat || 0,
+      top: player.top || 0,
+      color: player.player_color,
+      hat_color: player.hat_color,
+      top_color: player.top_color,
+      nickname: player.nickname,
+      starthealth: player.starthealth
     };
-});
+  });
 
-  
-const transformData = (data) => {
-  const transformed = {};
-  for (const [key, value] of Object.entries(data)) {
-    transformed[key] = `${value.x}:${value.y}:${value.h}:${value.sh}:${value.t}`;
-  }
-  return transformed;
-};
+  const transformData = (data) => {
+    const transformed = {};
+    for (const [key, value] of Object.entries(data)) {
+      transformed[key] = `${value.x}:${value.y}:${value.h}:${value.sh}:${value.t}`;
+    }
+    return transformed;
+  };
 
-const dummiesfiltered = room.dummies ? transformData(room.dummies) : undefined;
+  const dummiesfiltered = room.dummies ? transformData(room.dummies) : undefined;
 
   Array.from(room.players.values()).forEach(player => {
 
@@ -591,20 +590,20 @@ const dummiesfiltered = room.dummies ? transformData(room.dummies) : undefined;
       pid: player.nmb,
       self_info: selfinfo,
       dummies: room.dummies ? dummiesfiltered : undefined
-  };
-         
-  const MessageToSend = {
-    AllPlayerData: AllPlayerData,
-    SelfData: selfdata,
-   // clientVersion: "v3.5678",
-    //roomid: room.roomId
-};
+    };
 
-  const FinalPreMessage =  JSON.stringify(MessageToSend)
+    const MessageToSend = {
+      AllPlayerData: AllPlayerData,
+      SelfData: selfdata,
+      // clientVersion: "v3.5678",
+      //roomid: room.roomId
+    };
+
+    const FinalPreMessage = JSON.stringify(MessageToSend)
 
 
-  //const compressedPlayerMessage = msgpack.encode(FinalPreMessage)
-  const compressedPlayerMessage = LZString.compressToUint8Array(FinalPreMessage)
+    const compressedPlayerMessage = msgpack.encode(FinalPreMessage)
+    //const compressedPlayerMessage = LZString.compressToUint8Array(FinalPreMessage)
     player.ws.send(compressedPlayerMessage, { binary: true })
   });
 }
@@ -820,11 +819,11 @@ function sendBatchedMessages(roomId) {
 
     const currentMessageHash = generateHash(playerSpecificMessage);
     const playermsg = JSON.stringify(playerSpecificMessage)
-    if ( player.ws && currentMessageHash !== player.lastMessageHash ) { // && playermsg !== "{}" 
+    if (player.ws && currentMessageHash !== player.lastMessageHash) { // && playermsg !== "{}" 
       
     
-      //const compressedPlayerMessage = msgpack.encode(playermsg)
-      const compressedPlayerMessage = LZString.compressToUint8Array(playermsg)
+      const compressedPlayerMessage = msgpack.encode(playermsg)
+     // const compressedPlayerMessage = LZString.compressToUint8Array(playermsg)
 
 
       player.ws.send(compressedPlayerMessage, { binary: true });

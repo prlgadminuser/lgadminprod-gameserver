@@ -3,6 +3,8 @@
 function respawnplayer(room, player) {
 
 
+ const UseStartRespawnPoint = false
+
 
   player.visible = false
   player.state = 2
@@ -12,10 +14,13 @@ function respawnplayer(room, player) {
 
   player.health = player.starthealth
 
+
+  if (UseStartRespawnPoint) {
   player.timeoutIds.push(setTimeout(() =>{
-    player.x = player.startspawn.x
-    player.y = player.startspawn.y
-    }, 3000));
+  player.x = player.startspawn.x
+   player.y = player.startspawn.y
+  }, 3000));
+}
 
   player.timeoutIds.push(setTimeout(() =>{
     player.visible = true
