@@ -7,8 +7,8 @@ const { matchmaking, matchmakingsp } = require('./../gameconfig/matchmaking')
 
 const rooms = new Map();
 
-const gridcellsize = 100; 
-const server_tick_rate = 16.5 //17
+const gridcellsize = 200; 
+const server_tick_rate = 16.4 //17
 const matchmaking_timeout = 120000
 const player_idle_timeout = 10000
 const game_start_time = 1000
@@ -31,11 +31,6 @@ const validDirections = [-90, 0, 180, -180, 90, 45, 135, -135, -45];
 const isValidDirection = (direction) => {
 return validDirections.includes(direction);
   };
-
-const teleporters = [
-  { x: 700, y: 0, width: 50, height: 50, destination: { x: -700, y: 0 } },// Example teleporter
-  // Add more teleporters as needed
-];
 
 
 
@@ -186,7 +181,6 @@ module.exports = {
   game_win_rest_time,
   maxClients,
   isValidDirection,
-  teleporters,
   playerHitboxWidth, 
   playerHitboxHeight,
   gunsconfig,

@@ -12,20 +12,25 @@ const { initializeAnimations } = require('./../gameObjectEvents/deathrespawn')
 const { playerchunkrenderer } = require('./../playerhandler/playerchunks')
 const { SpatialGrid, gridcellsize } = require('./config.js');
 
-
-const roomStateLock = new Map();
 const roomIndex = new Map();
-const { Mutex } = require('async-mutex');
 const { compressToUint8Array } = require('lz-string');
 
-const roomLock = new Mutex();
-async function acquireRoomLock() {
-  await roomLock.acquire();
+
+
+function getAvailableRoom(gamemode, spLevel) {
+  const key = `${gamemode}_${spLevel}`;
+  const roomList = roomIndex.get(key) || [];
+  return roomList.find(room => room.players.size < room.maxplayers && room.state === 'waiting');
 }
 
-function releaseRoomLock() {
-  roomLock.release();
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8); // Ensures UUID version 4
+    return v.toString(16);
+  });
 }
+
 
 function getAvailableRoom(gamemode, spLevel) {
   const key = `${gamemode}_${spLevel}`;
@@ -139,19 +144,6 @@ async function CreateTeams(room) {
 }
 
 
-
-
-/*function getPlayersTeamNmbs(room, nmb) {
-  for (const team of room.teams) {
-    if (team.players.some(player => player.nmb === nmb)) {
-      // Return only the `nmb` values of the players in this team
-      return team.players.map(player => player.nmb);
-    }
-  }
-  return []; // Return an empty array if the player's team is not found
-}
-  */
-
 function clearAndRemoveInactiveTimers(timerArray, clearFn) {
   return timerArray.filter(timer => {
     if (timer._destroyed || timer._idleTimeout === -1) {
@@ -191,8 +183,6 @@ function closeRoom(roomId) {
     clearTimeout(room.fixtimeout4);
     clearTimeout(room.runtimeout);
 
-
-
     clearInterval(room.xcleaninterval)
     clearInterval(room.intervalId);
     clearInterval(room.shrinkInterval);
@@ -221,19 +211,15 @@ function closeRoom(roomId) {
 
     });
 
-
-
-    roomStateLock.delete(roomId);
     rooms.delete(roomId);
     removeRoomFromIndex(room)
 
 
-  //console.log(`Room ${roomId} closed.`);
+    //console.log(`Room ${roomId} closed.`);
   } else {
-  //console.log(`Room ${roomId} not found.`);
+    //console.log(`Room ${roomId} not found.`);
   }
 }
-
 
 function playerLeave(roomId, playerId) {
   const room = rooms.get(roomId);
@@ -276,27 +262,21 @@ async function joinRoom(ws, gamemode, playerVerified) {
     const roomjoiningvalue = matchmakingsp(finalskillpoints);
 
     let roomId, room;
-    let roomCreationLock = false
 
-    // Synchronize room assignment/creation
-    await acquireRoomLock();
 
-    try {
-      // Check if there's an existing room with available slots
-      const availableRoom = getAvailableRoom(gamemode, roomjoiningvalue)
+    // Check if there's an existing room with available slots
+    const availableRoom = getAvailableRoom(gamemode, roomjoiningvalue)
 
-      if (availableRoom) {
-        roomId = availableRoom.roomId;
-        room = availableRoom;
-      } else {
-        roomId = `room_${Math.random().toString(36).substring(2, 15)}`;
-        room = createRoom(roomId, gamemode, gamemodeconfig[gamemode], roomjoiningvalue);
-        addRoomToIndex(room)
-        roomCreationLock = true; // Indicate that this function created the room
-      }
-    } finally {
-      releaseRoomLock();
+    if (availableRoom) {
+      roomId = availableRoom.roomId;
+      room = availableRoom;
+    } else {
+      roomId = generateUUID();
+      room = createRoom(roomId, gamemode, gamemodeconfig[gamemode], roomjoiningvalue);
+      addRoomToIndex(room)
+      roomCreationLock = true; // Indicate that this function created the room
     }
+
 
     const playerRateLimiter = createRateLimiter();
 
@@ -336,11 +316,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
       shooting: false,
       shoot_direction: 90,
       loadout: loadout || fallbackloadout,
-      loadout_formatted: [
-        loadout[1],
-        loadout[2],
-        loadout[3],
-      ].join('$'),
+      loadout_formatted: [loadout[1], loadout[2],loadout[3]].join('$'),
       //loadout: fallbackloadout,
       bullets: new Map(),
       spectatingPlayer: playerId,
@@ -387,9 +363,9 @@ async function joinRoom(ws, gamemode, playerVerified) {
       }
     }
 
-    if (room.state === "waiting" && room.players.size >= room.maxplayers && !roomStateLock.get(roomId)) {
-      roomStateLock.set(roomId, true);
+    if (room.state === "waiting" && room.players.size >= room.maxplayers) {
 
+      room.state = "await";
 
       await setupRoomPlayers(room)
 
@@ -399,13 +375,9 @@ async function joinRoom(ws, gamemode, playerVerified) {
 
       try {
 
-        room.state = "await";
+        //  room.state = "await";
 
         setTimeout(() => {
-          if (!rooms.has(roomId)) {
-            roomStateLock.delete(roomId);
-            return;
-          }
 
           if (room.matchtype === "td") {
 
@@ -421,8 +393,6 @@ async function joinRoom(ws, gamemode, playerVerified) {
 
           }
 
-
-     
 
           playerchunkrenderer(room)
           SendPreStartMessage(room)
@@ -461,13 +431,12 @@ async function joinRoom(ws, gamemode, playerVerified) {
             if (room.regenallowed) startRegeneratingHealth(room, 1);
             if (room.healthdecrease) startDecreasingHealth(room, 1);
 
-            roomStateLock.delete(roomId);
           }, game_start_time);
 
         }, 1000);
       } catch (err) {
-        console.error(`Error during room state transition: ${err}`);
-        roomStateLock.delete(roomId);
+
+
       }
     }
 
@@ -484,8 +453,6 @@ async function joinRoom(ws, gamemode, playerVerified) {
     throw error;
   }
 }
-
-// Utility functions for locking
 
 
 function cleanupRoom(roomId) {
@@ -516,7 +483,6 @@ function getDistance(x1, y1, x2, y2) {
 
 }
 
-
 const state_map = {
   "waiting": 1,
   "await": 2,
@@ -532,7 +498,6 @@ const getAllKeys = (data) => {
   }
   return allKeys;
 };
-
 
 
 function SendPreStartMessage(room) {
@@ -601,16 +566,11 @@ function SendPreStartMessage(room) {
 
     const FinalPreMessage = JSON.stringify(MessageToSend)
 
-
     const compressedPlayerMessage = msgpack.encode(FinalPreMessage)
     //const compressedPlayerMessage = LZString.compressToUint8Array(FinalPreMessage)
     player.ws.send(compressedPlayerMessage, { binary: true })
   });
 }
-
-
-
-
 
 function sendBatchedMessages(roomId) {
   const room = rooms.get(roomId);
@@ -655,9 +615,9 @@ function sendBatchedMessages(roomId) {
   ].join(':');
 
   if (room.rdlast !== roomdata) {
-    room.rdlast = roomdata;  
+    room.rdlast = roomdata;
   } else {
-    roomdata = undefined;  
+    roomdata = undefined;
   }
 
   let playerData = {};
@@ -699,7 +659,7 @@ function sendBatchedMessages(roomId) {
   });
 
   const newMessage = {
-    pd: playerData, 
+    pd: playerData,
     rd: roomdata,
     dm: room.dummiesfiltered,
     kf: room.newkillfeed,
@@ -744,7 +704,7 @@ function sendBatchedMessages(roomId) {
 
     if (room.state === "playing") {
       const playersInRange = player.nearbyplayers;
-      const previousHashes = player.pdHashes || {}; 
+      const previousHashes = player.pdHashes || {};
 
       filteredplayers = Object.entries(playerData).reduce((result, [playerId, playerData]) => {
         if (playersInRange.has(Number(playerId))) {
@@ -753,7 +713,7 @@ function sendBatchedMessages(roomId) {
 
           if (!previousHashes[playerId] || previousHashes[playerId] !== currentHash) {
             result[playerId] = playerData;
-            previousHashes[playerId] = currentHash; 
+            previousHashes[playerId] = currentHash;
           }
         }
         return result;
@@ -766,13 +726,13 @@ function sendBatchedMessages(roomId) {
     } else {
       if (room.state === "countdown") {
         player.pd = playerData;
-        player.pdHashes = {}; 
+        player.pdHashes = {};
       } else {
         player.pd = {};
         player.pdHashes = {};
       }
     }
-    
+
 
     let playerSpecificMessage;
 
@@ -786,7 +746,7 @@ function sendBatchedMessages(roomId) {
 
         if (player.selflastmsg !== selfPlayerData) {
           player.selflastmsg = selfPlayerData;
-          finalselfdata = selfPlayerData 
+          finalselfdata = selfPlayerData
         } else {
           finalselfdata = undefined;
         }
@@ -802,7 +762,7 @@ function sendBatchedMessages(roomId) {
         { key: 'cl', value: player.nearbycircles },
         { key: 'an', value: player.nearbyanimations },
         { key: 'sb', value: room.scoreboard },
-        { key: 'sd', value: room.state === "playing" ? finalselfdata : undefined},
+        { key: 'sd', value: room.state === "playing" ? finalselfdata : undefined },
         { key: 'b', value: player.finalbullets },
         { key: 'pd', value: player.pd },
 
@@ -820,18 +780,17 @@ function sendBatchedMessages(roomId) {
     const currentMessageHash = generateHash(playerSpecificMessage);
     const playermsg = JSON.stringify(playerSpecificMessage)
     if (player.ws && currentMessageHash !== player.lastMessageHash) { // && playermsg !== "{}" 
-      
-    
+
+
       const compressedPlayerMessage = msgpack.encode(playermsg)
-     // const compressedPlayerMessage = LZString.compressToUint8Array(playermsg)
+      // const compressedPlayerMessage = LZString.compressToUint8Array(playermsg)
 
 
       player.ws.send(compressedPlayerMessage, { binary: true });
       player.lastMessageHash = currentMessageHash;
     }
   });
-} 
-
+}
 
 function generateHashFive(obj) {
   return JSON.stringify(obj)
@@ -840,8 +799,6 @@ function generateHashFive(obj) {
     .toString(16);
 }
 
-
-// Efficient Hashing Function
 function generateHash(message) {
   let hash = 0;
   const str = JSON.stringify(message);
@@ -852,29 +809,19 @@ function generateHash(message) {
   return hash;
 }
 
-
-
-
-// Update last sent message and player data
-
-
 function getRandomInt(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-
-// Utility function to calculate distance between two points
 function getDistance(x1, y1, x2, y2) {
   return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
 }
 
-
 function deepCopy(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
-
 
 function createRoom(roomId, gamemode, gmconfig, splevel) {
 
@@ -1018,14 +965,14 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
   const roomopentoolong = room.timeoutIds.push(setTimeout(() => {
     closeRoom(roomId);
-  //  console.log(`Room ${roomId} closed due to timeout.`);
+    //  console.log(`Room ${roomId} closed due to timeout.`);
   }, room_max_open_time));
   room.runtimeout = roomopentoolong;
 
   // Countdown timer update every second
 
 
- // console.log("Room", room.roomId, "created")
+  // console.log("Room", room.roomId, "created")
   return room;
 }
 
@@ -1096,14 +1043,11 @@ function handleRequest(result, message) {
       break;
   }
 
-
-
   if (result.room.state !== "playing" || player.visible === false || player.eliminated || !result.room.winner === -1) return;
 
   const data = message.split(':');
 
   const type = data[0]
-
 
   switch (type) {
     case "3":
@@ -1130,7 +1074,6 @@ function handleRequest(result, message) {
 
 }
 
-
 function handlePong(player) {
   const now = Date.now();
 
@@ -1140,8 +1083,6 @@ function handlePong(player) {
   player.lastPing = now;
 
 }
-
-
 
 function handleShoot(data, player, room) {
   const shoot_direction = data[1]
