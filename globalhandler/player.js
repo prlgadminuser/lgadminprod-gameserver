@@ -33,8 +33,8 @@ function handleMovement(player, room) { // all hitbox should be more then the ot
   const radians = (finalDirection * Math.PI) / 180;
 
   // Calculate movement deltas
-  const xDelta = player.speed * deltaTime * Math.cos(radians);
-  const yDelta = player.speed * deltaTime * Math.sin(radians);
+  const xDelta = player.speed * Math.cos(radians);
+  const yDelta = player.speed * Math.sin(radians);
 
   // Update position with precise values
   let newX = player.x + xDelta;
