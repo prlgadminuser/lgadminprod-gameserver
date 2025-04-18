@@ -39,33 +39,27 @@ player.nearbyanimations = animations;
 }
 
 
+function getPlayersInRange(players, centerX, centerY, xThreshold, yThreshold, excludePlayerId) {
+  const playersInRange = new Set();
 
-
-function getPlayersInRange(players, centerX, centerY, radius, excludePlayerId) {
-  const playersInRange = new Set(); // Initialize an empty Set
-
-  // Loop through the players and check their distance to (centerX, centerY)
   players.forEach(player => {
-    // Exclude the current player (based on player.nmb)
     if (player.nmb !== excludePlayerId) {
-      const dx = player.x - centerX;
-      const dy = player.y - centerY;
-      const distanceSquared = dx * dx + dy * dy; // Avoid expensive Math.sqrt
+      const isNearX = Math.abs(player.x - centerX) <= xThreshold;
+      const isNearY = Math.abs(player.y - centerY) <= yThreshold;
 
-      // If the player is within the radius, add them to the Set
-      if (distanceSquared <= radius * radius) {
-        playersInRange.add(player.nmb); // Include the player's ID
+      if (isNearX && isNearY) {
+        playersInRange.add(player.nmb);
       }
     }
   });
 
-  return playersInRange; // Return the Set of player IDs
+  return playersInRange;
 }
 
 
 function UpdatePlayerChunks(room, player) {
 
-  player.nearbyplayers = getPlayersInRange(Array.from(room.players.values()).filter(p => p.visible), player.x, player.y, 400, player.nmb);
+  player.nearbyplayers = getPlayersInRange(Array.from(room.players.values()).filter(p => p.visible), player.x, player.y, 500, 300, player.nmb);
 
 }
 
@@ -89,7 +83,7 @@ function playerchunkrenderer(room) {
 
 
 
-  room.intervalIds.push(setInterval(() => {
+ /* room.intervalIds.push(setInterval(() => {
 
     room.players.forEach((player) => {
 
@@ -97,6 +91,7 @@ function playerchunkrenderer(room) {
 
     });
   }, 100));
+  */
 }
 
 module.exports = {

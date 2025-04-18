@@ -33,7 +33,7 @@ const gamemodeconfig = {
       show_timer: false,
       custom_map: 2,
       teamsize: 1,
-      healspawner: true,
+    //  healspawner: true,
     },
     3: {
       can_hit_dummies: true,
@@ -41,7 +41,7 @@ const gamemodeconfig = {
       maxplayers: 1,
       respawns_allowed: 1,
       playerhealth: 50,
-      playerspeed: 2.2,
+      playerspeed: 1.7,
       usezone: false,
       zonespeed: 0.8,
       health_restore: false,

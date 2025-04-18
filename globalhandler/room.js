@@ -1,5 +1,5 @@
 
-const { axios, Limiter, msgpack, LZString } = require('./..//index.js');
+const { axios, Limiter, msgpack, LZString, compressMessage } = require('./..//index.js');
 const { matchmaking_timeout, server_tick_rate, game_start_time, rooms, mapsconfig, gunsconfig, gamemodeconfig, matchmakingsp, player_idle_timeout, room_max_open_time } = require('./config.js');
 const { handleBulletFired } = require('./bullets.js');
 const { handleMovement } = require('./player.js');
@@ -11,7 +11,6 @@ const { initializeHealingCircles } = require('./../gameObjectEvents/healingcircl
 const { initializeAnimations } = require('./../gameObjectEvents/deathrespawn')
 const { playerchunkrenderer } = require('./../playerhandler/playerchunks')
 const { SpatialGrid, gridcellsize } = require('./config.js');
-
 const roomIndex = new Map();
 const { compressToUint8Array } = require('lz-string');
 
@@ -424,7 +423,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
             }
 
             // console.log(`Room ${roomId} transitioned to playing state`);
-            StartremoveOldKillfeedEntries(room);
+          //  StartremoveOldKillfeedEntries(room);
             initializeAnimations(room);
             if (room.healspawner) initializeHealingCircles(room);
             if (room.zoneallowed) UseZone(room);
@@ -499,7 +498,6 @@ const getAllKeys = (data) => {
   return allKeys;
 };
 
-
 function SendPreStartMessage(room) {
   let AllPlayerData = {};
 
@@ -566,8 +564,7 @@ function SendPreStartMessage(room) {
 
     const FinalPreMessage = JSON.stringify(MessageToSend)
 
-    const compressedPlayerMessage = msgpack.encode(FinalPreMessage)
-    //const compressedPlayerMessage = LZString.compressToUint8Array(FinalPreMessage)
+    const compressedPlayerMessage = compressMessage(FinalPreMessage)
     player.ws.send(compressedPlayerMessage, { binary: true })
   });
 }
@@ -658,12 +655,7 @@ function sendBatchedMessages(roomId) {
     }
   });
 
-  const newMessage = {
-    pd: playerData,
-    rd: roomdata,
-    dm: room.dummiesfiltered,
-    kf: room.newkillfeed,
-  };
+
 
   room.players.forEach(player => {
 
@@ -733,6 +725,11 @@ function sendBatchedMessages(roomId) {
       }
     }
 
+    const newMessage = {
+      pd: playerData,
+      rd: roomdata,
+      dm: room.dummiesfiltered,
+    };
 
     let playerSpecificMessage;
 
@@ -752,15 +749,12 @@ function sendBatchedMessages(roomId) {
         }
       } else {
         finalselfdata = selfdata
-
       }
 
       playerSpecificMessage = [
         { key: 'rd', value: newMessage.rd },
-        { key: 'kf', value: newMessage.kf },
         { key: 'dm', value: room.state === "playing" ? newMessage.dm : undefined },
         { key: 'cl', value: player.nearbycircles },
-        { key: 'an', value: player.nearbyanimations },
         { key: 'sb', value: room.scoreboard },
         { key: 'sd', value: room.state === "playing" ? finalselfdata : undefined },
         { key: 'b', value: player.finalbullets },
@@ -774,18 +768,12 @@ function sendBatchedMessages(roomId) {
         }
         return acc;
       }, {});
-
     }
 
     const currentMessageHash = generateHash(playerSpecificMessage);
     const playermsg = JSON.stringify(playerSpecificMessage)
     if (player.ws && currentMessageHash !== player.lastMessageHash) { // && playermsg !== "{}" 
-
-
-      const compressedPlayerMessage = msgpack.encode(playermsg)
-      // const compressedPlayerMessage = LZString.compressToUint8Array(playermsg)
-
-
+      const compressedPlayerMessage = compressMessage(playermsg)
       player.ws.send(compressedPlayerMessage, { binary: true });
       player.lastMessageHash = currentMessageHash;
     }
@@ -1305,6 +1293,7 @@ function handlePlayerMoveIntervalAll(room) {
 */
 
 module.exports = {
+ // compressMessage,
   joinRoom,
   sendBatchedMessages,
   createRoom,
@@ -1314,4 +1303,5 @@ module.exports = {
   handleCoinCollected2,
   handlePong,
   getDistance,
+ 
 };

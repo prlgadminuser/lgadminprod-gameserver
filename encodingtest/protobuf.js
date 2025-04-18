@@ -1,4 +1,4 @@
-const protobuf = require("protobufjfs");
+const protobuf = require("protobufjs");
 
 // Define the schema
 const protoSchema = `

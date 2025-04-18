@@ -12,6 +12,17 @@ const { RateLimiterMemory } = require("rate-limiter-flexible");
 const { uri } = require("./idbconfig");
 const msgpack = require("msgpack-lite");
 
+
+
+function compressMessage(msg) {
+  //const encoded = msgpack.encode(FinalPreMessage)
+  //const encoded = LZString.compressToUint8Array(FinalPreMessage)
+  const encoded = msgpack.encode(msg)
+  return encoded
+}
+
+
+
 const ConnectionOptionsRateLimit = {
   points: 1, // Number of points
   duration: 1, // Per second
@@ -111,6 +122,7 @@ const userCollection = db.collection("users");
 const battlePassCollection = db.collection("battlepass_users");
 const shopcollection = db.collection("serverconfig");
 
+
 module.exports = {
   axios,
   Limiter,
@@ -126,7 +138,9 @@ module.exports = {
   jwt,
   msgpack,
   LZString,
+  compressMessage,
 };
+
 
 const {
   joinRoom,
@@ -387,3 +401,4 @@ const PORT = process.env.PORT || 8070;
 server.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}`);
 });
+
