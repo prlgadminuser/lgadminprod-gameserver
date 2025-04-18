@@ -423,7 +423,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
             }
 
             // console.log(`Room ${roomId} transitioned to playing state`);
-          //  StartremoveOldKillfeedEntries(room);
+            StartremoveOldKillfeedEntries(room);
             initializeAnimations(room);
             if (room.healspawner) initializeHealingCircles(room);
             if (room.zoneallowed) UseZone(room);
@@ -755,6 +755,7 @@ function sendBatchedMessages(roomId) {
         { key: 'rd', value: newMessage.rd },
         { key: 'dm', value: room.state === "playing" ? newMessage.dm : undefined },
         { key: 'cl', value: player.nearbycircles },
+        { key: 'kf', value: player.newkillfeed },
         { key: 'sb', value: room.scoreboard },
         { key: 'sd', value: room.state === "playing" ? finalselfdata : undefined },
         { key: 'b', value: player.finalbullets },

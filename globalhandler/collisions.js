@@ -1,6 +1,6 @@
 "use strict";
 
-const wallblocksize = 50
+const wallblocksize = 25
 
 const halfBlockSize = wallblocksize / 2;
 const { playerhitbox } = require('./config.js')

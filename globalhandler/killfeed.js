@@ -40,7 +40,7 @@ switch (type) {
   }
   room.newkillfeed = getKillfeed(room)
 
-  sendNewFeedPacketToAll(room, entryMessage)
+ // sendNewFeedPacketToAll(room, entryMessage)
 
 }
 
@@ -73,14 +73,14 @@ function removeOldKillfeedEntries(room) {
 }
 
 // Example usage
-/*function StartremoveOldKillfeedEntries(room) {
+function StartremoveOldKillfeedEntries(room) {
   room.intervalIds.push(setInterval(() => {
       removeOldKillfeedEntries(room)
     }, 1000));
 }
-*/
+
 module.exports = {
   addKillToKillfeed,
   getKillfeed,
- // StartremoveOldKillfeedEntries,
+  StartremoveOldKillfeedEntries,
 }
