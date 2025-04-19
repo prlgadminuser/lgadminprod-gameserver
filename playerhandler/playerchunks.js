@@ -83,7 +83,7 @@ function playerchunkrenderer(room) {
 
 
 
- /* room.intervalIds.push(setInterval(() => {
+ room.intervalIds.push(setInterval(() => {
 
     room.players.forEach((player) => {
 
@@ -91,7 +91,6 @@ function playerchunkrenderer(room) {
 
     });
   }, 100));
-  */
 }
 
 module.exports = {

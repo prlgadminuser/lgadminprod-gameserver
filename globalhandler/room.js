@@ -425,10 +425,10 @@ async function joinRoom(ws, gamemode, playerVerified) {
             // console.log(`Room ${roomId} transitioned to playing state`);
             StartremoveOldKillfeedEntries(room);
             initializeAnimations(room);
-            if (room.healspawner) initializeHealingCircles(room);
-            if (room.zoneallowed) UseZone(room);
-            if (room.regenallowed) startRegeneratingHealth(room, 1);
-            if (room.healthdecrease) startDecreasingHealth(room, 1);
+            if (room.modifiers.includes("HealingCircles")) initializeHealingCircles(room);
+            if (room.modifiers.includes("UseZone")) UseZone(room);
+            if (room.modifiers.includes("AutoHealthRestore")) startRegeneratingHealth(room, 1);
+            if (room.modifiers.includes("AutoHealthDamage")) startDecreasingHealth(room, 1);
 
           }, game_start_time);
 
@@ -868,13 +868,8 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     place_counts: gmconfig.placereward,
     ss_counts: gmconfig.seasoncoinsreward,
     respawns: gmconfig.respawns_allowed,
-    zonespeed: gmconfig.zonespeed,
-    zoneallowed: gmconfig.usezone,
-    regenallowed: gmconfig.health_restore,
-    healthdecrease: gmconfig.health_autodamage,
-    healspawner: gmconfig.healspawner,
+    modifiers: gmconfig.modifiers,
     matchtype: gmconfig.matchtype
-
   };
 
 
