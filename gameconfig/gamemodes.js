@@ -65,8 +65,8 @@ const gamemodeconfig = {
       playerspeed: 1.8,
 
       modifiers: [
-        "UseZone",
-        "AutoHealthRestore",
+       // "UseZone",
+        //"AutoHealthRestore",
         ],
 
       placereward: [0],
