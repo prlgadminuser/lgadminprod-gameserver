@@ -755,6 +755,7 @@ function sendBatchedMessages(roomId) {
         { key: 'rd', value: newMessage.rd },
         { key: 'dm', value: room.state === "playing" ? newMessage.dm : undefined },
         { key: 'cl', value: player.nearbycircles },
+        { key: 'an', value: player.nearbyanimations },
         { key: 'kf', value: room.newkillfeed },
         { key: 'sb', value: room.scoreboard },
         { key: 'sd', value: room.state === "playing" ? finalselfdata : undefined },

@@ -159,7 +159,6 @@ function handleDummyCollision(room, shootingPlayer, dummyKey, damage) {
 
   if (dummy.h < 1) {
     spawnAnimation(room, dummy, "death")
-    addKillToKillfeed(room, 5, null, 0, null)
 
     delete room.dummies[dummyKey];
 
