@@ -31,6 +31,7 @@ const mapsconfig = {
       height: 500,
       spawns: [
         {"x":-0,"y":0},
+        {"x":56,"y":0},
       ],
       dummies: {
         a1: { x: 100, y: 0, h: 100, sh: 100, t: 1 },
