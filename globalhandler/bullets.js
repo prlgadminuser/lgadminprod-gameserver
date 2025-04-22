@@ -75,7 +75,7 @@ function isHeadHit(bullet, player, height, width) {
 function moveBullet(room, player, bullet) {
   if (!bullet || !room) return;
 
-  const { speed, direction, timestamp, height, width, bouncesLeft, maxtime, distance, canbounce, damageconfig, damage, gunid } = bullet;
+  const { speed, direction, timestamp, height, width, maxtime, distance, damageconfig, damage, gunid, modifiers } = bullet;
 
   const radians = toRadians(direction - 90); 
   const xDelta = speed * Math.cos(radians);
@@ -158,13 +158,13 @@ function moveBullet(room, player, bullet) {
 
     console.log(collidedWall, Math.random(1))
 
-    if (canbounce === true) { // Find the wall the bullet collided with
+    if (modifiers.has("CanBounce")) { // Find the wall the bullet collided with
       if (collidedWall) {
         adjustBulletDirection(bullet, collidedWall, 50);
        // bullet.bouncesLeft = bouncesLeft - 1; // Decrease bouncesLeft
       }
     } else {
-      if (collidedWall) {
+      if (modifiers.has("DestroyWalls") && collidedWall) {
 
       player.bullets.delete(timestamp); // Remove the bullet if no bounces are left
       room.grid.removeWallAt(collidedWall.x, collidedWall.y)
@@ -201,7 +201,7 @@ function shootBulletsWithDelay(room, player, bulletdata) {
 
 // Shoot Bullet
 async function shootBullet(room, player, bulletdata) {
-  const { angle, offset, damage, speed, height, width, bouncesLeft, maxtime, distance, canbounce, damageconfig, gunid } = bulletdata;
+  const { angle, offset, damage, speed, height, width, maxtime, distance, damageconfig, gunid, modifiers } = bulletdata;
   const radians = toRadians(angle);
   const radians1 = toRadians(angle - 90);
   const xOffset = offset * Math.cos(radians);
@@ -221,13 +221,12 @@ const y1 = parseFloat((30 * Math.sin(radians1)).toFixed(1)); // Offset along the
     damage,
     speed,
     height,
-    width,
-    bouncesLeft, // Initialize with the number of bounces allowed
+    width, // Initialize with the number of bounces allowed
     maxtime,
     distance,
-    canbounce,
     damageconfig,
     gunid,
+    modifiers,
   };
 
   player.bullets.set(timestamp, bullet);
@@ -265,12 +264,11 @@ async function handleBulletFired(room, player, gunType) {
       angle: gun.useplayerangle ? bullet.angle + definedAngle : bullet.angle,
       height: 4,
       width: 4,
-      bouncesLeft: gun.maxbounces || 0, // Set initial bounces
       maxtime: Date.now() + gun.maxexistingtime + bullet.delay,
       distance: gun.distance,
-      canbounce: gun.can_bullets_bounce, 
       damageconfig: gun.damageconfig || {},
-      gunid: gunType
+      gunid: gunType,
+      modifiers: gun.modifiers
     };
 
     shootBulletsWithDelay(room, player, bulletdata);

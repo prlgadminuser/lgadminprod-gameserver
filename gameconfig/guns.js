@@ -9,7 +9,6 @@ const gunsconfig = {
       cooldown: 500,
       distance: 300,
       maxexistingtime: 400,
-      maxbounces: 5,
       damage: 12,
       width: 26,
       height: 8,
@@ -38,10 +37,13 @@ const gunsconfig = {
     },
   
     2: { // Default Shotgun
+      modifiers: new Set([
+        "CanBounce",
+        "DestroyWalls"
+        ]),
       cooldown: 800,
       distance: 250,
       maxexistingtime: 500,
-      maxbounces: 5,
       damage: 10,
       width: 34,
       height: 8,
@@ -60,6 +62,10 @@ const gunsconfig = {
     },
   
     3: { // Default Sniper
+      modifiers: new Set([
+        "CanBounce",
+        "DestroyWalls"
+        ]),
       cooldown: 600,
       distance: 300,
       maxexistingtime: 2000,
@@ -82,10 +88,13 @@ const gunsconfig = {
     },
   
     4: {  // XNITRO SMG
+      modifiers: new Set([
+        "CanBounce",
+        "DestroyWalls"
+        ]),
       cooldown: 300,
       distance: 350,
       maxexistingtime: 400,
-      maxbounces: 1,
       damage: 4,
       width: 34,
       height: 7,
@@ -104,10 +113,13 @@ const gunsconfig = {
     },
   
     5: {  // ARCADE BLASTER
+      modifiers: new Set([
+        "CanBounce",
+        "DestroyWalls"
+        ]),
       cooldown: 700,
       distance: 1000,
       maxexistingtime: 500,
-      maxbounces: 2,
       damage: 10,
       width: 6,
       height: 60,
