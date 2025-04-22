@@ -3,7 +3,7 @@ const gunsconfig = {
 
     1: {  // Default pistol
       modifiers: new Set([
-      "CanBounce",
+     // "CanBounce",
       "DestroyWalls"
       ]),
       cooldown: 500,
@@ -38,7 +38,7 @@ const gunsconfig = {
   
     2: { // Default Shotgun
       modifiers: new Set([
-        "CanBounce",
+     //   "CanBounce",
         "DestroyWalls"
         ]),
       cooldown: 800,
@@ -63,7 +63,7 @@ const gunsconfig = {
   
     3: { // Default Sniper
       modifiers: new Set([
-        "CanBounce",
+       // "CanBounce",
         "DestroyWalls"
         ]),
       cooldown: 600,
@@ -89,7 +89,7 @@ const gunsconfig = {
   
     4: {  // XNITRO SMG
       modifiers: new Set([
-        "CanBounce",
+        //"CanBounce",
         "DestroyWalls"
         ]),
       cooldown: 300,
@@ -114,7 +114,7 @@ const gunsconfig = {
   
     5: {  // ARCADE BLASTER
       modifiers: new Set([
-        "CanBounce",
+       // "CanBounce",
         "DestroyWalls"
         ]),
       cooldown: 700,
