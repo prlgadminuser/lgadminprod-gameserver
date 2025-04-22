@@ -425,10 +425,10 @@ async function joinRoom(ws, gamemode, playerVerified) {
             // console.log(`Room ${roomId} transitioned to playing state`);
             StartremoveOldKillfeedEntries(room);
             initializeAnimations(room);
-            if (room.modifiers.includes("HealingCircles")) initializeHealingCircles(room);
-            if (room.modifiers.includes("UseZone")) UseZone(room);
-            if (room.modifiers.includes("AutoHealthRestore")) startRegeneratingHealth(room, 1);
-            if (room.modifiers.includes("AutoHealthDamage")) startDecreasingHealth(room, 1);
+            if (room.modifiers.has("HealingCircles")) initializeHealingCircles(room);
+            if (room.modifiers.has("UseZone")) UseZone(room);
+            if (room.modifiers.has("AutoHealthRestore")) startRegeneratingHealth(room, 1);
+            if (room.modifiers.has("AutoHealthDamage")) startDecreasingHealth(room, 1);
 
           }, game_start_time);
 
@@ -837,6 +837,17 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
   const itemgrid = new SpatialGrid(gridcellsize); // grid system for items
 
+   const map = mapsconfig[mapid];
+  const mapgrid = new SpatialGrid(gridcellsize);
+
+  map.walls.forEach(wall => mapgrid.addWall(wall));
+
+  // Save the grid in the map configuration
+ const roomgrid = mapgrid;
+
+ 
+
+
   const room = {
     currentplayerid: 0,
     killfeed: [],
@@ -863,7 +874,8 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     mapHeight: mapsconfig[mapid].height,
     mapWidth: mapsconfig[mapid].width,
     walls: mapsconfig[mapid].walls, //mapsconfig[mapid].walls.map(({ x, y }) => ({ x, y })),
-    grid: mapsconfig[mapid].grid,
+    grid: roomgrid,
+    
     spawns: mapsconfig[mapid].spawns,
     map: mapid,
     place_counts: gmconfig.placereward,
@@ -872,8 +884,6 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     modifiers: gmconfig.modifiers,
     matchtype: gmconfig.matchtype
   };
-
-
 
 
   room.xcleaninterval = setInterval(() => {

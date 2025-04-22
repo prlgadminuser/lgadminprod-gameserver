@@ -34,117 +34,140 @@ return validDirections.includes(direction);
 
 
 
-class SpatialGrid {
-  constructor(gridcellsize) {
-    this.cellSize = gridcellsize;
-    this.grid = new Map();
-  }
 
-  _getCellKey(x, y) {
-    const cellX = Math.floor(x / this.cellSize);
-    const cellY = Math.floor(y / this.cellSize);
-    return `${cellX},${cellY}`;
-  }
 
-  addObject(obj) {
-    const key = this._getCellKey(obj.x, obj.y);
-    if (!this.grid.has(key)) {
-      this.grid.set(key, []);
-    }
-    this.grid.get(key).push(obj);
-  }
-
-  removeObject(obj) {
-    if (!obj.obj_id) {
-      throw new Error("Object must have an 'obj_id' property to be removed.");
+  class SpatialGrid {
+    constructor(cellSize) {
+      this.cellSize = cellSize;
+      this.grid = new Map(); // Map<string, Set<object>>
     }
   
-    const key = this._getCellKey(obj.x, obj.y);
-    if (this.grid.has(key)) {
+    _getCellKey(x, y) {
+      const cellX = Math.floor(x / this.cellSize);
+      const cellY = Math.floor(y / this.cellSize);
+      return `${cellX},${cellY}`;
+    }
+  
+    _ensureCell(key) {
+      if (!this.grid.has(key)) {
+        this.grid.set(key, new Set());
+      }
+    }
+  
+    _addToCell(obj) {
+      const key = this._getCellKey(obj.x, obj.y);
+      this._ensureCell(key);
+      this.grid.get(key).add(obj);
+    }
+  
+    _removeFromCell(obj, compareById = false) {
+      const key = this._getCellKey(obj.x, obj.y);
       const cell = this.grid.get(key);
-      // Find the index of the object to be removed using obj_id
-      const index = cell.findIndex(item => item.obj_id === obj.obj_id);
-      if (index !== -1) {
-        cell.splice(index, 1);
-        // If the cell becomes empty, delete it from the grid
-        if (cell.length === 0) {
-          this.grid.delete(key);
-        }
-      }
-    }
-  }
+      if (!cell) return;
   
-
-
-
-
-
-  addWall(wall) {
-    const key = this._getCellKey(wall.x, wall.y);
-    if (!this.grid.has(key)) {
-      this.grid.set(key, []);
-    }
-    this.grid.get(key).push(wall);
-  }
-
-  getObjectsInAreaWithId(xMin, xMax, yMin, yMax, id) {
-    const objects = [];
-    const startX = Math.floor(xMin / this.cellSize);
-    const endX = Math.floor(xMax / this.cellSize);
-    const startY = Math.floor(yMin / this.cellSize);
-    const endY = Math.floor(yMax / this.cellSize);
-
-    for (let x = startX; x <= endX; x++) {
-      for (let y = startY; y <= endY; y++) {
-        const key = `${x},${y}`;
-        if (this.grid.has(key)) {
-          const cellObjects = this.grid.get(key);
-          // Filter by ID if provided
-          const filteredObjects = cellObjects.filter(obj => obj.id === id);
-          objects.push(...filteredObjects);
+      if (compareById && obj.obj_id) {
+        for (const item of cell) {
+          if (item.obj_id === obj.obj_id) {
+            cell.delete(item);
+            break;
+          }
         }
+      } else {
+        cell.delete(obj);
+      }
+  
+      if (cell.size === 0) {
+        this.grid.delete(key);
       }
     }
-    return objects;
-  }
+  
+    addObject(obj) {
+      this._addToCell(obj);
+    }
+  
+    removeObject(obj) {
+      if (!obj.obj_id) {
+        throw new Error("Object must have an 'obj_id' property to be removed.");
+      }
+      this._removeFromCell(obj, true);
+    }
+  
+    addWall(wall) {
+      this._addToCell(wall);
+    }
+  
+    removeWall(wall) {
+      this._removeFromCell(wall, false);
+    }
 
-  getObjectsInArea(xMin, xMax, yMin, yMax) {
-    const objects = [];
-    const startX = Math.floor(xMin / this.cellSize);
-    const endX = Math.floor(xMax / this.cellSize);
-    const startY = Math.floor(yMin / this.cellSize);
-    const endY = Math.floor(yMax / this.cellSize);
-
-    for (let x = startX; x <= endX; x++) {
-      for (let y = startY; y <= endY; y++) {
-        const key = `${x},${y}`;
-        if (this.grid.has(key)) {
-          objects.push(...this.grid.get(key));
+    removeWallAt(x, y) {
+      const key = this._getCellKey(x, y);
+      const cell = this.grid.get(key);
+      if (!cell) return;
+    
+      for (const obj of cell) {
+        if (obj.x === x && obj.y === y) {
+          cell.delete(obj);
+          break; // Only remove one matching wall
         }
       }
-    }
-    return objects;
-  }
-
-
-  getWallsInArea(xMin, xMax, yMin, yMax) {
-    const walls = [];
-    const startX = Math.floor(xMin / this.cellSize);
-    const endX = Math.floor(xMax / this.cellSize);
-    const startY = Math.floor(yMin / this.cellSize);
-    const endY = Math.floor(yMax / this.cellSize);
-
-    for (let x = startX; x <= endX; x++) {
-      for (let y = startY; y <= endY; y++) {
-        const key = `${x},${y}`;
-        if (this.grid.has(key)) {
-          walls.push(...this.grid.get(key));
-        }
+    
+      if (cell.size === 0) {
+        this.grid.delete(key);
       }
     }
-    return walls;
+  
+    _getKeysInArea(xMin, xMax, yMin, yMax) {
+      const keys = [];
+      const startX = Math.floor(xMin / this.cellSize);
+      const endX = Math.floor(xMax / this.cellSize);
+      const startY = Math.floor(yMin / this.cellSize);
+      const endY = Math.floor(yMax / this.cellSize);
+  
+      for (let x = startX; x <= endX; x++) {
+        for (let y = startY; y <= endY; y++) {
+          keys.push(`${x},${y}`);
+        }
+      }
+  
+      return keys;
+    }
+  
+    getObjectsInAreaWithId(xMin, xMax, yMin, yMax, id) {
+      const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
+      const result = [];
+  
+      for (const key of keys) {
+        const cell = this.grid.get(key);
+        if (cell) {
+          for (const obj of cell) {
+            if (obj.id === id) result.push(obj);
+          }
+        }
+      }
+  
+      return result;
+    }
+  
+    getObjectsInArea(xMin, xMax, yMin, yMax) {
+      const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
+      const result = [];
+  
+      for (const key of keys) {
+        const cell = this.grid.get(key);
+        if (cell) {
+          result.push(...cell);
+        }
+      }
+  
+      return result;
+    }
+  
+    getWallsInArea(xMin, xMax, yMin, yMax) {
+      // Same logic as getObjectsInArea
+      return this.getObjectsInArea(xMin, xMax, yMin, yMax);
+    }
   }
-}
 
 // Initialize grids for all maps
 // Adjust as necessary

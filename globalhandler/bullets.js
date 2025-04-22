@@ -3,6 +3,7 @@
 const { isCollisionWithBullet, adjustBulletDirection, findCollidedWall } = require('./collisions');
 const { handlePlayerCollision, handleDummyCollision } = require('./player');
 const { playerHitboxHeight, playerHitboxWidth, gunsconfig, server_tick_rate, globalspeedmultiplier } = require('./config');
+const { compressMessage } = require('./..//index.js');
 
 const BULLET_MOVE_INTERVAL = server_tick_rate // milliseconds
 
@@ -153,19 +154,39 @@ function moveBullet(room, player, bullet) {
 
   } else {
     // Check if the bullet can bounce
-    if (canbounce === true) {
-      const collidedWall = findCollidedWall(room.grid, newX, newY, height, width); // Find the wall the bullet collided with
+    const collidedWall = findCollidedWall(room.grid, newX, newY, height, width);
+
+    console.log(collidedWall, Math.random(1))
+
+    if (canbounce === true) { // Find the wall the bullet collided with
       if (collidedWall) {
         adjustBulletDirection(bullet, collidedWall, 50);
        // bullet.bouncesLeft = bouncesLeft - 1; // Decrease bouncesLeft
       }
     } else {
+      if (collidedWall) {
+
       player.bullets.delete(timestamp); // Remove the bullet if no bounces are left
-      return;
+      room.grid.removeWallAt(collidedWall.x, collidedWall.y)
+      SendRemovedWallToPlayers(collidedWall, room)
+      } else {
+
+        return;
+      }
     }
   }
 }
 
+function SendRemovedWallToPlayers(wall, room) {
+  room.players.forEach(player => {
+
+    const MessageToSend = `WLD:${wall.x}:${wall.y}`
+
+    const compressedPlayerMessage = compressMessage(MessageToSend)
+    player.ws.send(compressedPlayerMessage, { binary: true })
+
+  })
+}
 
 
 // Bullet Shooting with Delay
