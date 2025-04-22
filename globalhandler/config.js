@@ -7,8 +7,8 @@ const { matchmaking, matchmakingsp } = require('./../gameconfig/matchmaking')
 
 const rooms = new Map();
 
-const gridcellsize = 400; 
-const server_tick_rate = 16.95 //17
+const gridcellsize = 800; 
+const server_tick_rate = 16.8 //17
 const matchmaking_timeout = 120000
 const player_idle_timeout = 10000
 const game_start_time = 1000
@@ -150,17 +150,21 @@ return validDirections.includes(direction);
     }
   
     getObjectsInArea(xMin, xMax, yMin, yMax) {
-      const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
-      const result = [];
+      const objects = [];
+      const startX = Math.floor(xMin / this.cellSize);
+      const endX = Math.floor(xMax / this.cellSize);
+      const startY = Math.floor(yMin / this.cellSize);
+      const endY = Math.floor(yMax / this.cellSize);
   
-      for (const key of keys) {
-        const cell = this.grid.get(key);
-        if (cell) {
-          result.push(...cell);
+      for (let x = startX; x <= endX; x++) {
+        for (let y = startY; y <= endY; y++) {
+          const key = `${x},${y}`;
+          if (this.grid.has(key)) {
+            objects.push(...this.grid.get(key));
+          }
         }
       }
-  
-      return result;
+      return objects;
     }
   
     getWallsInArea(xMin, xMax, yMin, yMax) {
