@@ -150,21 +150,17 @@ return validDirections.includes(direction);
     }
   
     getObjectsInArea(xMin, xMax, yMin, yMax) {
-      const objects = [];
-      const startX = Math.floor(xMin / this.cellSize);
-      const endX = Math.floor(xMax / this.cellSize);
-      const startY = Math.floor(yMin / this.cellSize);
-      const endY = Math.floor(yMax / this.cellSize);
+      const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
+      const result = [];
   
-      for (let x = startX; x <= endX; x++) {
-        for (let y = startY; y <= endY; y++) {
-          const key = `${x},${y}`;
-          if (this.grid.has(key)) {
-            objects.push(...this.grid.get(key));
-          }
+      for (const key of keys) {
+        const cell = this.grid.get(key);
+        if (cell) {
+          result.push(...cell);
         }
       }
-      return objects;
+  
+      return result;
     }
   
     getWallsInArea(xMin, xMax, yMin, yMax) {
