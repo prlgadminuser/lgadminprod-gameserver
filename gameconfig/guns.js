@@ -2,7 +2,10 @@
 const gunsconfig = {
 
     1: {  // Default pistol
-   //   can_bullets_bounce: true,
+      modifiers: new Set([
+      "CanBounce",
+      "DestroyWalls"
+      ]),
       cooldown: 500,
       distance: 300,
       maxexistingtime: 400,

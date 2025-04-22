@@ -29,7 +29,7 @@ const ConnectionOptionsRateLimit = {
 };
 
 let connectedClientsCount = 0;
-let connectedUsernames = [];
+let connectedUsernames = new Set();
 
 const rateLimiterConnection = new RateLimiterMemory(ConnectionOptionsRateLimit);
 
@@ -229,7 +229,7 @@ wss.on("connection", (ws, req) => {
             return;
           }
 
-          if (connectedUsernames.includes(playerVerified.playerId)) {
+          if (connectedUsernames.has(playerVerified.playerId)) {
             ws.close(4006, "code:double");
             return;
           }
@@ -243,7 +243,7 @@ wss.on("connection", (ws, req) => {
 
             const player = result.room.players.get(result.playerId);
             connectedClientsCount++;
-            connectedUsernames.push(playerVerified.playerId);
+            connectedUsernames.add(playerVerified.playerId);
             //  console.log(connectedUsernames);
 
             ws.on("message", (message) => {
@@ -283,7 +283,7 @@ wss.on("connection", (ws, req) => {
                 if (player.kills > 0) increasePlayerKills(player.playerId, player.kills);
 
                 connectedClientsCount--;
-                connectedUsernames = connectedUsernames.filter(username => username !== player.playerId);
+                connectedUsernames.delete(player.playerId);
                 addKillToKillfeed(result.room, 5, null, player.nmb, null)
                 result.room.players.delete(result.playerId);
 
