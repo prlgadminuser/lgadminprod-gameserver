@@ -1,9 +1,6 @@
 // td in matchtype means team match knockout
 // MODIFIERS:
-const HealingCircles = "HealingCircles";
-const UseZone = "UseZone";
-const AutoHealthRestore = "AutoHealthRestore";
-const AutoHealthDamage = "AutoHealthDamage";
+
 
 const gamemodeconfig = {
   1: {
@@ -15,7 +12,7 @@ const gamemodeconfig = {
     respawns_allowed: 0,
 
     playerhealth: 77,
-    playerspeed: 1.4,   
+    playerspeed: 1.5,   
 
     modifiers: new Set([
       "UseZone",
@@ -38,7 +35,7 @@ const gamemodeconfig = {
     respawns_allowed: 0,
 
     playerhealth: 150,
-    playerspeed: 1.4,
+    playerspeed: 1.5,
 
     modifiers: new Set([
       "UseZone",
@@ -61,7 +58,7 @@ const gamemodeconfig = {
     respawns_allowed: 1,
 
     playerhealth: 50,
-    playerspeed: 1.4,
+    playerspeed: 1.5,
 
     modifiers: new Set([
       // UseZone,
@@ -84,7 +81,7 @@ const gamemodeconfig = {
     respawns_allowed: Infinity,
 
     playerhealth: 100,
-    playerspeed: 1.4,
+    playerspeed: 1.5,
 
     placereward: [7, -2],
     seasoncoinsreward: [17, 10],
