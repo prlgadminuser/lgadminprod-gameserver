@@ -15,7 +15,7 @@ const gamemodeconfig = {
     respawns_allowed: 0,
 
     playerhealth: 77,
-    playerspeed: 1.5,   
+    playerspeed: 1.4,   
 
     modifiers: new Set([
       "UseZone",
@@ -38,7 +38,7 @@ const gamemodeconfig = {
     respawns_allowed: 0,
 
     playerhealth: 150,
-    playerspeed: 1.5,
+    playerspeed: 1.4,
 
     modifiers: new Set([
       "UseZone",
@@ -61,7 +61,7 @@ const gamemodeconfig = {
     respawns_allowed: 1,
 
     playerhealth: 50,
-    playerspeed: 1.5,
+    playerspeed: 1.4,
 
     modifiers: new Set([
       // UseZone,
@@ -84,7 +84,7 @@ const gamemodeconfig = {
     respawns_allowed: Infinity,
 
     playerhealth: 100,
-    playerspeed: 1.5,
+    playerspeed: 1.4,
 
     placereward: [7, -2],
     seasoncoinsreward: [17, 10],
