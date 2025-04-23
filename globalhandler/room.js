@@ -766,7 +766,7 @@ function sendBatchedMessages(roomId) {
         ['pd', player.pd],
       ];
 
-      room.destroyedWalls = [];
+    
       
         playerSpecificMessage = Object.fromEntries(
         entries.filter(([_, value]) => {
@@ -786,6 +786,7 @@ function sendBatchedMessages(roomId) {
       player.lastMessageHash = currentMessageHash;
     }
   });
+  room.destroyedWalls = [];
 }
 
 function generateHashFive(obj) {
