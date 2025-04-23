@@ -61,7 +61,7 @@ const gamemodeconfig = {
     respawns_allowed: 1,
 
     playerhealth: 50,
-    playerspeed: 1.5,
+    playerspeed: 1.4,
 
     modifiers: new Set([
       // UseZone,
@@ -72,7 +72,7 @@ const gamemodeconfig = {
     seasoncoinsreward: [0],
 
     show_timer: true,
-    custom_map: 3,
+    custom_map: 4,
   },
 
   4: {

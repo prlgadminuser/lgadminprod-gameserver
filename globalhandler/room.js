@@ -569,6 +569,8 @@ function SendPreStartMessage(room) {
   });
 }
 
+
+
 function sendBatchedMessages(roomId) {
   const room = rooms.get(roomId);
 
@@ -751,25 +753,29 @@ function sendBatchedMessages(roomId) {
         finalselfdata = selfdata
       }
 
-      playerSpecificMessage = [
-        { key: 'rd', value: newMessage.rd },
-        { key: 'dm', value: room.state === "playing" ? newMessage.dm : undefined },
-        { key: 'cl', value: player.nearbycircles },
-        { key: 'an', value: player.nearbyanimations },
-        { key: 'kf', value: room.newkillfeed },
-        { key: 'sb', value: room.scoreboard },
-        { key: 'sd', value: room.state === "playing" ? finalselfdata : undefined },
-        { key: 'b', value: player.finalbullets },
-        { key: 'pd', value: player.pd },
+      const entries = [
+        ['rd', newMessage.rd],
+        ['dm', room.state === "playing" ? newMessage.dm : undefined],
+        ['kf', room.newkillfeed],
+        ['sb', room.scoreboard],
+        ['sd', room.state === "playing" ? finalselfdata : undefined],
+        ['WLD', room.destroyedWalls],
+        ['cl', player.nearbycircles],
+        ['an', player.nearbyanimations],
+        ['b', player.finalbullets],
+        ['pd', player.pd],
+      ];
 
-      ].reduce((acc, { key, value }) => {
-        if (value !== null && value !== undefined &&
-          (!Array.isArray(value) || value.length > 0) &&
-          (!(value instanceof Object) || Object.keys(value).length > 0)) {
-          acc[key] = value;
-        }
-        return acc;
-      }, {});
+      room.destroyedWalls = [];
+      
+        playerSpecificMessage = Object.fromEntries(
+        entries.filter(([_, value]) => {
+          if (value == null) return false; // filters null and undefined
+          if (Array.isArray(value)) return value.length > 0;
+          if (typeof value === 'object') return Object.keys(value).length > 0;
+          return true;
+        })
+      );
     }
 
     const currentMessageHash = generateHash(playerSpecificMessage);
@@ -848,42 +854,50 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
  
 
 
-  const room = {
-    currentplayerid: 0,
-    killfeed: [],
-    newkillfeed: [],
-    itemgrid: itemgrid,
-    timeoutIds: [],
-    intervalIds: [],
-    roomId: roomId,
-    objects: [],
-    maxplayers: gmconfig.maxplayers,
-    teamsize: gmconfig.teamsize,
-    sp_level: splevel,
-    snap: [],
-    players: new Map(),
-    state: "waiting", // Possible values: "waiting", "playing", "countdown"
-    showtimer: gmconfig.show_timer,
-    gamemode: gamemode,
-    winner: -1,
-    eliminatedTeams: [],
-    zoneStartX: -mapsconfig[mapid].width, // Example start X coordinate (100 units left of the center)
-    zoneStartY: -mapsconfig[mapid].height, // Example start Y coordinate (100 units above the center)
-    zoneEndX: mapsconfig[mapid].width,  // Example end X coordinate (100 units right of the center)
-    zoneEndY: mapsconfig[mapid].height,
-    mapHeight: mapsconfig[mapid].height,
-    mapWidth: mapsconfig[mapid].width,
-    walls: mapsconfig[mapid].walls, //mapsconfig[mapid].walls.map(({ x, y }) => ({ x, y })),
-    grid: roomgrid,
-    
-    spawns: mapsconfig[mapid].spawns,
-    map: mapid,
-    place_counts: gmconfig.placereward,
-    ss_counts: gmconfig.seasoncoinsreward,
-    respawns: gmconfig.respawns_allowed,
-    modifiers: gmconfig.modifiers,
-    matchtype: gmconfig.matchtype
-  };
+ const room = {
+  // Game State
+  currentplayerid: 0,
+  eliminatedTeams: [],
+  gamemode: gamemode,
+  intervalIds: [],
+  killfeed: [],
+  matchtype: gmconfig.matchtype,
+  newkillfeed: [],
+  objects: [],
+  destroyedWalls: [],
+  players: new Map(),
+  snap: [],
+  state: "waiting", // Possible values: "waiting", "playing", "countdown"
+  timeoutIds: [],
+  winner: -1,
+
+  // Game Configuration
+  itemgrid: itemgrid,
+  maxplayers: gmconfig.maxplayers,
+  modifiers: gmconfig.modifiers,
+  place_counts: gmconfig.placereward,
+  respawns: gmconfig.respawns_allowed,
+  showtimer: gmconfig.show_timer,
+  sp_level: splevel,
+  ss_counts: gmconfig.seasoncoinsreward,
+  teamsize: gmconfig.teamsize,
+
+  // Map Configuration
+  grid: roomgrid,
+  map: mapid,
+  mapHeight: mapsconfig[mapid].height,
+  mapWidth: mapsconfig[mapid].width,
+  spawns: mapsconfig[mapid].spawns,
+  walls: mapsconfig[mapid].walls, // Could be mapped differently if needed
+  zoneStartX: -mapsconfig[mapid].width,
+  zoneStartY: -mapsconfig[mapid].height,
+  zoneEndX: mapsconfig[mapid].width,
+  zoneEndY: mapsconfig[mapid].height,
+
+  // Metadata
+  roomId: roomId,
+};
+
 
 
   room.xcleaninterval = setInterval(() => {
@@ -909,7 +923,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     }
   }, 1000); // Run every 1 second
 
-  if (gmconfig.can_hit_dummies) {
+  if (gmconfig.can_hit_dummies && mapsconfig[mapid].dummies) {
     room.dummies = deepCopy(mapsconfig[mapid].dummies) //dummy crash fix
   }
 

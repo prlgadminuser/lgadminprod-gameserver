@@ -77,116 +77,86 @@ function moveBullet(room, player, bullet) {
 
   const { speed, direction, timestamp, height, width, maxtime, distance, damageconfig, damage, gunid, modifiers } = bullet;
 
-  const radians = toRadians(direction - 90); 
+  const radians = toRadians(direction - 90);
   const xDelta = speed * Math.cos(radians);
   const yDelta = speed * Math.sin(radians);
 
   const newX = parseFloat((bullet.x + xDelta).toFixed(1));
   const newY = parseFloat((bullet.y + yDelta).toFixed(1));
   const distanceTraveled = calculateDistance(bullet.startX, bullet.startY, newX, newY);
-
   const timenow = Date.now();
-  //console.log(t1, bullet.maxtime);
 
   if (distanceTraveled > distance || timenow > maxtime) {
     player.bullets.delete(timestamp);
     return;
-
   }
 
-
-  if (!isCollisionWithBullet(room.grid, newX, newY, height, width)) {
-    bullet.x = newX;
-    bullet.y = newY;
-
-
-    if (room.config.canCollideWithPlayers && room.winner === -1) {
-
-
-      const potentialTargets = Array.from(room.players.values()).filter(otherPlayer =>
-        otherPlayer !== player &&
-        otherPlayer.visible &&    
-        !player.team.players.some(player => player.nmb === otherPlayer.nmb)
-      );
-
-      for (const otherPlayer of potentialTargets) {
-        if (isCollisionWithPlayer(bullet, otherPlayer, height, width, direction)) {
-          let finalDamage
-
-          finalDamage = calculateFinalDamage(distanceTraveled, distance, damage, damageconfig);
-
-          handlePlayerCollision(room, player, otherPlayer, finalDamage, gunid);
-          player.bullets.delete(timestamp);
-          return;
-        }
-      }
-    }
-
-  if (room.config.canCollideWithDummies) {
-    for (const key in room.dummies) {
-      if (room.dummies.hasOwnProperty(key)) {
-        const dummy = room.dummies[key];
-        
-        if (isCollisionWithPlayer(bullet, dummy, height, width, direction)) { // Reuse the same collision function
-          // Handle the dummy collision
-
-          let finalDamage
-
-          finalDamage = calculateFinalDamage(distanceTraveled, distance, damage, damageconfig);
-          //if (isHeadHit(bullet, dummy, height, width)) {
-        //    finalDamage = calculateFinalDamage(distanceTraveled, distance, damage * 1.7, damageconfig);
-         // } else {
-         //   finalDamage = calculateFinalDamage(distanceTraveled, distance, damage, damageconfig);
-  
-         // }
-        
-          handleDummyCollision(room, player, key, finalDamage); // Pass key instead of dummy object
-          
-          // Remove the bullet from the player's bullets
-          player.bullets.delete(timestamp);
-          
-          // Exit the loop after handling the collision
-          return;
-        }
-      }
-    }
-  }
-
-  } else {
-    // Check if the bullet can bounce
+  // Handle collision with the grid first to simplify logic below
+  if (isCollisionWithBullet(room.grid, newX, newY, height, width)) {
     const collidedWall = findCollidedWall(room.grid, newX, newY, height, width);
-
-    console.log(collidedWall, Math.random(1))
-
-    if (modifiers.has("CanBounce")) { // Find the wall the bullet collided with
+    if (modifiers.has("DestroyWalls")) {
+      if (collidedWall) DestroyWall(collidedWall, room);
+    } else if (modifiers.has("DestroyWalls(DestroyBullet)")) {
       if (collidedWall) {
-        adjustBulletDirection(bullet, collidedWall, 50);
-       // bullet.bouncesLeft = bouncesLeft - 1; // Decrease bouncesLeft
+        player.bullets.delete(timestamp);
+        DestroyWall(collidedWall, room);
+        return;
       }
+    } else if (modifiers.has("CanBounce") && collidedWall) {
+      adjustBulletDirection(bullet, collidedWall, 50);
+      return;
     } else {
-      if (modifiers.has("DestroyWalls") && collidedWall) {
+      player.bullets.delete(timestamp);
+      return;
+    }
+  }
 
-      player.bullets.delete(timestamp); // Remove the bullet if no bounces are left
-      room.grid.removeWallAt(collidedWall.x, collidedWall.y)
-      SendRemovedWallToPlayers(collidedWall, room)
-      } else {
+  // Handle player collision if applicable
+  if (room.config.canCollideWithPlayers && room.winner === -1) {
+    const potentialTargets = Array.from(room.players.values()).filter(otherPlayer =>
+      otherPlayer !== player && otherPlayer.visible && !player.team.players.some(p => p.nmb === otherPlayer.nmb)
+    );
 
+    for (const otherPlayer of potentialTargets) {
+      if (isCollisionWithPlayer(bullet, otherPlayer, height, width, direction)) {
+        const finalDamage = calculateFinalDamage(distanceTraveled, distance, damage, damageconfig);
+        handlePlayerCollision(room, player, otherPlayer, finalDamage, gunid);
+        player.bullets.delete(timestamp);
         return;
       }
     }
   }
+
+  // Handle dummy collision if applicable
+  if (room.config.canCollideWithDummies) {
+    for (const key in room.dummies) {
+      const dummy = room.dummies[key];
+      if (isCollisionWithPlayer(bullet, dummy, height, width, direction)) {
+        const finalDamage = calculateFinalDamage(distanceTraveled, distance, damage, damageconfig);
+        handleDummyCollision(room, player, key, finalDamage);
+        player.bullets.delete(timestamp);
+        return;
+      }
+    }
+  }
+
+  // Update bullet position if no collision
+  bullet.x = newX;
+  bullet.y = newY;
 }
 
-function SendRemovedWallToPlayers(wall, room) {
-  room.players.forEach(player => {
 
-    const MessageToSend = `WLD:${wall.x}:${wall.y}`
+function DestroyWall(wall, room) {
+  
+  room.grid.removeWallAt(wall.x, wall.y);
 
-    const compressedPlayerMessage = compressMessage(MessageToSend)
-    player.ws.send(compressedPlayerMessage, { binary: true })
+    const Message = `${wall.x}:${wall.y}`
+   
+   room.destroyedWalls.push(Message)
 
-  })
-}
+
+  }
+
 
 
 // Bullet Shooting with Delay
