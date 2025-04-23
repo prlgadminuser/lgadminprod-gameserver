@@ -69,7 +69,7 @@ const gamemodeconfig = {
     seasoncoinsreward: [0],
 
     show_timer: true,
-    custom_map: 4,
+    custom_map: 3,
   },
 
   4: {
