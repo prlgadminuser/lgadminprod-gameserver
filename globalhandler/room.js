@@ -760,7 +760,9 @@ function prepareRoomMessages(room) {
     }
   });
   
-  
+  room.destroyedWalls = [];
+
+  room.players.forEach(player => { player.hitmarkers = [] })
 
 
 }
@@ -777,9 +779,7 @@ function sendRoomMessages(room) {
     }
 
   })
-  room.destroyedWalls = [];
 
-  room.players.forEach(player => { player.hitmarkers = [] })
 }
 
 
