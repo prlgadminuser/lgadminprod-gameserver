@@ -632,6 +632,7 @@ function prepareRoomMessages(room) {
   room.players.forEach(player => {
 
     player.npfix = JSON.stringify(player.nearbyfinalids ? Array.from(player.nearbyfinalids) : [])
+    hitmarkerfix = JSON.stringify(player.hitmarkers ? Array.from(player.hitmarkers) : [])
     const selfdata = {
       id: player.nmb,
       state: player.state,
@@ -652,7 +653,7 @@ function prepareRoomMessages(room) {
       spc: player.spectateid,
       guns: player.loadout_formatted,
       np: player.npfix,
-      ht: player.hitmarkers,
+      ht: hitmarkerfix,
     };
 
     const lastSelfData = player.lastSelfData || {};
@@ -760,9 +761,7 @@ function prepareRoomMessages(room) {
   });
   
   
-  room.destroyedWalls = [];
 
-  room.players.forEach(player => { player.hitmarkers = [] })
 
 }
 
@@ -776,7 +775,11 @@ function sendRoomMessages(room) {
     player.ws.send(player.lastcompressedmessage, { binary: true });
 
     }
+
   })
+  room.destroyedWalls = [];
+
+  room.players.forEach(player => { player.hitmarkers = [] })
 }
 
 
@@ -951,15 +954,32 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
 
   // Start sending batched messages at regular intervals
-  room.intervalIds.push(setInterval(() => {
+// in ms
+const prep_offset = 5;        // run prepare 5ms before send
 
-    prepareRoomMessages(room)
+let startTime = Date.now();
+let tick = 0;
 
-    room.timeoutIds.push(setTimeout(() => {
-      sendRoomMessages(room);
-  }, 3))
+room.intervalIds.push(setInterval(() => {
+    const now = Date.now();
+    const nextTickTime = startTime + tick * server_tick_rate;
 
-  }, server_tick_rate));
+    // Schedule prepareRoomMessages 5ms before the target tick time
+    const prepDelay = Math.max(0, nextTickTime - Date.now() - prep_offset);
+    setTimeout(() => {
+        prepareRoomMessages(room);
+    }, prepDelay);
+
+    // Schedule sendRoomMessages at the exact target tick time
+    const sendDelay = Math.max(0, nextTickTime - Date.now());
+    setTimeout(() => {
+        sendRoomMessages(room);
+    }, sendDelay);
+
+    tick++;
+
+}, server_tick_rate));
+
 
   // room.intervalId = intervalId;
   room.timeoutIds.push(setTimeout(() => {
