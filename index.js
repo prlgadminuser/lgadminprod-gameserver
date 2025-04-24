@@ -13,7 +13,6 @@ const { uri } = require("./idbconfig");
 const msgpack = require("msgpack-lite");
 
 
-
 function compressMessage(msg) {
   //const encoded = msgpack.encode(FinalPreMessage)
   //const encoded = LZString.compressToUint8Array(FinalPreMessage)

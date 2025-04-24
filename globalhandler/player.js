@@ -74,19 +74,11 @@ function handlePlayerCollision(room, shootingPlayer, targetPlayer, damage, gunid
   // Apply damage to the target player and update shooting player's total damage
   targetPlayer.health -= GUN_BULLET_DAMAGE;
   shootingPlayer.damage += GUN_BULLET_DAMAGE;
-
-  // Record the time of the hit for the target player
   targetPlayer.last_hit_time = new Date().getTime();
 
-  // Create hit data to send back to the shooting player
-  const hit = [
-    targetPlayer.x,
-    targetPlayer.y,
-    Math.random().toString(36).substring(2, 7), // Random hit ID
-    GUN_BULLET_DAMAGE,
-  ].join('$');
+  const hit = `${targetPlayer.x}:${targetPlayer.y}:${GUN_BULLET_DAMAGE}`
 
-  shootingPlayer.hitdata = hit;
+  shootingPlayer.hitmarkers.push(hit)
 
   // Get the number of active players in the target player's team
   const teamActivePlayers = TeamPlayersActive(room, targetPlayer);
@@ -146,16 +138,9 @@ function handleDummyCollision(room, shootingPlayer, dummyKey, damage) {
 
   dummy.h -= GUN_BULLET_DAMAGE;
 
-  const hit = [
-    dummy.x,
-    dummy.y,
-    Math.random().toString(36).substring(2, 7),
-    //new Date().getTime(),
-    GUN_BULLET_DAMAGE,
-  ].join('$');
+   const hit = `${dummy.x}:${dummy.y}:${GUN_BULLET_DAMAGE}`
 
-
-  shootingPlayer.hitdata = hit;
+  shootingPlayer.hitmarkers.push(hit);
 
   if (dummy.h < 1) {
     spawnAnimation(room, dummy, "death")
