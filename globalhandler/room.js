@@ -540,7 +540,8 @@ function SendPreStartMessage(room) {
 
 
 
-function prepareRoomMessages(room) {
+function sendBatchedMessages(roomId) {
+  const room = rooms.get(roomId);
 
   handlePlayerMoveIntervalAll(room)
 
@@ -632,7 +633,6 @@ function prepareRoomMessages(room) {
   room.players.forEach(player => {
 
     player.npfix = JSON.stringify(player.nearbyfinalids ? Array.from(player.nearbyfinalids) : [])
-    hitmarkerfix = JSON.stringify(player.hitmarkers ? Array.from(player.hitmarkers) : [])
     const selfdata = {
       id: player.nmb,
       state: player.state,
@@ -653,7 +653,7 @@ function prepareRoomMessages(room) {
       spc: player.spectateid,
       guns: player.loadout_formatted,
       np: player.npfix,
-      ht: hitmarkerfix,
+      ht: player.hitmarkers,
     };
 
     const lastSelfData = player.lastSelfData || {};
@@ -750,42 +750,20 @@ function prepareRoomMessages(room) {
     }
 
     const currentMessageHash = generateHash(playerSpecificMessage);
-    player.tick_send_allow = false
     const playermsg = JSON.stringify(playerSpecificMessage)
     if (player.ws && currentMessageHash !== player.lastMessageHash) { // && playermsg !== "{}" 
       const compressedPlayerMessage = compressMessage(playermsg)
-      player.lastcompressedmessage = compressedPlayerMessage
-      player.tick_send_allow = true
+      player.ws.send(compressedPlayerMessage, { binary: true });
       player.lastMessageHash = currentMessageHash;
     }
   });
-
-
+  
+  
   room.destroyedWalls = [];
 
   room.players.forEach(player => { player.hitmarkers = [] })
-}
-
-
-function sendRoomMessages(room) {
-
-  room.players.forEach(player => { 
-    
-    if (player.tick_send_allow) {
-
-    player.ws.send(player.lastcompressedmessage, { binary: true });
-
-    }
-
-  })
 
 }
-
-
-
-
-
-
 
 function generateHashFive(obj) {
   return JSON.stringify(obj)
@@ -953,18 +931,10 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
 
   // Start sending batched messages at regular intervals
-// in ms
-room.intervalIds.push(setInterval(() => { // this could take some time...
+  room.intervalIds.push(setInterval(() => {
 
-  setTimeout(() => {
-      sendRoomMessages(room);
-  }, 10);
-
-  prepareRoomMessages(room);
-
-}, server_tick_rate));
-
-
+    sendBatchedMessages(roomId);
+  }, server_tick_rate));
 
   // room.intervalId = intervalId;
   room.timeoutIds.push(setTimeout(() => {
@@ -1323,6 +1293,7 @@ function handlePlayerMoveIntervalAll(room) {
 module.exports = {
   // compressMessage,
   joinRoom,
+  sendBatchedMessages,
   createRoom,
   generateRandomCoins,
   handleRequest,
