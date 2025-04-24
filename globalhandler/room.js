@@ -759,12 +759,11 @@ function prepareRoomMessages(room) {
       player.lastMessageHash = currentMessageHash;
     }
   });
-  
+
+
   room.destroyedWalls = [];
 
   room.players.forEach(player => { player.hitmarkers = [] })
-
-
 }
 
 
@@ -955,30 +954,16 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
   // Start sending batched messages at regular intervals
 // in ms
-const prep_offset = 5;        // run prepare 5ms before send
+room.intervalIds.push(setInterval(() => { // this could take some time...
 
-let startTime = Date.now();
-let tick = 0;
+  setTimeout(() => {
+      sendRoomMessages(room);
+  }, 10);
 
-room.intervalIds.push(setInterval(() => {
-    const now = Date.now();
-    const nextTickTime = startTime + tick * server_tick_rate;
-
-    // Schedule prepareRoomMessages 5ms before the target tick time
-    const prepDelay = Math.max(0, nextTickTime - Date.now() - prep_offset);
-    setTimeout(() => {
-        prepareRoomMessages(room);
-    }, prepDelay);
-
-    // Schedule sendRoomMessages at the exact target tick time
-    const sendDelay = Math.max(0, nextTickTime - Date.now());
-    setTimeout(() => {
-        sendRoomMessages(room);
-    }, sendDelay);
-
-    tick++;
+  prepareRoomMessages(room);
 
 }, server_tick_rate));
+
 
 
   // room.intervalId = intervalId;
