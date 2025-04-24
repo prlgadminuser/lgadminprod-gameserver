@@ -540,8 +540,7 @@ function SendPreStartMessage(room) {
 
 
 
-function sendBatchedMessages(roomId) {
-  const room = rooms.get(roomId);
+function prepareRoomMessages(room) {
 
   handlePlayerMoveIntervalAll(room)
 
@@ -750,10 +749,12 @@ function sendBatchedMessages(roomId) {
     }
 
     const currentMessageHash = generateHash(playerSpecificMessage);
+    player.tick_send_allow = false
     const playermsg = JSON.stringify(playerSpecificMessage)
     if (player.ws && currentMessageHash !== player.lastMessageHash) { // && playermsg !== "{}" 
       const compressedPlayerMessage = compressMessage(playermsg)
-      player.ws.send(compressedPlayerMessage, { binary: true });
+      player.lastcompressedmessage = compressedPlayerMessage
+      player.tick_send_allow = true
       player.lastMessageHash = currentMessageHash;
     }
   });
@@ -764,6 +765,25 @@ function sendBatchedMessages(roomId) {
   room.players.forEach(player => { player.hitmarkers = [] })
 
 }
+
+
+function sendRoomMessages(room) {
+
+  room.players.forEach(player => { 
+    
+    if (player.tick_send_allow) {
+
+    player.ws.send(player.lastcompressedmessage, { binary: true });
+
+    }
+  })
+}
+
+
+
+
+
+
 
 function generateHashFive(obj) {
   return JSON.stringify(obj)
@@ -933,7 +953,12 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
   // Start sending batched messages at regular intervals
   room.intervalIds.push(setInterval(() => {
 
-    sendBatchedMessages(roomId);
+    prepareRoomMessages(room)
+
+    room.timeoutIds.push(setTimeout(() => {
+      sendRoomMessages(room);
+  }, 3))
+
   }, server_tick_rate));
 
   // room.intervalId = intervalId;
@@ -1293,7 +1318,6 @@ function handlePlayerMoveIntervalAll(room) {
 module.exports = {
   // compressMessage,
   joinRoom,
-  sendBatchedMessages,
   createRoom,
   generateRandomCoins,
   handleRequest,

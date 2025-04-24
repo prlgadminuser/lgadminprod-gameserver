@@ -7,14 +7,8 @@ const { TeamPlayersActive } = require('./../teamhandler/aliveteam')
 const { spawnAnimation } = require('./../gameObjectEvents/deathrespawn')
 const { handleElimination } = require('../playerhandler/eliminated');
 const { updateTeamScore } = require('./../teamfighthandler/changescore')
-const { findCollidedWall } = require('./collisions');
 const { playerhitbox } = require('./config.js')
 
-
-
-function getDistance(x1, y1, x2, y2) {
-  return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
-}
 
 function handleMovement(player, room) { // all hitbox should be more then the other function in collsision
 
