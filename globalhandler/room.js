@@ -1139,10 +1139,8 @@ module.exports = {
   // compressMessage,
   joinRoom,
   createRoom,
-  generateRandomCoins,
   handleRequest,
   closeRoom,
-  handleCoinCollected2,
   handlePong,
   getDistance,
 

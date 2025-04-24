@@ -395,3 +395,28 @@ server.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}`);
 });
 
+
+function fixedInterval(callback, interval) {
+  let expected = Date.now() + interval;
+
+  function tick() {
+    const now = Date.now();
+    const drift = now - expected;
+
+    callback(drift);
+
+    // Schedule next tick relative to the *original* expected time
+    expected += interval;
+    setTimeout(tick, Math.max(0, interval - drift)); // Never schedule in the past
+  }
+
+  setTimeout(tick, interval);
+}
+
+fixedInterval((drift) => {
+  const now = Date.now();
+  console.log(`Tick at ${now}, Drift: ${drift.toFixed(2)} ms`);
+
+  // Simulate heavy computation to test drift
+  // for (let i = 0; i < 1e7; i++) {}
+}, 100); // 100ms interval
