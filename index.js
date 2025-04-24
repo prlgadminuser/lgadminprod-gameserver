@@ -81,12 +81,6 @@ const wss = new WebSocket.Server({
 
 const Limiter = require("limiter").RateLimiter;
 
-process.on("SIGINT", function () {
-  mongoose.connection.close(function () {
-    // console.log("Mongoose disconnected on app termination");
-    process.exit(0);
-  });
-});
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {

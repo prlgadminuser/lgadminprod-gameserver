@@ -53,8 +53,8 @@ function handleMovement(player, room) { // all hitbox should be more then the ot
   newY = Math.min(Math.max(newY, -room.mapHeight), room.mapHeight);
 
   // Apply new position and store last processed position
-  player.x = parseFloat(newX.toFixed(2)); // Store precise position
-  player.y = parseFloat(newY.toFixed(2));
+  player.x = parseFloat(newX.toFixed(4)); // Store precise position
+  player.y = parseFloat(newY.toFixed(4));
 }
 
 

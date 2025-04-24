@@ -321,7 +321,7 @@ wss.on("connection", (ws, req) => {
 
                         if (result.room.players.size < 1) {
                             closeRoom(result.roomId);
-                            console.log('Room closed');
+                           // console.log('Room closed');
                             return;
                         }
 

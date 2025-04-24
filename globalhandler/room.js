@@ -184,8 +184,6 @@ function closeRoom(roomId) {
     rooms.delete(roomId);
     removeRoomFromIndex(room);
   }
-
-  console.log(rooms.get(roomId))
 }
 
 
@@ -540,8 +538,7 @@ function SendPreStartMessage(room) {
 
 
 
-function sendBatchedMessages(roomId) {
-  const room = rooms.get(roomId);
+function prepareRoomMessages(room) {
 
   handlePlayerMoveIntervalAll(room)
 
@@ -633,6 +630,7 @@ function sendBatchedMessages(roomId) {
   room.players.forEach(player => {
 
     player.npfix = JSON.stringify(player.nearbyfinalids ? Array.from(player.nearbyfinalids) : [])
+    hitmarkerfix = JSON.stringify(player.hitmarkers ? Array.from(player.hitmarkers) : [])
     const selfdata = {
       id: player.nmb,
       state: player.state,
@@ -653,7 +651,7 @@ function sendBatchedMessages(roomId) {
       spc: player.spectateid,
       guns: player.loadout_formatted,
       np: player.npfix,
-      ht: player.hitmarkers,
+      ht: hitmarkerfix,
     };
 
     const lastSelfData = player.lastSelfData || {};
@@ -750,20 +748,42 @@ function sendBatchedMessages(roomId) {
     }
 
     const currentMessageHash = generateHash(playerSpecificMessage);
+    player.tick_send_allow = false
     const playermsg = JSON.stringify(playerSpecificMessage)
     if (player.ws && currentMessageHash !== player.lastMessageHash) { // && playermsg !== "{}" 
       const compressedPlayerMessage = compressMessage(playermsg)
-      player.ws.send(compressedPlayerMessage, { binary: true });
+      player.lastcompressedmessage = compressedPlayerMessage
+      player.tick_send_allow = true
       player.lastMessageHash = currentMessageHash;
     }
   });
-  
-  
+
+
   room.destroyedWalls = [];
 
   room.players.forEach(player => { player.hitmarkers = [] })
+}
+
+
+function sendRoomMessages(room) {
+
+  room.players.forEach(player => { 
+    
+    if (player.tick_send_allow) {
+
+    player.ws.send(player.lastcompressedmessage, { binary: true });
+
+    }
+
+  })
 
 }
+
+
+
+
+
+
 
 function generateHashFive(obj) {
   return JSON.stringify(obj)
@@ -931,10 +951,18 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
 
   // Start sending batched messages at regular intervals
-  room.intervalIds.push(setInterval(() => {
+// in ms
+room.intervalIds.push(setInterval(() => { // this could take some time...
 
-    sendBatchedMessages(roomId);
-  }, server_tick_rate));
+  prepareRoomMessages(room);
+
+  setTimeout(() => {
+      sendRoomMessages(room);
+  }, 2);
+
+}, server_tick_rate));
+
+
 
   // room.intervalId = intervalId;
   room.timeoutIds.push(setTimeout(() => {
@@ -962,48 +990,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
   return room;
 }
 
-function generateRandomCoins(roomId) {
-  const coins = [];
-  for (let i = 0; i < 1; i++) {
-    const coin = {
-      x: Math.floor(Math.random() * (roomId.mapWidth * 2 + 1)) - roomId.mapWidth,
-      y: Math.floor(Math.random() * (roomId.mapHeight * 2 + 1)) - roomId.mapHeight,
-    };
-    coins.push(coin);
-  }
-  roomId.coins = coins;
 
-
-}
-
-function handleCoinCollected2(result, index) {
-  const room = rooms.get(result.roomId);
-  const playerId = result.playerId;
-
-  room.coins.splice(index, 1);
-
-  const expectedOrigin = "tw-editor://.";
-  axios
-    .post(
-      `https://liquemgames-api.netlify.app/increasecoins-lqemfindegiejgkdmdmvu/${playerId}`,
-      null,
-      {
-        headers: {
-          Origin: expectedOrigin,
-        },
-      },
-    )
-    .then(() => {
-      console.log(`Coins increased for player ${playerId}`);
-    })
-    .catch((error) => {
-      console.error("Error increasing coins:", error);
-    });
-
-
-  // Generate new random coins
-  generateRandomCoins(room);
-}
 
 const validDirections = [-90, 0, 180, -180, 90, 45, 135, -135, -45];
 
@@ -1147,153 +1134,10 @@ function handlePlayerMoveIntervalAll(room) {
   });
 }
 
-/*function handleRequest(result, message) {
-  const player = result.room.players.get(result.playerId);
-  const data = JSON.parse(message);
-
-  if (message.length > 100) {
-    player.ws.close(4000, "ahhh whyyyyy");
-    }
-
-  if (player) {
-
-  if (data.type === "pong") {
-
-        clearTimeout(player.timeout); 
-
-        player.timeout = setTimeout(() => { player.ws.close(4200, "disconnected_inactivity"); }, player_idle_timeout); 
-            //    const timestamp = new Date().getTime();
-        //if (player.lastping && (timestamp - player.lastping < 2000)) {
-        //	player.ping = timestamp - player.lastping;
-        //} else {
-	
-        //}
-      }
-                  }
-	
-
-  if (result.room.state === "playing" && player.visible !== false && !player.eliminated) {
-    try {
-      if (data.type === "shoot") {
-        if (data.shoot_direction > -181 && data.shoot_direction < 181) {
-          player.shoot_direction = parseFloat(data.shoot_direction);
-          handleBulletFired(result.room, player, player.gun);
-        } else {
-        //	console.log(data.shoot_direction)
-        }
-      }
-    	
-
-      if (data.type === "switch_gun") {
-        const selectedGunNumber = parseFloat(data.gun);
-        const allguns = Object.keys(gunsconfig).length;
-        if (
-          selectedGunNumber !== player.gun &&
-          !player.shooting &&
-          selectedGunNumber >= 1 &&
-          selectedGunNumber <= allguns
-        ) {
-        	
-          player.gun = selectedGunNumber;
-        } else if (player.shooting) {
-        	
-          console.log("Cannot switch guns while shooting.");
-        } else {
-        	
-          console.log("Gun number must be between 1 and 3.");
-        }
-      }
-      if (data.moving === "false") {
-        clearInterval(player.moveInterval);
-        player.moveInterval = null;
-        player.moving = false;
-      }
-
-
-      if (data.type === "emote" && data.id >= 1 && data.id <= 4 && player.emote === 0){
-         
-        player.emote = data.id
-
-        setTimeout(() =>{
-        player.emote = 0
-
-        }, 3000);
-        }
-
-        if (data.type === "gadget" && player.canusegadget && player.gadgetuselimit > 0){
-         
-          player.canusegadget = false
-          player.gadgetuselimit--
-  
-          player.usegadget();
-          setTimeout(() =>{
-            player.canusegadget = true
-  
-          }, player.gadgetcooldown);
-          }
-
-
-      if (
-        data.type === "movement" &&
-        typeof data.direction === "string" &&
-        isValidDirection(data.direction)
-      ) {
-        const validDirection = parseFloat(data.direction);
-        if (!isNaN(validDirection)) {
-          if (player) {
-          	
-            player.direction = validDirection;
-            if (validDirection > 90) {
-              player.direction2 = 90;
-            } else if (validDirection < -90) {
-              player.direction2 = -90;
-            } else {
-              player.direction2 = validDirection;
-            }
-          	
-            if (data.moving === "true") {
-          	
-              if (!player.moving === true) {
-                player.moving = true;
-              }
-            } else if (data.moving === "false") {
-            	
-              player.moving = false;
-            } else {
-              console.warn("Invalid 'moving' value:", data.moving);
-            }
-        	
-            if (!player.moveInterval) {
-              clearInterval(player.moveInterval);
-              player.moveInterval = setInterval(() => {
-             
-                if (player.moving) {
-                  
-
-                  handleMovement(player, result.room);
-                } else {
-               
-                  clearInterval(player.moveInterval);
-                  player.moveInterval = null;
-                }
-              }, server_tick_rate);
-            }
-          }
-        } else {
-          console.warn("Invalid direction value:", data.direction);
-        }
-      }
-    } catch (error) {
-      console.error("Error parsing message:", error);
-    }
-  }
-}
-*/
 
 module.exports = {
   // compressMessage,
   joinRoom,
-  sendBatchedMessages,
   createRoom,
   generateRandomCoins,
   handleRequest,
