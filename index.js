@@ -413,10 +413,3 @@ function fixedInterval(callback, interval) {
   setTimeout(tick, interval);
 }
 
-fixedInterval((drift) => {
-  const now = Date.now();
-  console.log(`Tick at ${now}, Drift: ${drift.toFixed(2)} ms`);
-
-  // Simulate heavy computation to test drift
-  // for (let i = 0; i < 1e7; i++) {}
-}, 100); // 100ms interval
