@@ -12,11 +12,11 @@ function spawnHealingCircle(room) {
   // Generate random coordinates around the player within a certain range
 const offsetX = Math.floor(Math.random() * 101) - 50; // Random offset between -50 and 50
  const offsetY = Math.floor(Math.random() * 101) - 50; // Random offset between -50 and 50
-  const randomX = randomPlayer.x + offsetX;
- const randomY = randomPlayer.y + offsetY;
+ // const randomX = randomPlayer.x + offsetX;
+ //const randomY = randomPlayer.y + offsetY;
 
-  //const randomX = Math.floor(Math.random() * (room.mapWidth * 2 + 1)) - room.mapWidth // Random X between -mapWidth/2 and mapWidth/2
-  //const randomY = Math.floor(Math.random() * (room.mapHeight * 2 + 1)) - room.mapHeight// Random Y between -mapHeight/2 and mapHeight/2
+  const randomX = Math.floor(Math.random() * (room.mapWidth * 2 + 1)) - room.mapWidth // Random X between -mapWidth/2 and mapWidth/2
+  const randomY = Math.floor(Math.random() * (room.mapHeight * 2 + 1)) - room.mapHeight// Random Y between -mapHeight/2 and mapHeight/2
 
 
 

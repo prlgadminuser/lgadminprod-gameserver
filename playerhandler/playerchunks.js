@@ -63,10 +63,6 @@ function UpdatePlayerChunks(room, player) {
 
 }
 
-function UpdatePlayerEvents(room, player) {
-
-}
-    
 
 
 

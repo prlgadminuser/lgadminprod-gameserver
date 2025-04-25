@@ -123,11 +123,12 @@ const gamemodeconfig = {
 
     placereward: [10, 8, 6, -1],
     seasoncoinsreward: [25, 17, 12, 10],
-    show_timer: true,
+   // show_timer: true,
 
     modifiers: new Set([
       "UseZone",
       "AutoHealthRestore",
+      "HealingCircles",
     ]),
 
  
