@@ -357,8 +357,8 @@ async function joinRoom(ws, gamemode, playerVerified) {
             room.scoreboard = [
               t1.id,
               t1.score,
-              t2.id,
-              t2.score,
+           //   t2.id,
+            //  t2.score,
             ].join('$')
 
           }
@@ -522,9 +522,16 @@ function SendPreStartMessage(room) {
       dummies: room.dummies ? dummiesfiltered : undefined
     };
 
+    const roomdata = {
+      mapid: room.map,
+      type: room.matchtype,
+      sb: room.scoreboard
+    };
+
     const MessageToSend = {
       AllPlayerData: AllPlayerData,
       SelfData: selfdata,
+      RoomData: roomdata
       // clientVersion: "v3.5678",
       //roomid: room.roomId
     };
@@ -576,7 +583,7 @@ function prepareRoomMessages(room) {
     room.zone,
     room.maxplayers,
     playercountroom,
-    room.map,
+    "",
     room.countdown,
     room.winner,
   ].join(':');
@@ -816,6 +823,22 @@ function deepCopy(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
+function cloneSpatialGrid(original) {
+  const clone = new SpatialGrid(original.cellSize);
+
+  // Deep clone the grid
+  for (const [key, originalSet] of original.grid.entries()) {
+    const clonedSet = new Set();
+    for (const obj of originalSet) {
+      // Clone object if needed (shallow copy here, do deep copy if required)
+      clonedSet.add({ ...obj });
+    }
+    clone.grid.set(key, clonedSet);
+  }
+
+  return clone;
+}
+
 function createRoom(roomId, gamemode, gmconfig, splevel) {
 
 
@@ -824,32 +847,25 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     mapid = gmconfig.custom_map
   } else {
 
-    const keyToExclude = "3";
-
-    // Get the keys of mapsconfig and filter out the excluded key
-    const filteredKeys = Object.keys(mapsconfig).filter(key => key !== keyToExclude);
-
-    // Ensure there are keys to choose from
-
-    // Randomly select a key from the filtered list
-    const randomIndex = getRandomInt(0, filteredKeys.length - 1);
-    mapid = filteredKeys[randomIndex];
-    //mapid = (getRandomInt(1, Object.keys(mapsconfig).length))
-
+    const keyToExclude = "training";
+    const prefix = "";
+    
+    // Get all keys of the object, excluding the one you don't want and those that don't start with the prefix
+    const filteredKeys = Object.keys(mapsconfig)
+      .filter(key => key !== keyToExclude && key.startsWith(prefix));
+    
+    // Check if there are any valid keys left
+    if (filteredKeys.length > 0) {
+      // Select a random index from the filtered keys
+      const randomIndex = Math.floor(Math.random() * filteredKeys.length);
+      mapid = filteredKeys[randomIndex];
   }
-
+}
+ 
   const itemgrid = new SpatialGrid(gridcellsize); // grid system for items
 
-  const map = mapsconfig[mapid];
-  const mapgrid = new SpatialGrid(gridcellsize);
-
-  map.walls.forEach(wall => mapgrid.addWall(wall));
-
-  // Save the grid in the map configuration
-  const roomgrid = mapgrid;
-
-
-
+  const roomgrid = cloneSpatialGrid(mapsconfig[mapid].grid)
+  
 
   const room = {
     // Game State
@@ -958,7 +974,7 @@ room.intervalIds.push(setInterval(() => { // this could take some time...
 
   setTimeout(() => {
       sendRoomMessages(room);
-  }, 2);
+  }, 3);
 
 }, server_tick_rate));
 

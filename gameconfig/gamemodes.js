@@ -2,8 +2,19 @@
 // MODIFIERS:
 
 
+const allowed_gamemodes = new Set([
+  
+  "fightdown",
+  "1v1",
+ // "deathmatch",
+  "breakthrough",
+  "training",
+
+
+])
+
 const gamemodeconfig = {
-  1: {
+  fightdown: {
     can_hit_dummies: false,
     can_hit_players: true,
 
@@ -19,6 +30,12 @@ const gamemodeconfig = {
       "AutoHealthRestore",
     ]),
 
+    placereward_next: {
+      '1': { skillpoints: 13, coins: 25 },
+      '2': { points: 60, coins: 30 },
+      '3': { points: 20, coins: 10 }
+    },
+
     placereward: [10, 8, 6, -1, -5],
     seasoncoinsreward: [25, 17, 12, 10, 7],
 
@@ -26,7 +43,7 @@ const gamemodeconfig = {
     custom_map: 4,
   },
 
-  2: {
+  "1v1": {
     can_hit_dummies: false,
     can_hit_players: true,
 
@@ -49,7 +66,7 @@ const gamemodeconfig = {
     custom_map: 2,
   },
 
-  3: {
+  training: {
     can_hit_dummies: true,
     can_hit_players: false,
 
@@ -69,10 +86,10 @@ const gamemodeconfig = {
     seasoncoinsreward: [0],
 
     show_timer: true,
-    custom_map: 3,
+    custom_map: "training",
   },
 
-  4: {
+  deathmatch: {
     can_hit_dummies: false,
     can_hit_players: true,
 
@@ -92,8 +109,35 @@ const gamemodeconfig = {
     custom_map: 5,
     matchtype: "td",
   },
+
+  breakthrough: {
+    can_hit_dummies: false,
+    can_hit_players: true,
+
+    maxplayers: 1,
+    teamsize: 1,
+    respawns_allowed: 0,
+
+    playerhealth: 200,
+    playerspeed: 1.5,
+
+    placereward: [10, 8, 6, -1],
+    seasoncoinsreward: [25, 17, 12, 10],
+    show_timer: true,
+
+    modifiers: new Set([
+      "UseZone",
+      "AutoHealthRestore",
+    ]),
+
+ 
+
+    custom_map: "breakthrough",
+    //matchtype: "td"
+  },
 };
 
 module.exports = {
-  gamemodeconfig
-};
+  gamemodeconfig,
+  allowed_gamemodes
+}

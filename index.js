@@ -150,7 +150,7 @@ const {
   checkForMaintenance,
 } = require("./globalhandler/dbrequests");
 
-const { game_win_rest_time, maxClients, gamemodeconfig } = require("./globalhandler/config");
+const { game_win_rest_time, maxClients, gamemodeconfig, allowed_gamemodes } = require("./globalhandler/config");
 const { addKillToKillfeed } = require('./globalhandler/killfeed')
 const { endGame } = require('./globalhandler/game')
 
@@ -203,13 +203,14 @@ wss.on("connection", (ws, req) => {
         const [_, token, gamemode] = req.url.split('/');
         const origin = req.headers["sec-websocket-origin"] || req.headers.origin;
 
+        
         // Validate request
-        if (req.length > 2000 || (origin && origin.length > 50) || !isValidOrigin(origin)) {
+        if (gamemode.length > 20 || req.length > 2000 || (origin && origin.length > 50) || !isValidOrigin(origin)) {
           ws.close(4004, "Unauthorized");
           return;
         }
 
-        if (!(token && token.length < 300 && gamemode in gamemodeconfig)) {
+        if (!(token && token.length < 300 && allowed_gamemodes.has(gamemode))) {
           ws.close(4094, "Unauthorized");
           // console.log("Invalid token or gamemode");
           return;
@@ -395,21 +396,4 @@ server.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}`);
 });
 
-
-function fixedInterval(callback, interval) {
-  let expected = Date.now() + interval;
-
-  function tick() {
-    const now = Date.now();
-    const drift = now - expected;
-
-    callback(drift);
-
-    // Schedule next tick relative to the *original* expected time
-    expected += interval;
-    setTimeout(tick, Math.max(0, interval - drift)); // Never schedule in the past
-  }
-
-  setTimeout(tick, interval);
-}
 
