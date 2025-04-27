@@ -12,7 +12,7 @@ async function verifyPlayer(token) {
 
   try {
 
-     const tokenExists = await userCollection.findOne({ token });
+     const tokenExists = await userCollection.findOne({ "account.token": token });
 
     if (!tokenExists) {
       throw new Error("Invalid token");
@@ -25,50 +25,38 @@ async function verifyPlayer(token) {
       throw new Error("Invalid token");
     }
 
-    const userInformation = await userCollection.findOne(
-      { username },
+    const user = await userCollection.findOne(
+      { "account.username": username },
       {
         projection: {
-          hat: 1,
-          top: 1,
-          color: 1,
-          hat_color: 1,
-          top_color: 1,
-          sp: 1,
-          gadget: 1,
-          nickname: 1,
-          loadout: 1,
+          "equipped.hat": 1,
+          "equipped.top": 1,
+          "equipped.color": 1,
+          "equipped.hat_color": 1,
+          "equipped.top_color": 1,
+          "stats.sp": 1,
+          "equipped.gadget": 1,
+          "account.nickname": 1,
+          "inventory.loadout": 1,
         },
       }
     );
 
-    if (!userInformation) {
+    if (!user) {
       throw new Error("User not found");
     }
 
-    const {
-      hat,
-      top,
-      color,
-      hat_color,
-      top_color,
-      sp,
-      gadget,
-      nickname,
-      loadout,
-    } = userInformation;
-
     return {
-      playerId: username,
-      hat: hat,
-      top: top,
-      player_color: color,
-      hat_color: hat_color,
-      top_color: top_color,
-      skillpoints: sp,
-      gadget: gadget,
-      nickname: nickname,
-      loadout: loadout,
+      playerId: user.account.nickname,
+      hat: user.equipped.hat,
+      top: user.equipped.top,
+      player_color: user.equipped.color,
+      hat_color: user.equipped.hat_color,
+      top_color: user.equipped.top_color,
+      skillpoints: user.stats.sp,
+      gadget: user.equipped.gadget,
+      nickname: user.account.nickname,
+      loadout: user.inventory.loadout,
     };
 
    
@@ -89,7 +77,7 @@ async function increasePlayerDamage(playerId, damage) {
     try {
    
       const incrementResult = await userCollection.updateOne(
-        { username },
+        { "account.username": username },
         {
           $inc: { damage: damagecount },
         }
@@ -110,7 +98,7 @@ async function increasePlayerDamage(playerId, damage) {
 
       if (incrementResult.matchedCount === 0) {
         const upsertResult = await userCollection.updateOne(
-          { username },
+          { "account.username": username },
           {
             $setOnInsert: {
               damage: damagecount,
@@ -140,7 +128,7 @@ async function increasePlayerKills(playerId, kills) {
   try {
     // Attempt to increment the player's kill count or insert a new player document if not found
     const incrementResult = await userCollection.updateOne(
-      { username },
+      { "account.username": username },
       {
         $inc: { kills: killcount },
       },
@@ -179,7 +167,7 @@ async function increasePlayerWins(playerId, wins2) {
   try {
 
     const incrementResult = await userCollection.updateOne(
-      { username },
+      { "account.username": username },
       {
         $inc: { wins: wins },
       }
@@ -187,7 +175,7 @@ async function increasePlayerWins(playerId, wins2) {
 
     if (incrementResult.matchedCount === 0) {
       const upsertResult = await userCollection.updateOne(
-        { username },
+        { "account.username": username },
         {
           $setOnInsert: {
             wins: wins,
@@ -224,7 +212,7 @@ async function increasePlayerPlace(playerId, place2, room) {
     
 
     const updateResult = await userCollection.updateOne(
-      { username },
+      { "account.username": username },
       [
         {
           $set: {
@@ -262,7 +250,7 @@ async function increasePlayerPlace(playerId, place2, room) {
     if (updateResult.matchedCount === 0 && updateResult.modifiedCount === 0) {
     
       const upsertResult = await userCollection.updateOne(
-        { username },
+        { "account.username": username },
         {
           $setOnInsert: {
             sp: { $max: [ skillpoints, 0 ] } 

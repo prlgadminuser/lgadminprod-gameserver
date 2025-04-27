@@ -68,6 +68,12 @@ function UpdatePlayerChunks(room, player) {
 
 function playerchunkrenderer(room) {
 
+  room.players.forEach((player) => {
+
+    UpdatePlayerChunks(room, player)
+
+  });
+
   room.intervalIds.push(setInterval(() => {
 
     room.players.forEach((player) => {
