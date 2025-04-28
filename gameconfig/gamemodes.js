@@ -116,7 +116,7 @@ const gamemodeconfig = {
 
     maxplayers: 2,
     teamsize: 1,
-    respawns_allowed: infinity,
+    respawns_allowed: 0,
 
     playerhealth: 200,
     playerspeed: 1.5,
