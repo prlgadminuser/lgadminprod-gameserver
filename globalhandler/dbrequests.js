@@ -216,9 +216,9 @@ async function increasePlayerPlace(playerId, place2, room) {
       [
         {
           $set: {
-            sp: {
+            "stats.sp": {
               $add: [
-                { $ifNull: ["$sp", 0] },
+                { $ifNull: ["$stats.sp", 0] },
                 skillpoints
               ]
             }
@@ -226,8 +226,8 @@ async function increasePlayerPlace(playerId, place2, room) {
         },
         {
           $set: {
-            sp: {
-              $max: [ "$sp", 0 ] 
+            "stats.sp": {
+              $max: [ "$stats.sp", 0 ] 
             }
           }
         }
@@ -235,7 +235,7 @@ async function increasePlayerPlace(playerId, place2, room) {
     );
 
     await battlePassCollection.updateOne(
-      { username },
+      { "account.username": username },
       {
         $inc: {
           season_coins: season_coins,
@@ -253,7 +253,7 @@ async function increasePlayerPlace(playerId, place2, room) {
         { "account.username": username },
         {
           $setOnInsert: {
-            sp: { $max: [ skillpoints, 0 ] } 
+            "stats.sp": { $max: [ skillpoints, 0 ] } 
           },
         },
         { upsert: true }

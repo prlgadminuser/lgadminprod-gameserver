@@ -114,7 +114,7 @@ const gamemodeconfig = {
     can_hit_dummies: false,
     can_hit_players: true,
 
-    maxplayers: 2,
+    maxplayers: 4,
     teamsize: 1,
     respawns_allowed: 0,
 
@@ -126,7 +126,7 @@ const gamemodeconfig = {
    // show_timer: true,
 
     modifiers: new Set([
-     // "UseZone",
+      "UseZone",
       "AutoHealthRestore",
       "HealingCircles",
     ]),
