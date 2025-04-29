@@ -181,6 +181,8 @@ function closeRoom(roomId) {
     });
 
 
+    clearInterval(room.xcleaninterval)
+
     rooms.delete(roomId);
     removeRoomFromIndex(room);
   }
@@ -315,12 +317,12 @@ async function joinRoom(ws, gamemode, playerVerified) {
     }
 
     if (room) {
-      newPlayer.timeout = setTimeout(() => {
+      newPlayer.timeout = newPlayer.timeoutIds.push(setTimeout(() => {
         if (newPlayer.lastPing <= Date.now() - 8000) {
 
           newPlayer.ws.close(4200, "disconnected_inactivity")
         }
-      }, player_idle_timeout);
+      }, player_idle_timeout));
 
       room.players.set(playerId, newPlayer);
 
@@ -347,7 +349,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
 
         //  room.state = "await";
 
-        setTimeout(() => {
+        room.intervalIds.push(setTimeout(() => {
 
           if (room.matchtype === "td") {
 
@@ -366,7 +368,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
           room.state = "countdown";
           //  console.log(`Room ${roomId} entering countdown phase`);
 
-          setTimeout(() => {
+          room.timeoutIds.push(setTimeout(() => {
             if (!rooms.has(roomId)) return;
 
             room.state = "playing";
@@ -398,9 +400,9 @@ async function joinRoom(ws, gamemode, playerVerified) {
             if (room.modifiers.has("AutoHealthRestore")) startRegeneratingHealth(room, 1);
             if (room.modifiers.has("AutoHealthDamage")) startDecreasingHealth(room, 1);
 
-          }, game_start_time);
+          }, game_start_time));
 
-        }, 1000);
+        }, 1000));
       } catch (err) {
 
 
@@ -913,7 +915,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
 
 
-  room.xcleaninterval = setInterval(() => {
+  room.xcleaninterval = room.intervalIds.push(setInterval(() => {
     if (room) {
       // Clear room's timeout and interval arrays
       if (room.timeoutIds) {
@@ -934,7 +936,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
         }
       });
     }
-  }, 1000); // Run every 1 second
+  }, 1000)); // Run every 1 second
 
   if (gmconfig.can_hit_dummies && mapsconfig[mapid].dummies) {
     room.dummies = deepCopy(mapsconfig[mapid].dummies) //dummy crash fix
@@ -950,7 +952,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
   rooms.set(roomId, room);
   // console.log("room created:", roomId)
 
-  room.matchmaketimeout = setTimeout(() => {
+  room.matchmaketimeout = room.timeoutIds.push(setTimeout(() => {
 
 
     room.players.forEach((player) => {
@@ -963,7 +965,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
       }
     });
     closeRoom(roomId);
-  }, matchmaking_timeout);
+  }, matchmaking_timeout));
 
 
   // Start sending batched messages at regular intervals
@@ -972,9 +974,9 @@ room.intervalIds.push(setInterval(() => { // this could take some time...
 
   prepareRoomMessages(room);
 
-  setTimeout(() => {
+  room.timeoutIds.push(setTimeout(() => {
       sendRoomMessages(room);
-  }, 3);
+  }, 3));
 
 }, server_tick_rate));
 
