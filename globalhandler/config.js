@@ -9,12 +9,14 @@ const rooms = new Map();
 
 const gridcellsize = 40;
 const server_tick_rate = 16.4  //17
-const matchmaking_timeout = 120000
 const player_idle_timeout = 10000
+const maxClients = 100;
+
+const matchmaking_timeout = 1800000 // 30 minutes max matchmaking time
 const game_start_time = 5000
 const game_win_rest_time = 10000
-const room_max_open_time = 600000 //600000
-const maxClients = 100;
+const room_max_open_time = 600000 // if game begins room can be opened for max 10 minutes before being auto closed by interval
+
 
 const playerhitbox = {
   xMin: 14,

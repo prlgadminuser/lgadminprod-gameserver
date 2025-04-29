@@ -251,53 +251,65 @@ async function joinRoom(ws, gamemode, playerVerified) {
     const playerRateLimiter = createRateLimiter();
 
     const newPlayer = {
-      ws,
-      lastmsg: 0,
-      intervalIds: [],
-      timeoutIds: [],
-      direction: null,
-      direction2: 90,
+      // player cosmetics appearance
       playerId: playerId,
-      finalrewards_awarded: false,
-      spectateid: 0,
       nickname: finalnickname,
-      spectatingTarget: null,
-      spectatingplayerid: null,
-      rateLimiter: playerRateLimiter,
       hat: hat,
       top: top,
       player_color: player_color,
       hat_color: hat_color,
       top_color: top_color,
+
+      // game state
       health: gamemodeconfig[gamemode].playerhealth,
-      state: 1,
       starthealth: gamemodeconfig[gamemode].playerhealth,
       speed: gamemodeconfig[gamemode].playerspeed,
       startspeed: gamemodeconfig[gamemode].playerspeed,
-      can_bullets_bounce: false,
       damage: 0,
       kills: 0,
-      hitmarkers: [],
-      lastShootTime: 0,
-      moving: false,
-      moveInterval: null,
-      visible: true,
-      eliminated: false,
       place: null,
+      state: 1,
+      eliminated: false,
+      visible: true,
+      finalrewards_awarded: false,
+      respawns: room.respawns,
+      emote: 0,
+
+      // combat shooting
+      lastShootTime: 0,
       shooting: false,
       shoot_direction: 90,
+      hitmarkers: [],
+      can_bullets_bounce: false,
+      bullets: new Map(),
+
+      // movement
+      moving: false,
+      direction: null,
+      direction2: 90,
+      moveInterval: null,
+
+      //loadout and gadgets
       loadout: loadout || fallbackloadout,
       loadout_formatted: [loadout[1], loadout[2], loadout[3]].join('$'),
-      //loadout: fallbackloadout,
-      bullets: new Map(),
-      spectatingPlayer: playerId,
-      emote: 0,
-      respawns: room.respawns,
       gadgetid: gadgetselected,
       canusegadget: true,
       gadgetcooldown: gadgetconfig[gadgetselected].cooldown,
       gadgetuselimit: gadgetconfig[gadgetselected].use_limit,
       gadgetchangevars: gadgetconfig[gadgetselected].changevariables,
+
+      // network
+      ws: ws,
+      lastmsg: 0,
+      rateLimiter: playerRateLimiter,
+      intervalIds: [],
+      timeoutIds: [],
+
+      // spectating
+      spectatingPlayer: playerId,
+      spectateid: 0,
+      spectatingTarget: null,
+      spectatingplayerid: null,
 
       usegadget() {
         const player = room.players.get(playerId);
@@ -333,6 +345,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
         return;
       }
     }
+
 
     if (room.state === "waiting" && room.players.size >= room.maxplayers) {
 
