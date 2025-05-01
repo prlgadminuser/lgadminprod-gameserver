@@ -270,6 +270,8 @@ wss.on("connection", (ws, req) => {
                 connectedClientsCount--;
                 connectedUsernames.delete(player.playerId);
 
+                console.log(room)
+
                 if (room.players.size < 1) {
                   closeRoom(result.roomId);
                   console.log('Room closed');
