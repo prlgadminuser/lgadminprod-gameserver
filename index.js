@@ -236,9 +236,8 @@ wss.on("connection", (ws, req) => {
               return;
             }
 
-            const room = result.room
 
-            const player = room.players.get(result.playerId);
+            const player = result.room.players.get(result.playerId);
             connectedClientsCount++;
             connectedUsernames.add(playerVerified.playerId);
             //  console.log(connectedUsernames);
@@ -263,25 +262,25 @@ wss.on("connection", (ws, req) => {
             });
 
             ws.on('close', () => {
-              const player = room.players.get(result.playerId);
+              const player = result.room.players.get(result.playerId);
               if (player) {
-                RemoveRoomPlayer(room, player)
+                RemoveRoomPlayer(result.room, player)
 
                 connectedClientsCount--;
                 connectedUsernames.delete(player.playerId);
 
                // console.log(room.players.size)
 
-               if (room.players.size < 1) {
+               if (result.room.players.size < 1) {
                 closeRoom(result.roomId);
                 return; 
               }
 
                 if (room.state === "playing" && room.winner === -1) {
                   // Get all remaining teams that have at least one active player
-                  let remainingTeams = room.teams.filter(team =>
+                  let remainingTeams = result.room.teams.filter(team =>
                     team.players.some(playerId => {
-                      const player1 = room.players.get(playerId.playerId);
+                      const player1 = result.room.players.get(playerId.playerId);
                       return player1 && !player.eliminated;
                     })
                   );
@@ -292,14 +291,14 @@ wss.on("connection", (ws, req) => {
 
                     // Filter active players in the winning team (those who are not eliminated)
                     const activePlayers = winningTeam.players.filter(player => {
-                      const roomPlayer = room.players.get(player.playerId);
+                      const roomPlayer = result.room.players.get(player.playerId);
                       return roomPlayer && (roomPlayer.eliminated === false || roomPlayer.eliminated == null);
                     });
 
 
                     // If only one active player is left in the winning team
                     if (activePlayers.length === 1) {
-                      const winner = room.players.get(activePlayers[0].playerId); // Get the player object
+                      const winner = result.room.players.get(activePlayers[0].playerId); // Get the player object
                       room.winner = [winner.nmb].join('$'); // Set the winner's ID
                     } else {
                       room.winner = winningTeam.id; // Set winner by team ID
@@ -307,7 +306,7 @@ wss.on("connection", (ws, req) => {
 
                     // Awarding victory to all players in the winning team
                     winningTeam.players.forEach(player => {
-                      const teamplayer = room.players.get(player.playerId); // Access the player data using playerId
+                      const teamplayer = result.room.players.get(player.playerId); // Access the player data using playerId
 
                       if (teamplayer) {
                         teamplayer.place = 1
@@ -316,10 +315,10 @@ wss.on("connection", (ws, req) => {
                       } // Increase place for the player
                     });
 
-                    room.timeoutIds.push(setTimeout(() => closeRoom(result.roomId), game_win_rest_time));
+                    result.room.timeoutIds.push(setTimeout(() => closeRoom(result.roomId), game_win_rest_time));
 
                     // Add the winning team to eliminated teams with place 1
-                    room.eliminatedTeams.push({
+                    result.room.eliminatedTeams.push({
                       teamId: winningTeam.id,
                       place: 1
                     });
