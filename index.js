@@ -334,6 +334,7 @@ wss.on("connection", (ws, req) => {
                     });
 
                     // End the game after a short delay
+                    console.log("closing room")
                     result.room.timeoutIds.push(setTimeout(() => closeRoom(result.roomId), game_win_rest_time));
                   }
                 }
