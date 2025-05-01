@@ -93,7 +93,6 @@ function handleElimination(room, team) {
 
         room.timeoutIds.push(setTimeout(() => {
             endGame(room); // End the game after a short delay
-            console.log("timeouter")
         }, game_win_rest_time));
     }
 }
