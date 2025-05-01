@@ -270,13 +270,13 @@ wss.on("connection", (ws, req) => {
                 connectedClientsCount--;
                 connectedUsernames.delete(player.playerId);
 
-                console.log(room.players.size)
+               // console.log(room.players.size)
 
-                if (room.players.size < 1) {
-                  closeRoom(result.roomId);
-                  console.log('Room closed');
-                  return;
-                }
+               // if (room.players.size < 1) {
+               //   closeRoom(result.roomId);
+                //  console.log('Room closed');
+                 // return;
+               // }
 
                 if (room.state === "playing" && room.winner === -1) {
                   // Get all remaining teams that have at least one active player
