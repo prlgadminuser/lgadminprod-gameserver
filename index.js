@@ -288,9 +288,6 @@ wss.on("connection", (ws, req) => {
                   // If only one team remains
                   if (remainingTeams.length === 1) {
 
-                    console.log(remainingTeams)
-
-
                     const winningTeam = remainingTeams[0];
 
                     // Filter active players in the winning team (those who are not eliminated)

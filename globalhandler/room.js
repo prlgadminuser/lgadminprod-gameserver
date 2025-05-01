@@ -359,16 +359,16 @@ async function joinRoom(ws, gamemode, playerVerified) {
 
     if (room.state === "waiting" && room.players.size >= room.maxplayers) {
 
+      clearTimeout(room.matchmaketimeout);
+
+      room.state = "await";
+
+
       room.maxopentimeout = setTimeout(() => {
         closeRoom(roomId);
         console.log(`Room ${roomId} closed due to timeout.`);
       }, room_max_open_time);
     
-
-      clearTimeout(room.matchmaketimeout);
-
-      room.state = "await";
-
       await setupRoomPlayers(room)
 
       await CreateTeams(room)
