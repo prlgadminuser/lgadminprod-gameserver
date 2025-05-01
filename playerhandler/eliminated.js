@@ -1,9 +1,12 @@
 "use strict";
 
+
+
 const { increasePlayerPlace, increasePlayerWins } = require('./../globalhandler/dbrequests')
-const { closeRoom } = require('./../globalhandler/room')
-const { game_win_rest_time } = require('./../globalhandler/config')
+const { game_win_rest_time, rooms } = require('./../globalhandler/config')
 const { startSpectatingLogic } = require('./spectating')
+
+
 
 
 // playerstates: 1:alive 2:respawning 3:eliminated

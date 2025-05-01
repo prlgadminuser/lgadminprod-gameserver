@@ -2,7 +2,7 @@
 
 const { increasePlayerPlace, increasePlayerWins } = require('./../globalhandler/dbrequests')
 const { game_win_rest_time } = require('./../globalhandler/config')
-const { closeRoom } = require('./../globalhandler/room')
+//const { closeRoom } = require('./../globalhandler/room')
 
 function updateTeamScore(room, player, points) {
 

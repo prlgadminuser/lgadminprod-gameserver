@@ -203,6 +203,7 @@ function closeRoom(roomId) {
   }
 }
 
+
 function RemoveRoomPlayer(room, player) {
 
 
@@ -1167,9 +1168,10 @@ module.exports = {
   joinRoom,
   createRoom,
   handleRequest,
-  closeRoom,
+ 
   handlePong,
   getDistance,
   RemoveRoomPlayer,
+  closeRoom,
 
 };
