@@ -1,8 +1,8 @@
 "use strict";
 
 const { increasePlayerPlace, increasePlayerWins } = require('./../globalhandler/dbrequests')
-const { endGame } = require('./../globalhandler/game')
 const { game_win_rest_time } = require('./../globalhandler/config')
+const { closeRoom } = require('./../globalhandler/room')
 
 function updateTeamScore(room, player, points) {
 
@@ -91,8 +91,8 @@ function declareWinner(room, winningTeam) {
 
     // End the game after declaring the winner
     room.timeoutIds.push(setTimeout(() => {
-        endGame(room); // Call endGame function to conclude the game
-    }, game_win_rest_time)); // Delay before ending the game
+       closeRoom(room.roomId); 
+    }, game_win_rest_time)); 
 }
 
 module.exports = {

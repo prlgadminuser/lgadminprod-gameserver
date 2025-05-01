@@ -1,7 +1,7 @@
 "use strict";
 
 const { increasePlayerPlace, increasePlayerWins } = require('./../globalhandler/dbrequests')
-const { endGame } = require('./../globalhandler/game')
+const { closeRoom } = require('./../globalhandler/room')
 const { game_win_rest_time } = require('./../globalhandler/config')
 const { startSpectatingLogic } = require('./spectating')
 
@@ -14,7 +14,7 @@ function handleElimination(room, team) {
     }
 
     // Calculate the team's place based on the remaining teams at the time of elimination
-    const remainingActiveTeams = room.teams.filter(t => t.players.some(player => !player.eliminated)).length;
+  //  const remainingActiveTeams = room.teams.filter(t => t.players.some(player => !player.eliminated)).length;
     const teamPlace = room.teams.length - room.eliminatedTeams.length;
 
     // Ensure no duplicate places
@@ -59,7 +59,7 @@ function handleElimination(room, team) {
     // Check if the game should end (all players from all teams are either eliminated or invisible)
     if (room.teams.every(t => t.players.every(player => player.eliminated || !player.visible))) {
         room.timeoutIds.push(setTimeout(() => {
-            endGame(room); // End the game after a short delay
+            closeRoom(room.roomId); // End the game after a short delay
         }, game_win_rest_time));
     }
 
@@ -92,7 +92,7 @@ function handleElimination(room, team) {
         });
 
         room.timeoutIds.push(setTimeout(() => {
-            endGame(room); // End the game after a short delay
+            closeRoom(room.roomId); // End the game after a short delay
         }, game_win_rest_time));
     }
 }

@@ -153,8 +153,6 @@ const {
 } = require("./globalhandler/dbrequests");
 
 const { game_win_rest_time, maxClients, gamemodeconfig, allowed_gamemodes } = require("./globalhandler/config");
-const { addKillToKillfeed } = require('./globalhandler/killfeed')
-const { endGame } = require('./globalhandler/game')
 
 const allowedOrigins = [
   "https://slcount.netlify.app",
@@ -264,9 +262,8 @@ wss.on("connection", (ws, req) => {
 
             ws.on('close', () => {
               const player = result.room.players.get(result.playerId);
-              const room = rooms.get(result.roomId)
               if (player) {
-                RemoveRoomPlayer(room, player)
+                RemoveRoomPlayer(result.room, player)
 
                 connectedClientsCount--;
                 connectedUsernames.delete(player.playerId);
@@ -275,16 +272,16 @@ wss.on("connection", (ws, req) => {
 
         
 
-               if (room.players.size < 1) {
+               if (result.room.players.size < 1) {
                 closeRoom(result.roomId);
                 return; 
               }
 
-              if (room.state === "playing" && room.winner === -1) {
+              if (result.room.state === "playing" && result.room.winner === -1) {
                 // Get all remaining teams that have at least one active player
-                let remainingTeams = room.teams.filter(team =>
+                let remainingTeams = result.room.teams.filter(team =>
                   team.players.some(playerId => {
-                    const player1 = room.players.get(playerId.playerId);
+                    const player1 = result.room.players.get(playerId.playerId);
                     return player1 && !player.eliminated;
                   })
                 );
@@ -292,39 +289,37 @@ wss.on("connection", (ws, req) => {
                   // If only one team remains
                   if (remainingTeams.length === 1) {
 
-                    console.log(remainingTeams)
-
               
 
                     const winningTeam = remainingTeams[0];
 
                     // Filter active players in the winning team (those who are not eliminated)
                     const activePlayers = winningTeam.players.filter(player => {
-                      const roomPlayer = room.players.get(player.playerId);
+                      const roomPlayer = result.room.players.get(player.playerId);
                       return roomPlayer && (roomPlayer.eliminated === false || roomPlayer.eliminated == null);
                     });
 
 
                     // If only one active player is left in the winning team
                     if (activePlayers.length === 1) {
-                      const winner = room.players.get(activePlayers[0].playerId); // Get the player object
-                      room.winner = [winner.nmb].join('$'); // Set the winner's ID
+                      const winner = result.room.players.get(activePlayers[0].playerId); // Get the player object
+                      result.room.winner = [winner.nmb].join('$'); // Set the winner's ID
                     } else {
-                      room.winner = winningTeam.id; // Set winner by team ID
+                      result.room.winner = winningTeam.id; // Set winner by team ID
                     }
 
                     // Awarding victory to all players in the winning team
                     winningTeam.players.forEach(player => {
-                      const teamplayer = room.players.get(player.playerId); // Access the player data using playerId
+                      const teamplayer = result.room.players.get(player.playerId); // Access the player data using playerId
 
                       if (teamplayer) {
                         teamplayer.place = 1
                         increasePlayerWins(teamplayer.playerId, 1); // Increase wins for the player
-                        increasePlayerPlace(teamplayer.playerId, 1, room);
+                        increasePlayerPlace(teamplayer.playerId, 1, result.room);
                       } // Increase place for the player
                     });
 
-                    result.room.timeoutIds.push(setTimeout(() => closeRoom(result.roomId), game_win_rest_time));
+                  //  result.room.timeoutIds.push(setTimeout(() => closeRoom(result.roomId), game_win_rest_time));
 
                     // Add the winning team to eliminated teams with place 1
                     result.room.eliminatedTeams.push({
