@@ -121,8 +121,8 @@ const gamemodeconfig = {
     playerhealth: 200,
     playerspeed: 1.2,
 
-    placereward: [10, 8, 6, -1],
-    seasoncoinsreward: [25, 17, 12, 10],
+    placereward: [10, 8, 6, 4, -1, -2, -5],
+    seasoncoinsreward: [25, 17, 12, 10, 7, 5, 4],
    // show_timer: true,
 
     modifiers: new Set([
