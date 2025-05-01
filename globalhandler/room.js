@@ -106,51 +106,46 @@ async function CreateTeams(room) {
   // Define team IDs
   const teamIDs = ["Red", "Blue", "Green", "Yellow", "Orange", "Purple", "Pink", "Cyan"];
 
-  // Step 1: Determine number of teams
-  let numTeams;
+  let numTeams
   if (room.teamsize === 1) {
     numTeams = room.players.size;
   } else {
     numTeams = Math.ceil(room.players.size / room.teamsize);
   }
 
-  // Step 2: Initialize teams
   const teams = Array.from({ length: numTeams }, () => []);
 
-  // Step 3: Assign players to teams more evenly
+  let teamIndex = 0;
+
+  // Step 1: Assign players to teams
   room.players.forEach((player) => {
-    // Find the first team with space
-    const teamIndex = teams.findIndex(team => team.length < room.teamsize);
-
-    // Fallback if all are full (should not happen unless logic is broken)
-    const safeIndex = teamIndex !== -1 ? teamIndex : 0;
-
-    teams[safeIndex].push({ playerId: player.playerId, nmb: player.nmb });
-
-    // Assign team reference to player
+    if (teams[teamIndex].length >= room.teamsize) {
+      teamIndex = (teamIndex + 1) % numTeams;
+    }
+    teams[teamIndex].push({ playerId: player.playerId, nmb: player.nmb });
     player.team = {
-      id: teamIDs[safeIndex] || `Team-${safeIndex + 1}`,
-      players: teams[safeIndex],
+      id: teamIDs[teamIndex] || `Team-${teamIndex + 1}`,
+      players: teams[teamIndex], // Reference to team
     };
   });
 
-  // Step 4: Finalize room.teams
+  // Step 2: Finalize room.teams
   room.teams = teams.map((team, index) => ({
     id: teamIDs[index] || `Team-${index + 1}`,
     players: team,
     score: 0,
   }));
 
-  // Step 5: Assign complete teamdata to each player
+  // Step 3: Assign complete teamdata to each player
   room.players.forEach((player) => {
-    const team = player.team;
+    const team = player.team; // Get the player's team
     const playerIds = Object.fromEntries(
-      team.players.map((p) => [p.nmb, p.nmb])
+      team.players.map((p) => [p.nmb, p.nmb]) // Extract all player IDs in the team
     );
 
     player.teamdata = {
-      id: playerIds,
-      tid: team.id,
+      id: playerIds, // Complete team member IDs
+      tid: team.id,  // Team ID
     };
   });
 }
