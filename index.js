@@ -11,6 +11,7 @@ const jwt = require("jsonwebtoken");
 const { RateLimiterMemory } = require("rate-limiter-flexible");
 const { uri } = require("./idbconfig");
 const msgpack = require("msgpack-lite");
+const { rooms } = require('./globalhandler/config')
 
 
 function compressMessage(msg) {
@@ -263,6 +264,7 @@ wss.on("connection", (ws, req) => {
 
             ws.on('close', () => {
               const player = result.room.players.get(result.playerId);
+              //const room = rooms.get(result.roomId)
               if (player) {
                 RemoveRoomPlayer(result.room, player)
 
@@ -276,7 +278,7 @@ wss.on("connection", (ws, req) => {
                 return; 
               }
 
-                if (room.state === "playing" && room.winner === -1) {
+                if (result.room.state === "playing" && result.room.winner === -1) {
                   // Get all remaining teams that have at least one active player
                   let remainingTeams = result.room.teams.filter(team =>
                     team.players.some(playerId => {
