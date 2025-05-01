@@ -362,8 +362,8 @@ wss.on("connection", (ws, req) => {
 server.on("upgrade", (request, socket, head) => {
   const ip = request.socket["true-client-ip"] || request.socket["x-forwarded-for"] || request.socket.remoteAddress;
 
-  rateLimiterConnection.consume(ip)
-    .then(() => {
+ // rateLimiterConnection.consume(ip)
+  //  .then(() => {
       const origin = request.headers["sec-websocket-origin"] || request.headers.origin;
 
       if (!isValidOrigin(origin)) {
@@ -380,7 +380,7 @@ server.on("upgrade", (request, socket, head) => {
       socket.write('HTTP/1.1 429 Too Many Requests\r\n\r\n');
       socket.destroy();
     });
-});
+//});
 
 process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception:", error);
