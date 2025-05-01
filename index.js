@@ -288,6 +288,8 @@ wss.on("connection", (ws, req) => {
                   );
                   // If only one team remains
                   if (remainingTeams.length === 1) {
+
+
                     const winningTeam = remainingTeams[0];
 
                     // Filter active players in the winning team (those who are not eliminated)
@@ -316,6 +318,8 @@ wss.on("connection", (ws, req) => {
                       } // Increase place for the player
                     });
 
+                    room.timeoutIds.push(setTimeout(() => closeRoom(result.roomId), game_win_rest_time));
+
                     // Add the winning team to eliminated teams with place 1
                     room.eliminatedTeams.push({
                       teamId: winningTeam.id,
@@ -324,8 +328,6 @@ wss.on("connection", (ws, req) => {
 
                     // End the game after a short delay
                   //  console.log("closing room")
-
-                   // result.room.timeoutIds.push(setTimeout(() => closeRoom(result.roomId), game_win_rest_time));
                   }
                 }
 
