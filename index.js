@@ -273,7 +273,7 @@ wss.on("connection", (ws, req) => {
 
                // console.log(room.players.size)
 
-               console.log(remainingTeams)
+        
 
                if (room.players.size < 1) {
                 closeRoom(result.roomId);
@@ -288,9 +288,11 @@ wss.on("connection", (ws, req) => {
                     return player1 && !player.eliminated;
                   })
                 );
-                console.log(remainingTeams)
+             
                   // If only one team remains
                   if (remainingTeams.length === 1) {
+
+                    console.log(remainingTeams)
 
               
 
