@@ -972,9 +972,9 @@ room.intervalIds.push(setInterval(() => { // this could take some time...
 
   prepareRoomMessages(room);
 
- setTimeout(() => {
+  setTimeout(() => {
       sendRoomMessages(room);
-  }, 3));
+  }, 3);
 
 }, server_tick_rate));
 

@@ -114,12 +114,12 @@ const gamemodeconfig = {
     can_hit_dummies: false,
     can_hit_players: true,
 
-    maxplayers: 4,
+    maxplayers: 1,
     teamsize: 1,
     respawns_allowed: 0,
 
     playerhealth: 200,
-    playerspeed: 1.5,
+    playerspeed: 1.2,
 
     placereward: [10, 8, 6, -1],
     seasoncoinsreward: [25, 17, 12, 10],
