@@ -202,7 +202,7 @@ function RemoveRoomPlayer(room, player) {
 
     player.ws.close();
 
-    addKillToKillfeed(result.room, 5, null, player.nmb, null)
+    addKillToKillfeed(room, 5, null, player.nmb, null)
     room.players.delete(player.playerId);
 
     const reference = room.players.get(player.playerId);
