@@ -8,7 +8,7 @@ const { matchmakingsp } = require('./../gameconfig/matchmaking')
 const rooms = new Map();
 
 const gridcellsize = 40;
-const server_tick_rate = 16.4  //17
+const server_tick_rate = 16.5  //17
 const player_idle_timeout = 10000
 const maxClients = 100;
 
