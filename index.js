@@ -139,6 +139,7 @@ const {
   joinRoom,
   closeRoom,
   handleRequest,
+  RemoveRoomPlayer,
 } = require("./globalhandler/room");
 
 const {
@@ -235,7 +236,9 @@ wss.on("connection", (ws, req) => {
               return;
             }
 
-            const player = result.room.players.get(result.playerId);
+            const room = result.room
+
+            const player = room.players.get(result.playerId);
             connectedClientsCount++;
             connectedUsernames.add(playerVerified.playerId);
             //  console.log(connectedUsernames);
@@ -260,40 +263,24 @@ wss.on("connection", (ws, req) => {
             });
 
             ws.on('close', () => {
-              const player = result.room.players.get(result.playerId);
+              const player = room.players.get(result.playerId);
               if (player) {
-                clearInterval(player.moveInterval);
-                if (player.timeout) clearTimeout(player.timeout);
-
-                if (player.timeoutIds) player.timeoutIds.forEach(timeoutId => clearTimeout(timeoutId));
-                if (player.intervalIds) player.intervalIds.forEach(intervalId => clearInterval(intervalId));
-                clearTimeout(player.timeout);
-                clearTimeout(player.movetimeout);
-                clearTimeout(player.gadget);
-                clearTimeout(player.gadget_timeout);
-                clearInterval(player.moveInterval);
-
-                if (player.damage > 0) increasePlayerDamage(player.playerId, player.damage);
-                if (player.kills > 0) increasePlayerKills(player.playerId, player.kills);
+                RemoveRoomPlayer(room, player)
 
                 connectedClientsCount--;
                 connectedUsernames.delete(player.playerId);
-                addKillToKillfeed(result.room, 5, null, player.nmb, null)
-                result.room.players.delete(result.playerId);
 
-                if (result.room.players.size < 1) {
+                if (room.players.size < 1) {
                   closeRoom(result.roomId);
                   //console.log('Room closed');
                   return;
                 }
 
-
-
-                if (result.room.state === "playing" && result.room.winner === -1) {
+                if (room.state === "playing" && room.winner === -1) {
                   // Get all remaining teams that have at least one active player
-                  let remainingTeams = result.room.teams.filter(team =>
+                  let remainingTeams = room.teams.filter(team =>
                     team.players.some(playerId => {
-                      const player1 = result.room.players.get(playerId.playerId);
+                      const player1 = room.players.get(playerId.playerId);
                       return player1 && !player.eliminated;
                     })
                   );
@@ -303,39 +290,40 @@ wss.on("connection", (ws, req) => {
 
                     // Filter active players in the winning team (those who are not eliminated)
                     const activePlayers = winningTeam.players.filter(player => {
-                      const roomPlayer = result.room.players.get(player.playerId);
+                      const roomPlayer = room.players.get(player.playerId);
                       return roomPlayer && (roomPlayer.eliminated === false || roomPlayer.eliminated == null);
                     });
 
 
                     // If only one active player is left in the winning team
                     if (activePlayers.length === 1) {
-                      const winner = result.room.players.get(activePlayers[0].playerId); // Get the player object
-                      result.room.winner = [winner.nmb].join('$'); // Set the winner's ID
+                      const winner = room.players.get(activePlayers[0].playerId); // Get the player object
+                      room.winner = [winner.nmb].join('$'); // Set the winner's ID
                     } else {
-                      result.room.winner = winningTeam.id; // Set winner by team ID
+                      room.winner = winningTeam.id; // Set winner by team ID
                     }
 
                     // Awarding victory to all players in the winning team
                     winningTeam.players.forEach(player => {
-                      const playerObj = result.room.players.get(player.playerId); // Access the player data using playerId
+                      const player = room.players.get(player.playerId); // Access the player data using playerId
 
-                      if (playerObj) {
-                        playerObj.place = 1
-                        increasePlayerWins(playerObj.playerId, 1); // Increase wins for the player
-                        increasePlayerPlace(playerObj.playerId, 1, result.room);
+                      if (player) {
+                        player.place = 1
+                        increasePlayerWins(player.playerId, 1); // Increase wins for the player
+                        increasePlayerPlace(player.playerId, 1, room);
                       } // Increase place for the player
                     });
 
                     // Add the winning team to eliminated teams with place 1
-                    result.room.eliminatedTeams.push({
+                    room.eliminatedTeams.push({
                       teamId: winningTeam.id,
                       place: 1
                     });
 
                     // End the game after a short delay
-                    console.log("closing room")
-                    result.room.timeoutIds.push(setTimeout(() => closeRoom(result.roomId), game_win_rest_time));
+                  //  console.log("closing room")
+
+                   // result.room.timeoutIds.push(setTimeout(() => closeRoom(result.roomId), game_win_rest_time));
                   }
                 }
 

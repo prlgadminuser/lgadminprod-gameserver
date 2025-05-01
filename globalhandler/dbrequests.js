@@ -79,7 +79,7 @@ async function increasePlayerDamage(playerId, damage) {
       const incrementResult = await userCollection.updateOne(
         { "account.username": username },
         {
-          $inc: { damage: damagecount },
+          $inc: { "stats.damage": damagecount },
         }
       );
   
@@ -101,7 +101,7 @@ async function increasePlayerDamage(playerId, damage) {
           { "account.username": username },
           {
             $setOnInsert: {
-              damage: damagecount,
+              "stats.damage": damagecount,
             },
           },
           { upsert: true }
@@ -130,7 +130,7 @@ async function increasePlayerKills(playerId, kills) {
     const incrementResult = await userCollection.updateOne(
       { "account.username": username },
       {
-        $inc: { kills: killcount },
+        $inc: { "stats.kills": killcount },
       },
       { upsert: true }
     );
@@ -169,7 +169,7 @@ async function increasePlayerWins(playerId, wins2) {
     const incrementResult = await userCollection.updateOne(
       { "account.username": username },
       {
-        $inc: { wins: wins },
+        $inc: { "stats.wins": wins },
       }
     );
 
@@ -178,7 +178,7 @@ async function increasePlayerWins(playerId, wins2) {
         { "account.username": username },
         {
           $setOnInsert: {
-            wins: wins,
+            "stats.wins": wins,
           },
         },
         { upsert: true }

@@ -5,7 +5,7 @@ const { handleBulletFired } = require('./bullets.js');
 const { handleMovement } = require('./player.js');
 const { startRegeneratingHealth, startDecreasingHealth } = require('./match-modifiers');
 const { gadgetconfig } = require('./gadgets.js')
-const { StartremoveOldKillfeedEntries } = require('./killfeed.js')
+const { StartremoveOldKillfeedEntries, addKillToKillfeed } = require('./killfeed.js')
 const { UseZone } = require('./zone')
 const { initializeHealingCircles } = require('./../gameObjectEvents/healingcircle')
 const { initializeAnimations } = require('./../gameObjectEvents/deathrespawn')
@@ -13,6 +13,7 @@ const { playerchunkrenderer } = require('./../playerhandler/playerchunks')
 const { SpatialGrid, gridcellsize } = require('./config.js');
 const roomIndex = new Map();
 const { compressToUint8Array } = require('lz-string');
+const { increasePlayerKills, increasePlayerDamage } = require('./dbrequests');
 
 
 
@@ -188,6 +189,26 @@ function closeRoom(roomId) {
     rooms.delete(roomId);
     removeRoomFromIndex(room);
   }
+}
+
+function RemoveRoomPlayer(room, player) {
+
+
+    player.timeoutIds?.forEach(clearTimeout);
+    player.intervalIds?.forEach(clearInterval);
+
+    if (player.damage > 0) increasePlayerDamage(player.playerId, player.damage);
+    if (player.kills > 0) increasePlayerKills(player.playerId, player.kills);
+
+    player.ws.close();
+
+    addKillToKillfeed(result.room, 5, null, player.nmb, null)
+    room.players.delete(player.playerId);
+
+    const reference = room.players.get(player.playerId);
+    console.log(reference)
+
+
 }
 
 
@@ -1153,5 +1174,6 @@ module.exports = {
   closeRoom,
   handlePong,
   getDistance,
+  RemoveRoomPlayer,
 
 };
