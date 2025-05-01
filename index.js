@@ -305,12 +305,12 @@ wss.on("connection", (ws, req) => {
 
                     // Awarding victory to all players in the winning team
                     winningTeam.players.forEach(player => {
-                      const player = room.players.get(player.playerId); // Access the player data using playerId
+                      const teamplayer = room.players.get(player.playerId); // Access the player data using playerId
 
-                      if (player) {
-                        player.place = 1
-                        increasePlayerWins(player.playerId, 1); // Increase wins for the player
-                        increasePlayerPlace(player.playerId, 1, room);
+                      if (teamplayer) {
+                        teamplayer.place = 1
+                        increasePlayerWins(teamplayer.playerId, 1); // Increase wins for the player
+                        increasePlayerPlace(teamplayer.playerId, 1, room);
                       } // Increase place for the player
                     });
 
