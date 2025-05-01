@@ -106,12 +106,9 @@ async function CreateTeams(room) {
   // Define team IDs
   const teamIDs = ["Red", "Blue", "Green", "Yellow", "Orange", "Purple", "Pink", "Cyan"];
 
-  let numTeams
-  if (room.teamsize === 1) {
-    numTeams = room.players.size;
-  } else {
-    numTeams = Math.ceil(room.players.size / room.teamsize);
-  }
+  
+    const numTeams = Math.ceil(room.players.size / room.teamsize);
+  
 
   const teams = Array.from({ length: numTeams }, () => []);
 
@@ -148,6 +145,8 @@ async function CreateTeams(room) {
       tid: team.id,  // Team ID
     };
   });
+
+  console.log(room.teams)
 }
 
 
