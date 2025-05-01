@@ -278,16 +278,18 @@ wss.on("connection", (ws, req) => {
                 return; 
               }
 
-                if (room.state === "playing" && room.winner === -1) {
-                  // Get all remaining teams that have at least one active player
-                  let remainingTeams = room.teams.filter(team =>
-                    team.players.some(playerId => {
-                      const player1 = room.players.get(playerId.playerId);
-                      return player1 && !player.eliminated;
-                    })
-                  );
+              if (room.state === "playing" && room.winner === -1) {
+                // Get all remaining teams that have at least one active player
+                let remainingTeams = room.teams.filter(team =>
+                  team.players.some(playerId => {
+                    const player1 = room.players.get(playerId.playerId);
+                    return player1 && !player.eliminated;
+                  })
+                );
                   // If only one team remains
                   if (remainingTeams.length === 1) {
+
+                    console.log(remainingTeams)
 
                     const winningTeam = remainingTeams[0];
 
