@@ -205,31 +205,13 @@ function RemoveRoomPlayer(room, player) {
     addKillToKillfeed(room, 5, null, player.nmb, null)
     room.players.delete(player.playerId);
 
-    const reference = room.players.get(player.playerId);
-    console.log(reference)
+
 
 
 }
 
 
-function playerLeave(roomId, playerId) {
-  const room = rooms.get(roomId);
-  if (room) {
-    const player = room.players.get(playerId);
-    if (player) {
-      clearTimeout(player.timeout);
-      clearInterval(player.moveInterval);
 
-      // Remove the player from the room
-      room.players.delete(playerId);
-
-      // If no players left in the room, close the room
-      if (room.players.size === 0) {
-        closeRoom(roomId);
-      }
-    }
-  }
-}
 
 
 async function joinRoom(ws, gamemode, playerVerified) {
@@ -362,7 +344,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
       room.players.set(playerId, newPlayer);
 
       if (ws.readyState === ws.CLOSED) {
-        playerLeave(roomId, playerId);
+        RemoveRoomPlayer(room, newPlayer);
         return;
       }
     }
@@ -372,7 +354,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
 
       room.maxopentimeout = setTimeout(() => {
         closeRoom(roomId);
-        //  console.log(`Room ${roomId} closed due to timeout.`);
+        console.log(`Room ${roomId} closed due to timeout.`);
       }, room_max_open_time);
     
 
@@ -454,7 +436,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
     }
 
     if (ws.readyState === ws.CLOSED) {
-      playerLeave(roomId, playerId);
+      RemoveRoomPlayer(room, newPlayer);
       return;
     }
 
@@ -484,6 +466,7 @@ function cleanupRoom(roomId) {
   //console.log(playersWithOpenConnections);
   // Close the room if it has no players
   if (room.players.size < 1 || playersWithOpenConnections.length < 1 || !room.players || room.players.size === 0) {
+    console.log("room clear interval room close")
     closeRoom(roomId);
   }
 }
@@ -982,6 +965,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
   room.matchmaketimeout = setTimeout(() => {
 
+    console.log("timeout match")
     closeRoom(roomId);
 
   }, matchmaking_timeout);
