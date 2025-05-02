@@ -17,14 +17,6 @@ const { roomIndex, rooms, closeRoom } = require('./../roomhandler/manager')
 
 
 
-
-
-function getAvailableRoom(gamemode, spLevel) {
-  const key = `${gamemode}_${spLevel}`;
-  const roomList = roomIndex.get(key) || [];
-  return roomList.find(room => room.players.size < room.maxplayers && room.state === 'waiting');
-}
-
 function generateUUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = Math.random() * 16 | 0;
@@ -32,7 +24,6 @@ function generateUUID() {
     return v.toString(16);
   });
 }
-
 
 function getAvailableRoom(gamemode, spLevel) {
   const key = `${gamemode}_${spLevel}`;
@@ -214,7 +205,6 @@ async function joinRoom(ws, gamemode, playerVerified) {
     } else {
       roomId = generateUUID();
       room = createRoom(roomId, gamemode, gamemodeconfig[gamemode], roomjoiningvalue);
-      roomCreationLock = true; // Indicate that this function created the room
     }
 
 
@@ -893,6 +883,23 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
 
 
+  if (gmconfig.can_hit_dummies && mapsconfig[mapid].dummies) {
+    room.dummies = deepCopy(mapsconfig[mapid].dummies) //dummy crash fix
+  }
+
+  const roomConfig = {
+    canCollideWithDummies: gmconfig.can_hit_dummies, // Disable collision with dummies
+    canCollideWithPlayers: gmconfig.can_hit_players,// Enable collision with players
+  };
+
+  room.config = roomConfig
+
+
+  addRoomToIndex(room)
+  rooms.set(roomId, room);
+
+
+  
   room.xcleaninterval = setInterval(() => {
     if (room) {
       // Clear room's timeout and interval arrays
@@ -914,22 +921,8 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
         }
       });
     }
-  }, 1000); // Run every 1 second
-
-  if (gmconfig.can_hit_dummies && mapsconfig[mapid].dummies) {
-    room.dummies = deepCopy(mapsconfig[mapid].dummies) //dummy crash fix
-  }
-
-  const roomConfig = {
-    canCollideWithDummies: gmconfig.can_hit_dummies, // Disable collision with dummies
-    canCollideWithPlayers: gmconfig.can_hit_players,// Enable collision with players
-  };
-
-  room.config = roomConfig
-
-  rooms.set(roomId, room);
-  addRoomToIndex(room)
-  // console.log("room created:", roomId)
+  }, 1000);
+  
 
   room.matchmaketimeout = setTimeout(() => {
 
