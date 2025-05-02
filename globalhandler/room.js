@@ -1163,10 +1163,9 @@ module.exports = {
   joinRoom,
   createRoom,
   handleRequest,
- 
+  closeRoom,
   handlePong,
   getDistance,
   RemoveRoomPlayer,
-  closeRoom,
 
 };

@@ -2,10 +2,22 @@
 
 
 
+const { shopcollection, userCollection, battlePassCollection, jwt } = require('./..//index.js');
+const { tokenkey } = require('./..//idbconfig.js');
+
+
+
 const { increasePlayerPlace, increasePlayerWins } = require('./../globalhandler/dbrequests')
 const { game_win_rest_time, rooms } = require('./../globalhandler/config')
 const { startSpectatingLogic } = require('./spectating')
 
+async function loadCloseRoom() {
+
+    const { closeRoom } = await import('./../globalhandler/room');
+    closeRoom();
+  }
+
+const closeRoom = loadCloseRoom
 
 
 
