@@ -59,15 +59,31 @@ function handleElimination(room, team) {
         place: adjustedPlace,
     });
 
+    const remainingTeams = room.teams.filter(team =>
+        team.players.some(playerId => {
+          const player = room.players.get(playerId.playerId);
+          return player && !player.eliminated;
+        })
+      );
+
+      const allTeamsCleared = room.teams.every(t =>
+        t.players.every(player => {
+          const playerData = room.players.get(player.playerId);
+          return !playerData || playerData.eliminated || !playerData.visible;
+        })
+      );
+      
+   
+
     // Check if the game should end (all players from all teams are either eliminated or invisible)
-    if (room.teams.every(t => t.players.every(player => player.eliminated || !player.visible))) {
+    if (allTeamsCleared) {
         room.timeoutIds.push(setTimeout(() => {
             closeRoom(room.roomId); // End the game after a short delay
         }, game_win_rest_time));
     }
 
-    // Check if only one team remains with active players
-    const remainingTeams = room.teams.filter(t => t.players.some(player => !room.players.get(player.playerId).eliminated));
+   
+
     if (remainingTeams.length === 1) {
         const winningTeam = remainingTeams[0];
 
