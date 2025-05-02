@@ -13,8 +13,9 @@ const { playerchunkrenderer } = require('./../playerhandler/playerchunks')
 const { SpatialGrid, gridcellsize } = require('./config.js');
 const { compressToUint8Array } = require('lz-string');
 const { increasePlayerKills, increasePlayerDamage } = require('./dbrequests');
+const { roomIndex, rooms, closeRoom } = require('./../roomhandler/manager')
 
-const { roomIndex, rooms } = require('./../roomhandler/manager')
+
 
 
 
@@ -213,7 +214,6 @@ async function joinRoom(ws, gamemode, playerVerified) {
     } else {
       roomId = generateUUID();
       room = createRoom(roomId, gamemode, gamemodeconfig[gamemode], roomjoiningvalue);
-      addRoomToIndex(room)
       roomCreationLock = true; // Indicate that this function created the room
     }
 
@@ -928,6 +928,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
   room.config = roomConfig
 
   rooms.set(roomId, room);
+  addRoomToIndex(room)
   // console.log("room created:", roomId)
 
   room.matchmaketimeout = setTimeout(() => {
