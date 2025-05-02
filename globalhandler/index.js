@@ -141,9 +141,14 @@ module.exports = {
 
 const {
   joinRoom,
-  closeRoom,
   handleRequest,
 } = require("./room");
+
+const {
+  closeRoom,
+} = require("./roomhandler/manager");
+
+
 const {
   increasePlayerDamage,
   increasePlayerKills,

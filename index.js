@@ -138,10 +138,13 @@ module.exports = {
 
 const {
   joinRoom,
-  closeRoom,
   handleRequest,
   RemoveRoomPlayer,
 } = require("./globalhandler/room");
+
+const {
+  closeRoom,
+} = require("./roomhandler/manager");
 
 const {
   increasePlayerDamage,
@@ -362,7 +365,7 @@ server.on("upgrade", (request, socket, head) => {
     const ip = request.socket["true-client-ip"] || request.socket["x-forwarded-for"] || request.socket.remoteAddress;
 
     try {
-     // await rateLimiterConnection.consume(ip);
+      await rateLimiterConnection.consume(ip);
 
       const origin = request.headers["sec-websocket-origin"] || request.headers.origin;
 
