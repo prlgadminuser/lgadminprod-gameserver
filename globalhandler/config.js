@@ -5,8 +5,6 @@ const { mapsconfig } = require('./../gameconfig/maps')
 const { gunsconfig } = require('./../gameconfig/guns')
 const { matchmakingsp } = require('./../gameconfig/matchmaking')
 
-const rooms = new Map();
-
 const gridcellsize = 40;
 const server_tick_rate = 16.4  //17
 const player_idle_timeout = 10000
@@ -208,7 +206,6 @@ module.exports = {
   matchmakingsp,
   gamemodeconfig,
   allowed_gamemodes,
-  rooms,
   room_max_open_time,
   SpatialGrid,
   gridcellsize,

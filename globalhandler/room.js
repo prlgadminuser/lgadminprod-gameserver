@@ -1,6 +1,6 @@
 
 const { axios, Limiter, msgpack, LZString, compressMessage } = require('./..//index.js');
-const { matchmaking_timeout, server_tick_rate, game_start_time, rooms, mapsconfig, gunsconfig, gamemodeconfig, matchmakingsp, player_idle_timeout, room_max_open_time } = require('./config.js');
+const { matchmaking_timeout, server_tick_rate, game_start_time, mapsconfig, gunsconfig, gamemodeconfig, matchmakingsp, player_idle_timeout, room_max_open_time } = require('./config.js');
 const { handleBulletFired } = require('./bullets.js');
 const { handleMovement } = require('./player.js');
 const { startRegeneratingHealth, startDecreasingHealth } = require('./match-modifiers');
@@ -11,9 +11,10 @@ const { initializeHealingCircles } = require('./../gameObjectEvents/healingcircl
 const { initializeAnimations } = require('./../gameObjectEvents/deathrespawn')
 const { playerchunkrenderer } = require('./../playerhandler/playerchunks')
 const { SpatialGrid, gridcellsize } = require('./config.js');
-const roomIndex = new Map();
 const { compressToUint8Array } = require('lz-string');
 const { increasePlayerKills, increasePlayerDamage } = require('./dbrequests');
+
+const { roomIndex, rooms } = require('./../roomhandler/manager')
 
 
 
@@ -1124,5 +1125,6 @@ module.exports = {
   handlePong,
   getDistance,
   RemoveRoomPlayer,
+  roomIndex,
 
 };

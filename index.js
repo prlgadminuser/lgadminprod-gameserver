@@ -11,7 +11,7 @@ const jwt = require("jsonwebtoken");
 const { RateLimiterMemory } = require("rate-limiter-flexible");
 const { uri } = require("./idbconfig");
 const msgpack = require("msgpack-lite");
-const { rooms } = require('./globalhandler/config')
+const { rooms } = require('./roomhandler/manager')
 
 
 function compressMessage(msg) {

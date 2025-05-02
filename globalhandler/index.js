@@ -158,7 +158,9 @@ const {
   checkForMaintenance,
 } = require("./dbrequests");
 
-const { game_win_rest_time, maxClients, all_gamemodes, gamemodeconfig, rooms } = require("./config");
+const { game_win_rest_time, maxClients, all_gamemodes, gamemodeconfig } = require("./config");
+
+const { rooms } = require('./../roomhandler/manager')
 
 
 

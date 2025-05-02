@@ -1,5 +1,7 @@
 
-const { rooms } = require('../globalhandler/config');
+
+const roomIndex = new Map();
+const rooms = new Map();
 
 function removeRoomFromIndex(room) {
     const key = `${room.gamemode}_${room.sp_level}`;
@@ -46,6 +48,8 @@ function closeRoom(roomId) {
   }
 
   module.exports = {
-    closeRoom
+    closeRoom,
+    roomIndex,
+    rooms,
   }
   
