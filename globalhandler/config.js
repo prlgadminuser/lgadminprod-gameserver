@@ -115,6 +115,27 @@ class SpatialGrid {
     }
   }
 
+  addWallAt(x, y) {
+    const key = this._getCellKey(x, y);
+    let cell = this.grid.get(key);
+  
+    if (!cell) {
+      cell = new Set();
+      this.grid.set(key, cell);
+    }
+  
+    // Check if a wall at this position already exists
+    for (const obj of cell) {
+      if (obj.x === x && obj.y === y) {
+        return; // Wall already exists, do nothing
+      }
+    }
+  
+    // Add a new wall object
+    cell.add({ x, y });
+  }
+  
+
   _getKeysInArea(xMin, xMax, yMin, yMax) {
     const keys = [];
     const startX = Math.floor(xMin / this.cellSize);

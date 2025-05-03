@@ -13,7 +13,7 @@ const { playerchunkrenderer } = require('./../playerhandler/playerchunks')
 const { SpatialGrid, gridcellsize } = require('./config.js');
 const { compressToUint8Array } = require('lz-string');
 const { increasePlayerKills, increasePlayerDamage } = require('./dbrequests');
-const { roomIndex, rooms, closeRoom } = require('./../roomhandler/manager')
+const { roomIndex, rooms, closeRoom, addRoomToIndex, getAvailableRoom } = require('./../roomhandler/manager')
 
 
 
@@ -25,17 +25,41 @@ function generateUUID() {
   });
 }
 
-function getAvailableRoom(gamemode, spLevel) {
-  const key = `${gamemode}_${spLevel}`;
-  const roomList = roomIndex.get(key) || [];
-  return roomList.find(room => room.players.size < room.maxplayers && room.state === 'waiting');
+
+function generateHash(message) {
+  let hash = 0;
+  const str = JSON.stringify(message);
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
 }
 
-function addRoomToIndex(room) {
-  const key = `${room.gamemode}_${room.sp_level}`;
-  if (!roomIndex.has(key)) roomIndex.set(key, []);
-  roomIndex.get(key).push(room);
+function getDistance(x1, y1, x2, y2) {
+  return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
 }
+
+function deepCopy(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
+
+function cloneSpatialGrid(original) {
+  const clone = new SpatialGrid(original.cellSize);
+
+  // Deep clone the grid
+  for (const [key, originalSet] of original.grid.entries()) {
+    const clonedSet = new Set();
+    for (const obj of originalSet) {
+      // Clone object if needed (shallow copy here, do deep copy if required)
+      clonedSet.add({ ...obj });
+    }
+    clone.grid.set(key, clonedSet);
+  }
+
+  return clone;
+}
+
 
 
 
@@ -146,6 +170,8 @@ function clearAndRemoveCompletedTimeouts(timeoutArray, clearFn) {
     return true; // Keep active timeouts
   });
 }
+
+
 
 
 
@@ -770,43 +796,6 @@ function sendRoomMessages(room) {
 
   })
 
-}
-
-
-
-function generateHash(message) {
-  let hash = 0;
-  const str = JSON.stringify(message);
-  for (let i = 0; i < str.length; i++) {
-    hash = (hash << 5) - hash + str.charCodeAt(i);
-    hash |= 0; // Convert to 32bit integer
-  }
-  return hash;
-}
-
-
-function getDistance(x1, y1, x2, y2) {
-  return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
-}
-
-function deepCopy(obj) {
-  return JSON.parse(JSON.stringify(obj));
-}
-
-function cloneSpatialGrid(original) {
-  const clone = new SpatialGrid(original.cellSize);
-
-  // Deep clone the grid
-  for (const [key, originalSet] of original.grid.entries()) {
-    const clonedSet = new Set();
-    for (const obj of originalSet) {
-      // Clone object if needed (shallow copy here, do deep copy if required)
-      clonedSet.add({ ...obj });
-    }
-    clone.grid.set(key, clonedSet);
-  }
-
-  return clone;
 }
 
 function createRoom(roomId, gamemode, gmconfig, splevel) {

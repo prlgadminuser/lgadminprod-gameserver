@@ -200,7 +200,9 @@ wss.on("connection", (ws, req) => {
       .then(isMaintenance => {
         if (isMaintenance) {
           ws.close(4008, "maintenance");
+          //ws.on("close", () => console.log("Closed for maintenance"));
           return;
+        
         }
         // Parse URL and headers
         const [_, token, gamemode] = req.url.split('/');
