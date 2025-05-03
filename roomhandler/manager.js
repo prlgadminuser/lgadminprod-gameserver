@@ -31,6 +31,8 @@ function removeRoomFromIndex(room) {
   if (roomList.size === 0) {
     roomIndex.delete(key);
   }
+
+
 }
 
 
@@ -56,6 +58,11 @@ function closeRoom(roomId) {
   
       rooms.delete(roomId);
       removeRoomFromIndex(room);
+
+      const room2 = rooms.get(roomId);
+
+      console.log(room2)
+      console.log(rooms.size)
     }
   }
 
