@@ -120,7 +120,7 @@ function pingPlayers(room) {
   );
 }
 
-const RandomZone = true
+const RandomZone = false
 
 function generateRandomTarget(prevZone, targetSize) {
   if (RandomZone) {
@@ -161,27 +161,27 @@ function UseZone(room) {
 
   const phases = [];
 
-  const targetSizes = [
-    room.mapHeight * 2,
-    room.mapHeight * 1.3,
-    room.mapHeight * 0.6,
-    0
+  const zones = [
+    { targetSize: room.mapHeight * 2, waitTime: 0, shrinkTime: 24000, damage: 2 },
+    { targetSize: room.mapHeight * 1.3, waitTime: 20000, shrinkTime: 50000, damage: 5 },
+    { targetSize: room.mapHeight * 0.6, waitTime: 20000, shrinkTime: 50000, damage: 8 },
+    { targetSize: 0, waitTime: 20000, shrinkTime: 50000, damage: 10 }
   ];
 
   let prevZone = baseZone;
 
-  for (let i = 0; i < targetSizes.length; i++) {
-    const targetSize = targetSizes[i];
+  for (let i = 0; i < zones.length; i++) {
+    const { targetSize, waitTime, shrinkTime, damage } = zones[i];
     const { targetX, targetY } = generateRandomTarget(prevZone, targetSize);
 
     const phase = {
-      waitTime: i === 0 ? 0 : 20000,
-      shrinkTime: i === 0 ? 24000 : 50000,
-      damagePerSecond: 2 * (i + 1),
+      waitTime,
+      shrinkTime,
+      damagePerSecond: damage,
       zonespeed: 5,
       targetX,
       targetY,
-      targetSize
+      targetSize,
     };
 
     phases.push(phase);
