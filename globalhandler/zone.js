@@ -176,7 +176,7 @@ function UseZone(room) {
 
     const phase = {
       waitTime: i === 0 ? 0 : 20000,
-      shrinkTime: i === 0 ? 24000 : 24000,
+      shrinkTime: i === 0 ? 24000 : 50000,
       damagePerSecond: 2 * (i + 1),
       zonespeed: 5,
       targetX,

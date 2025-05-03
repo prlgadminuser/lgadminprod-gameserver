@@ -78,7 +78,7 @@ const gamemodeconfig = {
     playerspeed: 1.5,
 
     modifiers: new Set([
-      "UseZone",
+    //  "UseZone",
       // AutoHealthRestore,
     ]),
 
