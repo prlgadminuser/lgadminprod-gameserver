@@ -78,7 +78,7 @@ const gamemodeconfig = {
     playerspeed: 1.5,
 
     modifiers: new Set([
-      // UseZone,
+      "UseZone",
       // AutoHealthRestore,
     ]),
 
@@ -114,7 +114,7 @@ const gamemodeconfig = {
     can_hit_dummies: false,
     can_hit_players: true,
 
-    maxplayers: 1,
+    maxplayers: 4,
     teamsize: 1,
     respawns_allowed: 0,
 

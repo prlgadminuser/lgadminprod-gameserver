@@ -120,27 +120,26 @@ function pingPlayers(room) {
   );
 }
 
-function generateRandomTarget(mapWidth, mapHeight, previousZone = null) {
-  let randomX, randomY;
+const RandomZone = true
 
-  if (previousZone) {
-    // Generate target within the bounds of the previous zone
-    const targetWidth = previousZone.targetSize * 0.7;  // 70% of the previous zone size
-    const targetHeight = previousZone.targetSize * 0.7; // 70% of the previous zone size
-    
-    randomX = Math.floor(Math.random() * targetWidth) + (previousZone.targetX - targetWidth / 2);
-    randomY = Math.floor(Math.random() * targetHeight) + (previousZone.targetY - targetHeight / 2);
+function generateRandomTarget(prevZone, targetSize) {
+  if (RandomZone) {
+    const { zoneStartX, zoneStartY, zoneEndX, zoneEndY } = prevZone;
+
+    const maxCenterX = zoneEndX - targetSize / 2;
+    const minCenterX = zoneStartX + targetSize / 2;
+    const maxCenterY = zoneEndY - targetSize / 2;
+    const minCenterY = zoneStartY + targetSize / 2;
+
+    const targetX = Math.random() * (maxCenterX - minCenterX) + minCenterX;
+    const targetY = Math.random() * (maxCenterY - minCenterY) + minCenterY;
+
+    return { targetX, targetY };
   } else {
-    // If there's no previous zone, generate within the full map area
-    randomX = Math.floor(Math.random() * (mapWidth * 2 + 1)) - mapWidth;
-    randomY = Math.floor(Math.random() * (mapHeight * 2 + 1)) - mapHeight;
+    return { targetX: 0, targetY: 0 };
   }
-
- // randomX = 0
- // randomY = 0
-
-  return { targetX: randomX, targetY: randomY };
 }
+
 
  
 
@@ -150,44 +149,53 @@ function UseZone(room) {
   room.zoneEndX += room.mapWidth / 2;
   room.zoneEndY += room.mapHeight / 2;
 
-  const mapWidth = room.mapWidth * 0.7;
-  const mapHeight = room.mapHeight * 0.7;
+  const initialWidth = room.zoneEndX - room.zoneStartX;
+  const initialHeight = room.zoneEndY - room.zoneStartY;
 
-  room.zonephases = [
-    { 
-      waitTime: 0, 
-      shrinkTime: 240000, 
-      damagePerSecond: 2, 
-      zonespeed: 5, 
-      ...generateRandomTarget(mapWidth, mapHeight), 
-      targetSize: room.mapHeight * 2 
-    },
-    { 
-      waitTime: 20000, 
-      shrinkTime: 50000, 
-      damagePerSecond: 4, 
-      zonespeed: 5, 
-      ...generateRandomTarget(mapWidth, mapHeight, room.zonephases[0]),  // Use the first zone's data for the target
-      targetSize: room.mapHeight * 1.3 
-    },
-    { 
-      waitTime: 20000, 
-      shrinkTime: 50000, 
-      damagePerSecond: 8, 
-      zonespeed: 5, 
-      ...generateRandomTarget(mapWidth, mapHeight, room.zonephases[1]),  // Use the second zone's data for the target
-      targetSize: room.mapHeight * 0.6 
-    },
-    { 
-      waitTime: 20000, 
-      shrinkTime: 50000, 
-      damagePerSecond: 12, 
-      zonespeed: 5, 
-      ...generateRandomTarget(mapWidth, mapHeight, room.zonephases[2]),  // Use the third zone's data for the target
-      targetSize: 0 
-    },
+  const baseZone = {
+    zoneStartX: room.zoneStartX,
+    zoneStartY: room.zoneStartY,
+    zoneEndX: room.zoneEndX,
+    zoneEndY: room.zoneEndY
+  };
+
+  const phases = [];
+
+  const targetSizes = [
+    room.mapHeight * 2,
+    room.mapHeight * 1.3,
+    room.mapHeight * 0.6,
+    0
   ];
 
+  let prevZone = baseZone;
+
+  for (let i = 0; i < targetSizes.length; i++) {
+    const targetSize = targetSizes[i];
+    const { targetX, targetY } = generateRandomTarget(prevZone, targetSize);
+
+    const phase = {
+      waitTime: i === 0 ? 0 : 20000,
+      shrinkTime: i === 0 ? 24000 : 24000,
+      damagePerSecond: 2 * (i + 1),
+      zonespeed: 5,
+      targetX,
+      targetY,
+      targetSize
+    };
+
+    phases.push(phase);
+
+    // Calculate new zone boundaries for the next phase
+    prevZone = {
+      zoneStartX: targetX - targetSize / 2,
+      zoneStartY: targetY - targetSize / 2,
+      zoneEndX: targetX + targetSize / 2,
+      zoneEndY: targetY + targetSize / 2
+    };
+  }
+
+  room.zonephases = phases;
   room.currentPhase = 0;
   room.phaseStartTime = new Date().getTime();
 
@@ -199,6 +207,7 @@ function UseZone(room) {
     setInterval(() => dealDamage(room), 1000)
   );
 }
+
 
 module.exports = {
   UseZone,
