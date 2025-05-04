@@ -343,7 +343,6 @@ async function joinRoom(ws, gamemode, playerVerified) {
 
       room.maxopentimeout = setTimeout(() => {
         closeRoom(roomId);
-        console.log(`Room ${roomId} closed due to timeout.`);
       }, room_max_open_time);
     
       await setupRoomPlayers(room)
@@ -450,7 +449,6 @@ function cleanupRoom(roomId) {
   //console.log(playersWithOpenConnections);
   // Close the room if it has no players
   if (room.players.size < 1 || playersWithOpenConnections.length < 1 || !room.players || room.players.size === 0) {
-    console.log("room clear interval room close")
     closeRoom(roomId);
   }
 }
@@ -919,7 +917,6 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
   room.matchmaketimeout = setTimeout(() => {
 
-    console.log("timeout match")
     closeRoom(roomId);
 
   }, matchmaking_timeout);
