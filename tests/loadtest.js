@@ -31,7 +31,7 @@ function startClient(token) {
     setInterval(() => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send('1');
-       // console.log(`📤 Sent "1" from ${token}`);
+     //  console.log(`📤 Sent "1" from ${token}`);
       }
     }, 3000);
   });

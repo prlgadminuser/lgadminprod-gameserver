@@ -280,6 +280,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
       loadout_formatted: [loadout[1], loadout[2], loadout[3]].join('$'),
       gadgetid: gadgetselected,
       canusegadget: true,
+      gadgetactive: false,
       gadgetcooldown: gadgetconfig[gadgetselected].cooldown,
       gadgetuselimit: gadgetconfig[gadgetselected].use_limit,
       gadgetchangevars: gadgetconfig[gadgetselected].changevariables,
@@ -518,6 +519,7 @@ function SendPreStartMessage(room) {
       killer: player.eliminator,
       cg: player.canusegadget ? 1 : 0,
       lg: player.gadgetuselimit,
+      ag: player.gadgetactive ? 1 : 0,
       x: player.x,
       y: player.y,
       el: player.elimlast,
@@ -531,7 +533,8 @@ function SendPreStartMessage(room) {
       teamdata: player.teamdata,
       pid: player.nmb,
       self_info: selfinfo,
-      dummies: room.dummies ? dummiesfiltered : undefined
+      dummies: room.dummies ? dummiesfiltered : undefined,
+      gadget: player.gadgetid,
     };
 
     const roomdata = {
@@ -663,6 +666,7 @@ function prepareRoomMessages(room) {
       killer: player.eliminator,
       cg: player.canusegadget ? 1 : 0,
       lg: player.gadgetuselimit,
+      ag: player.gadgetactive ? 1 : 0,
       x: player.x,
       y: player.y,
       el: player.elimlast,
