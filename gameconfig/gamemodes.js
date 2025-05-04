@@ -31,9 +31,9 @@ const gamemodeconfig = {
     ]),
 
     placereward_next: {
-      '1': { skillpoints: 13, coins: 25 },
-      '2': { points: 60, coins: 30 },
-      '3': { points: 20, coins: 10 }
+      1: { skillpoints: 13, coins: 25 },
+      2: { points: 60, coins: 30 },
+      3: { points: 20, coins: 10 }
     },
 
     placereward: [10, 8, 6, -1, -5],
