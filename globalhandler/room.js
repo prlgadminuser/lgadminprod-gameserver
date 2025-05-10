@@ -606,6 +606,36 @@ function prepareRoomMessages(room) {
   } else {
     roomdata = undefined;
   }
+ 
+/*let roomData = {
+  st: state_map[room.state],
+  z: room.zone,
+  mp: room.maxplayers,
+  pc: playercountroom,
+  cd: room.countdown,
+  w: room.winner
+};
+
+// Compare with the last state, shallow comparison (if possible)
+if (JSON.stringify(room.rdlast) !== JSON.stringify(roomData)) {
+  room.rdlast = roomData;
+} else {
+  roomData = {};  // If there's no change, set to empty object
+}
+
+// Filter self data to find changed keys
+const lastroomdata = room.rdlast || {};
+const changedRoomData = Object.fromEntries(
+  Object.entries(roomData).filter(([key, value]) => lastroomdata[key] !== value)
+);
+
+// Only send changed data
+const RoomData = Object.keys(changedRoomData).length > 0 ? changedRoomData : {};
+room.roomdata = RoomData;
+
+
+*/
+
 
   let playerData = {};
 
@@ -781,6 +811,7 @@ function prepareRoomMessages(room) {
 
 
   room.destroyedWalls = [];
+  room.bulletsUpdates = [];
 
   room.players.forEach(player => { player.hitmarkers = [] })
 }
@@ -839,6 +870,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     newkillfeed: [],
     objects: [],
     destroyedWalls: [],
+    bulletsUpdates: [],
     players: new Map(),
     snap: [],
     state: "waiting", // Possible values: "waiting", "playing", "countdown"
@@ -855,6 +887,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     sp_level: splevel,
     ss_counts: gmconfig.seasoncoinsreward,
     teamsize: gmconfig.teamsize,
+    weapons_modifiers_override: gmconfig.weapons_modifiers_override,
 
     // Map Configuration
     grid: roomgrid,

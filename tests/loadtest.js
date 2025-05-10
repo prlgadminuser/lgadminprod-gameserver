@@ -31,14 +31,18 @@ function startClient(token) {
     setInterval(() => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send('1');
-     //  console.log(`📤 Sent "1" from ${token}`);
+       // console.log(`📤 Sent "1" from ${token}`);
       }
     }, 3000);
   });
 
   ws.on('message', (data) => {
-  //  console.log(`📥 Message from server to ${token}:`, data.toString());
-  });
+      let message = data.toString();
+      if (message.includes("rwds")) {
+
+        console.log(`📥 Message from server to ${token}:`, message);
+      }
+    });
 
   ws.on('error', (err) => {
     console.error(`❌ Error with ${token}:`, err.message);
@@ -49,7 +53,8 @@ function startClient(token) {
   });
 }
 
-// Start all clients
-tokenList.forEach(token => {
-  startClient(token);
-});
+const limit = 8; // set your desired limit here
+
+for (let i = 0; i < Math.min(limit, tokenList.length); i++) {
+  startClient(tokenList[i]);
+}

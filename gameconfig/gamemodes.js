@@ -30,6 +30,12 @@ const gamemodeconfig = {
       "AutoHealthRestore",
     ]),
 
+    weapons_modifiers_override: new Set([
+      "UseZone",
+      "AutoHealthRestore",
+    ]),
+
+
     placereward_next: {
       1: { skillpoints: 13, coins: 25 },
       2: { points: 60, coins: 30 },
@@ -59,6 +65,10 @@ const gamemodeconfig = {
       "AutoHealthRestore",
     ]),
 
+    weapons_modifiers_override: new Set([
+
+    ]),
+
     placereward: [16, -8],
     seasoncoinsreward: [25, 12],
 
@@ -80,6 +90,10 @@ const gamemodeconfig = {
     modifiers: new Set([
     //  "UseZone",
       // AutoHealthRestore,
+    ]),
+
+    weapons_modifiers_override: new Set([
+
     ]),
 
     placereward: [0],
@@ -106,6 +120,9 @@ const gamemodeconfig = {
 
     modifiers: new Set([]),
 
+    weapons_modifiers_override: new Set([
+    ]),
+
     custom_map: 5,
     matchtype: "td",
   },
@@ -114,7 +131,7 @@ const gamemodeconfig = {
     can_hit_dummies: false,
     can_hit_players: true,
 
-    maxplayers: 9,
+    maxplayers: 4,
     teamsize: 1,
     respawns_allowed: 0,
 
@@ -126,12 +143,12 @@ const gamemodeconfig = {
    // show_timer: true,
 
     modifiers: new Set([
-      "UseZone",
-      "AutoHealthRestore",
-      "HealingCircles",
+
     ]),
 
- 
+    weapons_modifiers_override: new Set([
+        "DestroyWalls"
+    ]),
 
     custom_map: "breakthrough",
     //matchtype: "td"
