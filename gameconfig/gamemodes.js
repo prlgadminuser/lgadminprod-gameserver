@@ -150,7 +150,7 @@ const gamemodeconfig = {
         "DestroyWalls"
     ]),
 
-    custom_map: "breakthrough",
+    custom_map: "training",
     //matchtype: "td"
   },
 };
