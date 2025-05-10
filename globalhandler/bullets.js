@@ -72,7 +72,7 @@ function isHeadHit(bullet, player, height, width) {
   return isHeadshot;
 }
 
-function GunHasModifier(name, room) {
+function GunHasModifier(name, room, modifiers) {
   if (modifiers.has(name) || room.weapons_modifiers_override.has(name)) {
     return true
   } else {
@@ -102,15 +102,15 @@ function moveBullet(room, player, bullet) {
   // Handle collision with the grid first to simplify logic below
   if (isCollisionWithBullet(room.grid, newX, newY, height, width)) {
     const collidedWall = findCollidedWall(room.grid, newX, newY, height, width);
-    if (GunHasModifier("DestroyWalls", room)) {
+    if (GunHasModifier("DestroyWalls", room, modifiers)) {
       if (collidedWall) DestroyWall(collidedWall, room);
-    } else if (GunHasModifier("DestroyWalls(DestroyBullet)", room)) {
+    } else if (GunHasModifier("DestroyWalls(DestroyBullet)", room, modifiers)) {
       if (collidedWall) {
         DeleteBullet(player, timestamp)
         DestroyWall(collidedWall, room);
         return;
       }
-    } else if (GunHasModifier("CanBounce", room) && collidedWall) {
+    } else if (GunHasModifier("CanBounce", room, modifiers) && collidedWall) {
       adjustBulletDirection(bullet, collidedWall, 50);
       return;
     } else {
