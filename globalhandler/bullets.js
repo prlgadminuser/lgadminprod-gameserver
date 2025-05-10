@@ -95,7 +95,7 @@ function moveBullet(room, player, bullet) {
   const timenow = Date.now();
 
   if (distanceTraveled > distance || timenow > maxtime) {
-    DeleteBullet(player, timestamp)
+    DeleteBullet(player, timestamp, room)
     return;
   }
 
@@ -106,7 +106,7 @@ function moveBullet(room, player, bullet) {
       if (collidedWall) DestroyWall(collidedWall, room);
     } else if (GunHasModifier("DestroyWalls(DestroyBullet)", room, modifiers)) {
       if (collidedWall) {
-        DeleteBullet(player, timestamp)
+        DeleteBullet(player, timestamp, room)
         DestroyWall(collidedWall, room);
         return;
       }
@@ -114,7 +114,7 @@ function moveBullet(room, player, bullet) {
       adjustBulletDirection(bullet, collidedWall, 50);
       return;
     } else {
-      DeleteBullet(player, timestamp)
+      DeleteBullet(player, timestamp, room)
       return;
     }
   }
@@ -129,7 +129,7 @@ function moveBullet(room, player, bullet) {
       if (isCollisionWithPlayer(bullet, otherPlayer, height, width, direction)) {
         const finalDamage = calculateFinalDamage(distanceTraveled, distance, damage, damageconfig);
         handlePlayerCollision(room, player, otherPlayer, finalDamage, gunid);
-        DeleteBullet(player, timestamp)
+        DeleteBullet(player, timestamp, room)
         return;
       }
     }
@@ -165,7 +165,7 @@ function DestroyWall(wall, room) {
 
 }
 
-function DeleteBullet(player, timestamp) {
+function DeleteBullet(player, timestamp, room) {
 
   player.bullets.delete(timestamp);
 
