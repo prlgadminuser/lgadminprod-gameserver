@@ -24,7 +24,7 @@ const playerhitbox = {
 }
 
 const playerHitboxWidth = 14;
-const playerHitboxHeight = 49;
+const playerHitboxHeight = 55;
 
 const validDirections = [-90, 0, 180, -180, 90, 45, 135, -135, -45];
 
