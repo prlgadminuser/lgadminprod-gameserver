@@ -218,8 +218,10 @@ async function shootBullet(room, player, bulletdata) {
     modifiers,
   };
 
+  const pos = { x: parseFloat(bullet.x.toFixed(4)), y: parseFloat(bullet.y.toFixed(4))}
+
   player.bullets.set(timestamp, bullet);
-  const Message = `${timestamp}:${bullet.x}:${bullet.y}:${bullet.direction}:${bullet.speed}:${bullet.gunid}`
+  const Message = `${timestamp}:${pos.x}:${pos.y}:${bullet.direction}:${bullet.speed}:${bullet.gunid}`
   room.bulletsUpdates.push(Message)
 
   while (player.bullets.has(timestamp)) {
