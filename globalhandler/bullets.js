@@ -142,7 +142,7 @@ function moveBullet(room, player, bullet) {
       if (isCollisionWithPlayer(bullet, dummy, height, width, direction)) {
         const finalDamage = calculateFinalDamage(distanceTraveled, distance, damage, damageconfig);
         handleDummyCollision(room, player, key, finalDamage);
-        player.bullets.delete(timestamp);
+        DeleteBullet(player, timestamp, room)
         return;
       }
     }
@@ -219,7 +219,7 @@ async function shootBullet(room, player, bulletdata) {
   };
 
   player.bullets.set(timestamp, bullet);
-  const Message = `${timestamp}:${bullet.x}:${bullet.y}:${bullet.angle}:${bullet.gunid}`
+  const Message = `${timestamp}:${bullet.x}:${bullet.y}:${bullet.direction}:${bullet.speed}:${bullet.gunid}`
   room.bulletsUpdates.push(Message)
 
   while (player.bullets.has(timestamp)) {

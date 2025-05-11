@@ -131,7 +131,7 @@ const gamemodeconfig = {
     can_hit_dummies: false,
     can_hit_players: true,
 
-    maxplayers: 8,
+    maxplayers: 4,
     teamsize: 1,
     respawns_allowed: 0,
 
@@ -143,14 +143,14 @@ const gamemodeconfig = {
    // show_timer: true,
 
     modifiers: new Set([
-
+         "UseZone"
     ]),
 
     weapons_modifiers_override: new Set([
         "DestroyWalls"
     ]),
 
-    custom_map: "training",
+    custom_map: "breakthrough",
     //matchtype: "td"
   },
 };

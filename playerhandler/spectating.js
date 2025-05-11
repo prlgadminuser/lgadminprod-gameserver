@@ -81,7 +81,7 @@ function handleSpectatorMode(player, room) {
       } else {
         handleSpectatorMode(player, room); // Continuously handle spectating state
       }
-    }, server_tick_rate - 1)); // Adjust intervalfrequency as needed
+    }, server_tick_rate + 1)); // Adjust intervalfrequency as needed
   }
   
 

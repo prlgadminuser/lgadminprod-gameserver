@@ -386,12 +386,15 @@ server.on("upgrade", (request, socket, head) => {
 });
 
 
+
 process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception:", error);
+   process.exit()
 });
 
 process.on("unhandledRejection", (reason, promise) => {
   console.error("Unhandled Rejection:", reason, promise);
+    process.exit()
 });
 
 
