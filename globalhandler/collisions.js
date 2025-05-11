@@ -1,15 +1,19 @@
 "use strict";
 
-const wallblocksize = 40
+const {
+  playerHitboxHeight,
+  playerHitboxWidth,
+  playerhitbox
+} = require('./config');
 
+const wallblocksize = 40;
 const halfBlockSize = wallblocksize / 2;
-const { playerhitbox } = require('./config.js')
 
 function isCollisionWithWalls(grid, x, y) {
   const xMin = x - 20;
   const xMax = x + 20;
   const yMin = y - 45;
-  const yMax = y + 45
+  const yMax = y + 45;
 
   const nearbyWalls = grid.getWallsInArea(xMin, xMax, yMin, yMax);
 
@@ -25,23 +29,20 @@ function isCollisionWithWalls(grid, x, y) {
       yMax > wallTop &&
       yMin < wallBottom
     ) {
-      return true; // Collision detected
+      return true;
     }
   }
 
-  return false; // No collision detected
+  return false;
 }
 
 function isCollisionWithCachedWalls(walls, x, y) {
-
   const xMin = x - playerhitbox.xMin;
   const xMax = x + playerhitbox.xMax;
   const yMin = y - playerhitbox.yMin;
   const yMax = y + playerhitbox.yMax;
 
-  const nearbyWalls = walls
-
-  for (const wall of nearbyWalls) {
+  for (const wall of walls) {
     const wallLeft = wall.x - halfBlockSize;
     const wallRight = wall.x + halfBlockSize;
     const wallTop = wall.y - halfBlockSize;
@@ -53,46 +54,100 @@ function isCollisionWithCachedWalls(walls, x, y) {
       yMax > wallTop &&
       yMin < wallBottom
     ) {
-      return true; // Collision detected
+      return true;
     }
   }
 
-  return false; // No collision detected
+  return false;
 }
+
+function isHeadHit(bullet, player, height, width) {
+  const headshotTop = player.y - playerHitboxHeight / 3;
+  const headshotBottom = player.y - playerHitboxHeight / 6;
+
+  const playerLeft = player.x - playerHitboxWidth / 2.4;
+  const playerRight = player.x + playerHitboxWidth / 2.4;
+
+  const bulletLeft = bullet.x - width;
+  const bulletRight = bullet.x + width;
+  const bulletTop = bullet.y - height;
+  const bulletBottom = bullet.y + height;
+
+  return (
+    bulletBottom <= headshotBottom &&
+    bulletTop >= headshotTop &&
+    bulletRight >= playerLeft &&
+    bulletLeft <= playerRight
+  );
+}
+
+function rotatePoint(x, y, cx, cy, angleRad) {
+  const cosA = Math.cos(angleRad);
+  const sinA = Math.sin(angleRad);
+  const dx = x - cx;
+  const dy = y - cy;
+
+  return {
+    x: cx + dx * cosA - dy * sinA,
+    y: cy + dx * sinA + dy * cosA
+  };
+}
+
+function getBulletCorners(bullet, width, height, angleDeg) {
+  const rad = toRadians(angleDeg);
+  const hw = width;
+  const hh = height;
+
+  return [
+    rotatePoint(bullet.x + hw, bullet.y + hh, bullet.x, bullet.y, rad),
+    rotatePoint(bullet.x - hw, bullet.y + hh, bullet.x, bullet.y, rad),
+    rotatePoint(bullet.x - hw, bullet.y - hh, bullet.x, bullet.y, rad),
+    rotatePoint(bullet.x + hw, bullet.y - hh, bullet.x, bullet.y, rad),
+  ];
+}
+
+function isCollisionWithPlayer(bullet, player, bulletHeight, bulletWidth, bulletAngle) {
+  const bulletCorners = getBulletCorners(bullet, bulletWidth, bulletHeight, bulletAngle);
   
+  // Define the player's rectangle as 4 points (clockwise)
+  const playerHalfWidth = playerHitboxWidth;
+  const playerHalfHeight = playerHitboxHeight;
+  const playerCorners = [
+    { x: player.x - playerHalfWidth, y: player.y - playerHalfHeight },
+    { x: player.x + playerHalfWidth, y: player.y - playerHalfHeight },
+    { x: player.x + playerHalfWidth, y: player.y + playerHalfHeight },
+    { x: player.x - playerHalfWidth, y: player.y + playerHalfHeight }
+  ];
 
-function isCollisionWithBullet(grid, x, y, height, width) {
+  return doPolygonsIntersect(bulletCorners, playerCorners);
+}
 
-  const xMin = x - width;
-  const xMax = x + width;
-  const yMin = y - height;
-  const yMax = y + width;
-  const halfWidth = width;
-  const halfHeight = height;
+
+function isCollisionWithBullet(grid, x, y, height, width, direction) {
+  const bulletCorners = getBulletCorners({ x, y }, width, height, direction);
+
+  const xMin = Math.min(...bulletCorners.map(c => c.x));
+  const xMax = Math.max(...bulletCorners.map(c => c.x));
+  const yMin = Math.min(...bulletCorners.map(c => c.y));
+  const yMax = Math.max(...bulletCorners.map(c => c.y));
 
   const nearbyWalls = grid.getWallsInArea(xMin, xMax, yMin, yMax);
 
-  // Iterate through each wall
   for (const wall of nearbyWalls) {
-    // Determine the boundaries of the wall
-    const wallLeft = wall.x - halfBlockSize;
-    const wallRight = wall.x + halfBlockSize;
-    const wallTop = wall.y - halfBlockSize;
-    const wallBottom = wall.y + halfBlockSize;
+    const wallCorners = [
+      { x: wall.x - halfBlockSize, y: wall.y - halfBlockSize },
+      { x: wall.x + halfBlockSize, y: wall.y - halfBlockSize },
+      { x: wall.x + halfBlockSize, y: wall.y + halfBlockSize },
+      { x: wall.x - halfBlockSize, y: wall.y + halfBlockSize }
+    ];
 
-    // Check if the bullet's bounding box intersects with the wall's bounding box
-    if (
-      x - halfWidth < wallRight &&
-      x + halfWidth > wallLeft &&
-      y - halfHeight < wallBottom &&
-      y + halfHeight > wallTop
-    ) {
-      return true; // Collision detected
+    if (doPolygonsIntersect(bulletCorners, wallCorners)) {
+      return true;
     }
   }
-  return false; // No collision detected
-}
 
+  return false;
+}
 
 function findCollidedWall(grid, x, y, height, width) {
   const xMin = x - width;
@@ -102,15 +157,11 @@ function findCollidedWall(grid, x, y, height, width) {
 
   const nearbyWalls = grid.getWallsInArea(xMin, xMax, yMin, yMax);
 
-  const halfWidth = halfBlockSize;
-  const halfHeight = halfBlockSize;
   return nearbyWalls.find((wall) => {
-
-
-    const wallLeft = wall.x - halfWidth;
-    const wallRight = wall.x + halfWidth;
-    const wallTop = wall.y - halfHeight;
-    const wallBottom = wall.y + halfHeight;
+    const wallLeft = wall.x - halfBlockSize;
+    const wallRight = wall.x + halfBlockSize;
+    const wallTop = wall.y - halfBlockSize;
+    const wallBottom = wall.y + halfBlockSize;
 
     return (
       xMax > wallLeft &&
@@ -128,53 +179,70 @@ function toRadians(degrees) {
 function adjustBulletDirection(bullet, wall, wallBlockSize) {
   const halfBlockSize = wallBlockSize / 2;
 
-  // Calculate differences between bullet and wall center
   const deltaX = bullet.x - wall.x;
   const deltaY = bullet.y - wall.y;
 
   let normalAngle;
 
-  // Determine side of collision
   if (Math.abs(deltaX) > Math.abs(deltaY)) {
-    if (deltaX < 0) {
-      normalAngle = 180; // Left side
-    } else {
-      normalAngle = 0;   // Right side
-    }
+    normalAngle = deltaX < 0 ? 180 : 0;
   } else {
-    if (deltaY < 0) {
-      normalAngle = 90;  // Top side
-    } else {
-      normalAngle = 270; // Bottom side
-    }
+    normalAngle = deltaY < 0 ? 90 : 270;
   }
 
-  // Adjust for exact boundary hits
-  const onBoundaryX = Math.abs(deltaX) === halfBlockSize;
-  const onBoundaryY = Math.abs(deltaY) === halfBlockSize;
-
-  if (onBoundaryX && onBoundaryY) {
-    // If on both boundaries (corner), prioritize the closest side or default
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-      normalAngle = deltaX < 0 ? 180 : 0;
-    } else {
-      normalAngle = deltaY < 0 ? 90 : 270;
-    }
-  }
-
-  // Convert to radians
   const incomingAngle = toRadians(bullet.direction);
   const normalAngleRadians = toRadians(normalAngle);
-
-  // Reflect the angle
   const reflectionAngleRadians = 2 * normalAngleRadians - incomingAngle;
 
-  // Convert back to degrees and normalize
   let reflectionAngleDegrees = (reflectionAngleRadians * 180) / Math.PI;
   reflectionAngleDegrees = (reflectionAngleDegrees + 360) % 360;
 
-  // Update bullet direction
   bullet.direction = reflectionAngleDegrees;
+}
+
+
+function doPolygonsIntersect(a, b) {
+  const polygons = [a, b];
+
+  for (let i = 0; i < polygons.length; i++) {
+    const polygon = polygons[i];
+
+    for (let j = 0; j < polygon.length; j++) {
+      const k = (j + 1) % polygon.length;
+      const edge = { x: polygon[k].x - polygon[j].x, y: polygon[k].y - polygon[j].y };
+
+      // Get perpendicular axis to the edge
+      const axis = { x: -edge.y, y: edge.x };
+
+      // Project both polygons onto the axis
+      let [minA, maxA] = projectPolygon(a, axis);
+      let [minB, maxB] = projectPolygon(b, axis);
+
+      // Check for overlap
+      if (maxA < minB || maxB < minA) {
+        return false; // No collision on this axis
+      }
+    }
+  }
+
+  return true; // All axes overlap
+}
+
+function projectPolygon(polygon, axis) {
+  let min = dotProduct(polygon[0], axis);
+  let max = min;
+
+  for (let i = 1; i < polygon.length; i++) {
+    const proj = dotProduct(polygon[i], axis);
+    if (proj < min) min = proj;
+    if (proj > max) max = proj;
+  }
+
+  return [min, max];
+}
+
+function dotProduct(point, axis) {
+  return point.x * axis.x + point.y * axis.y;
 }
 
 
@@ -185,4 +253,5 @@ module.exports = {
   wallblocksize,
   adjustBulletDirection,
   findCollidedWall,
+  isCollisionWithPlayer
 };

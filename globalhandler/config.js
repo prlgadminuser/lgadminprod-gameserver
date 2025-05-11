@@ -11,7 +11,7 @@ const player_idle_timeout = 10000
 const maxClients = 100;
 
 const matchmaking_timeout = 1800000 // 30 minutes max matchmaking time
-const game_start_time = 5000
+const game_start_time = 1000
 const game_win_rest_time = 10000
 const room_max_open_time = 600000 // if game begins room can be opened for max 10 minutes before being auto closed by interval
 
@@ -23,8 +23,8 @@ const playerhitbox = {
   yMax: 49, //49
 }
 
-const playerHitboxWidth = 40;
-const playerHitboxHeight = 120;
+const playerHitboxWidth = 14;
+const playerHitboxHeight = 49;
 
 const validDirections = [-90, 0, 180, -180, 90, 45, 135, -135, -45];
 

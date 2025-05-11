@@ -312,6 +312,9 @@ async function joinRoom(ws, gamemode, playerVerified) {
 
     newPlayer.gun = newPlayer.loadout[1];
 
+    newPlayer.loadout[3] = 5
+    
+
     if (newPlayer.gadgetchangevars) {
       for (const [variable, change] of Object.entries(newPlayer.gadgetchangevars)) {
         newPlayer[variable] += Math.round(newPlayer[variable] * change);
@@ -646,8 +649,8 @@ function prepareRoomMessages(room) {
       const formattedBullets = {};
       player.bullets.forEach(bullet => {
         const timestamp = bullet.timestamp;
-        const x = Math.round(bullet.x);
-        const y = Math.round(bullet.y);
+        const x = bullet.x.toFixed(1)
+        const y = bullet.y.toFixed(1)
         const direction = Math.round(bullet.direction);
         const gunid = bullet.gunid;
         formattedBullets[timestamp] = `${timestamp}=${x},${y},${direction},${gunid};`;
@@ -682,7 +685,7 @@ function prepareRoomMessages(room) {
 
 
 
-    player.nearbybullets = room.bulletsUpdates
+    //player.nearbybullets = room.bulletsUpdates
 
     player.npfix = JSON.stringify(player.nearbyfinalids ? Array.from(player.nearbyfinalids) : [])
     hitmarkerfix = JSON.stringify(player.hitmarkers ? Array.from(player.hitmarkers) : [])
@@ -791,7 +794,7 @@ function prepareRoomMessages(room) {
         ['cl', player.nearbycircles],
         ['an', player.nearbyanimations],
         ['b', player.finalbullets],
-        ['nb', player.nearbybullets],
+      //  ['nb', player.nearbybullets],
         ['pd', player.pd],
       ];
 
@@ -820,12 +823,12 @@ function prepareRoomMessages(room) {
 
 
   room.destroyedWalls = [];
-  room.bulletsUpdates = [];
+ // room.bulletsUpdates = [];
 
   room.players.forEach(player => {
     player.hitmarkers = []
     player.eliminations = []
-     player.nearbybullets = []
+    // player.nearbybullets = []
 
   })
 }

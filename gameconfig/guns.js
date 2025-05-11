@@ -10,8 +10,8 @@ const gunsconfig = {
       distance: 300,
       maxexistingtime: 400,
       damage: 12,
-      width: 26,
-      height: 8,
+      width: 25,
+      height: 7,
       useplayerangle: true,
       bullets: [
                { angle: 0, speed: 30, delay: 0, offset: 0 },
@@ -45,8 +45,8 @@ const gunsconfig = {
       distance: 250,
       maxexistingtime: 500,
       damage: 10,
-      width: 34,
-      height: 8,
+      width: 27,
+      height: 6,
       useplayerangle: true,
       //can_bullets_bounce: false,
       bullets: [
@@ -96,8 +96,8 @@ const gunsconfig = {
       distance: 350,
       maxexistingtime: 400,
       damage: 4,
-      width: 34,
-      height: 7,
+      width: 33,
+      height: 6,
       useplayerangle: true,
       //can_bullets_bounce: true,
       bullets: [
@@ -121,8 +121,8 @@ const gunsconfig = {
       distance: 1000,
       maxexistingtime: 500,
       damage: 10,
-      width: 6,
-      height: 60,
+      width: 14,
+      height: 58,
       useplayerangle: true,
       bullets: [
         { angle: 0, speed: 25, delay: 0, offset: 0 },

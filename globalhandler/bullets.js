@@ -1,6 +1,6 @@
 "use strict";
 
-const { isCollisionWithBullet, adjustBulletDirection, findCollidedWall } = require('./collisions');
+const { isCollisionWithBullet, adjustBulletDirection, findCollidedWall, isCollisionWithPlayer } = require('./collisions');
 const { handlePlayerCollision, handleDummyCollision } = require('./player');
 const { playerHitboxHeight, playerHitboxWidth, gunsconfig, server_tick_rate, globalspeedmultiplier } = require('./config');
 const { compressMessage } = require('./..//index.js');
@@ -11,66 +11,6 @@ const BULLET_MOVE_INTERVAL = server_tick_rate // milliseconds
 const calculateDistance = (x1, y1, x2, y2) => Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 const toRadians = degrees => degrees * (Math.PI / 180);
 
-
-const playerHalfWidth = playerHitboxWidth / 2.4;
-const playerHalfHeight = playerHitboxHeight / 2.4;
-// Collision Detection
-function isCollisionWithPlayer(bullet, player, bulletHeight, bulletWidth, bulletAngle) {
-
-  // Get bullet's center position
-  let bulletCenterX = bullet.x;
-  let bulletCenterY = bullet.y;
-
-  // Calculate the rotated corners of the bullet
-  let halfWidth = bulletWidth;
-  let halfHeight = bulletHeight;
-
-  let cosA = Math.cos(bulletAngle);
-  let sinA = Math.sin(bulletAngle);
-
-  let corners = [
-    { x: bulletCenterX + halfWidth * cosA - halfHeight * sinA, y: bulletCenterY + halfWidth * sinA + halfHeight * cosA },
-    { x: bulletCenterX - halfWidth * cosA - halfHeight * sinA, y: bulletCenterY - halfWidth * sinA + halfHeight * cosA },
-    { x: bulletCenterX - halfWidth * cosA + halfHeight * sinA, y: bulletCenterY - halfWidth * sinA - halfHeight * cosA },
-    { x: bulletCenterX + halfWidth * cosA + halfHeight * sinA, y: bulletCenterY + halfWidth * sinA - halfHeight * cosA }
-  ];
-
-  // Check if any bullet corner is inside the player's bounding box
-  for (let corner of corners) {
-    if (
-      corner.x >= player.x - playerHalfWidth &&
-      corner.x <= player.x + playerHalfWidth &&
-      corner.y >= player.y - playerHalfHeight &&
-      corner.y <= player.y + playerHalfHeight
-    ) {
-      return true; // Collision detected
-    }
-  }
-
-  return false; // No collision
-}
-
-function isHeadHit(bullet, player, height, width) {
-  const headshotTop = player.y - playerHitboxHeight / 3;
-  const headshotBottom = player.y - playerHitboxHeight / 6;
-
-  const playerLeft = player.x - playerHitboxWidth / 2.4;
-  const playerRight = player.x + playerHitboxWidth / 2.4;
-
-  const bulletLeft = bullet.x - width / 2;
-  const bulletRight = bullet.x + width / 2;
-  const bulletTop = bullet.y - height / 2;
-  const bulletBottom = bullet.y + height / 2;
-
-  const isHeadshot = (
-    bulletBottom <= headshotBottom &&
-    bulletTop >= headshotTop &&
-    bulletRight >= playerLeft &&
-    bulletLeft <= playerRight
-  );
-
-  return isHeadshot;
-}
 
 function GunHasModifier(name, room, modifiers) {
   if (modifiers.has(name) || room.weapons_modifiers_override.has(name)) {
@@ -100,7 +40,7 @@ function moveBullet(room, player, bullet) {
   }
 
   // Handle collision with the grid first to simplify logic below
-  if (isCollisionWithBullet(room.grid, newX, newY, height, width)) {
+  if (isCollisionWithBullet(room.grid, newX, newY, height, width, direction - 90)) {
     const collidedWall = findCollidedWall(room.grid, newX, newY, height, width);
     if (GunHasModifier("DestroyWalls", room, modifiers)) {
       if (collidedWall) DestroyWall(collidedWall, room);
@@ -126,7 +66,7 @@ function moveBullet(room, player, bullet) {
     );
 
     for (const otherPlayer of potentialTargets) {
-      if (isCollisionWithPlayer(bullet, otherPlayer, height, width, direction)) {
+      if (isCollisionWithPlayer(bullet, otherPlayer, height, width, direction - 90)) {
         const finalDamage = calculateFinalDamage(distanceTraveled, distance, damage, damageconfig);
         handlePlayerCollision(room, player, otherPlayer, finalDamage, gunid);
         DeleteBullet(player, timestamp, room)
@@ -139,7 +79,7 @@ function moveBullet(room, player, bullet) {
   if (room.config.canCollideWithDummies) {
     for (const key in room.dummies) {
       const dummy = room.dummies[key];
-      if (isCollisionWithPlayer(bullet, dummy, height, width, direction)) {
+      if (isCollisionWithPlayer(bullet, dummy, height, width, direction - 90)) {
         const finalDamage = calculateFinalDamage(distanceTraveled, distance, damage, damageconfig);
         handleDummyCollision(room, player, key, finalDamage);
         DeleteBullet(player, timestamp, room)
@@ -255,8 +195,8 @@ async function handleBulletFired(room, player, gunType) {
       offset: bullet.offset,
       damage: gun.damage,
       angle: gun.useplayerangle ? bullet.angle + definedAngle : bullet.angle,
-      height: 5,
-      width: 5,
+      height: gun.height / 3,
+      width: gun.width / 3,
       maxtime: Date.now() + gun.maxexistingtime + bullet.delay,
       distance: gun.distance,
       damageconfig: gun.damageconfig || {},
