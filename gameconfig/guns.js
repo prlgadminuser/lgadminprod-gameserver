@@ -118,7 +118,7 @@ const gunsconfig = {
       // "CanBounce",
       // "DestroyWalls"
     ]),
-    spinning_speed: 1,
+    spinning_speed: 5,
     cooldown: 700,
     distance: 1000,
     maxexistingtime: 500,
