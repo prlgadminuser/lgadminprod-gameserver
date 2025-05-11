@@ -34,9 +34,9 @@ function moveBullet(room, player, bullet) {
   const distanceTraveled = calculateDistance(bullet.startX, bullet.startY, newX, newY);
   const timenow = Date.now();
 
-   if (GunHasModifier("Spinning", room, modifiers) && spinning_speed) {  
-    bullet.direction += spinning_speed
-    } 
+  // if (GunHasModifier("Spinning", room, modifiers) && spinning_speed) {  
+ //   bullet.direction += spinning_speed
+   // } 
 
   if (distanceTraveled > distance || timenow > maxtime) {
     DeleteBullet(player, timestamp, room)
