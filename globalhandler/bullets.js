@@ -23,7 +23,7 @@ function GunHasModifier(name, room, modifiers) {
 function moveBullet(room, player, bullet) {
   if (!bullet || !room) return;
 
-  const { speed, direction, timestamp, height, width, maxtime, distance, damageconfig, damage, gunid, modifiers } = bullet;
+  const { speed, direction, timestamp, height, width, maxtime, distance, damageconfig, damage, gunid, modifiers, spinning_speed } = bullet;
 
   const radians = toRadians(direction - 90);
   const xDelta = speed * Math.cos(radians);
@@ -34,10 +34,15 @@ function moveBullet(room, player, bullet) {
   const distanceTraveled = calculateDistance(bullet.startX, bullet.startY, newX, newY);
   const timenow = Date.now();
 
+   if (GunHasModifier("Spinning", room, modifiers) && spinning_speed) {  
+    bullet.direction += spinning_speed
+    } 
+
   if (distanceTraveled > distance || timenow > maxtime) {
     DeleteBullet(player, timestamp, room)
     return;
   }
+
 
   // Handle collision with the grid first to simplify logic below
   if (isCollisionWithBullet(room.grid, newX, newY, height, width, direction - 90)) {
@@ -130,7 +135,7 @@ function shootBulletsWithDelay(room, player, bulletdata) {
 
 // Shoot Bullet
 async function shootBullet(room, player, bulletdata) {
-  const { angle, offset, damage, speed, height, width, maxtime, distance, damageconfig, gunid, modifiers } = bulletdata;
+  const { angle, offset, damage, speed, height, width, maxtime, distance, damageconfig, gunid, modifiers, spinning_speed } = bulletdata;
   const radians = toRadians(angle);
   const radians1 = toRadians(angle - 90);
   const xOffset = offset * Math.cos(radians);
@@ -156,6 +161,7 @@ async function shootBullet(room, player, bulletdata) {
     damageconfig,
     gunid,
     modifiers,
+    spinning_speed,
   };
 
   const pos = { x: parseFloat(bullet.x.toFixed(4)), y: parseFloat(bullet.y.toFixed(4))}
@@ -201,7 +207,8 @@ async function handleBulletFired(room, player, gunType) {
       distance: gun.distance,
       damageconfig: gun.damageconfig || {},
       gunid: gunType,
-      modifiers: gun.modifiers
+      modifiers: gun.modifiers,
+      spinning_speed: gun.spinning_speed || undefined
     };
 
     shootBulletsWithDelay(room, player, bulletdata);
