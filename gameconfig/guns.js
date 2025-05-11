@@ -70,8 +70,8 @@ const gunsconfig = {
       distance: 300,
       maxexistingtime: 2000,
       damage: 25,
-      width: 1884,
-      height: 7998,
+      width: 33,
+      height: 7,
       useplayerangle: true,
     //  can_bullets_bounce: true,
       bullets: [
