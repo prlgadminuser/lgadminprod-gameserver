@@ -6,7 +6,7 @@ const { gunsconfig } = require('./../gameconfig/guns')
 const { matchmakingsp } = require('./../gameconfig/matchmaking')
 
 const gridcellsize = 40;
-const server_tick_rate = 16.4  //17
+const server_tick_rate = 15 //17
 const player_idle_timeout = 10000
 const maxClients = 100;
 
@@ -23,7 +23,7 @@ const playerhitbox = {
   yMax: 49, //49
 }
 
-const playerHitboxWidth = 29;
+const playerHitboxWidth = 23;
 const playerHitboxHeight = 51;
 
 const validDirections = [-90, 0, 180, -180, 90, 45, 135, -135, -45];
