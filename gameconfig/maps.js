@@ -33,10 +33,10 @@ const mapsconfig = {
         {"x":-0,"y":0},
       ],
       dummies: {
-        a1: { x: 100, y: 0, h: 100, sh: 100, t: 1 },
-        a2: { x: 300, y: 0, h: 100, sh: 100, t: 1 },
-        b3: { x: -100, y: 0, h: 500, sh: 500, t: 2 },
-        b4: { x: -200, y: -400, h: 500, sh: 500, t: 2 },
+        a1: { x: 100, y: 0, health: 100, starthealth: 100, type: 1 },
+        a2: { x: 300, y: 0, health: 100, starthealth: 100, type: 1 },
+        b3: { x: -100, y: 0, health: 500, starthealth: 500, type: 2 },
+        b4: { x: -200, y: -400, health: 500, starthealth: 500, type: 2 },
       },
     },
     fightdown: {  

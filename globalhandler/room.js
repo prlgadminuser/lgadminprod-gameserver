@@ -574,7 +574,7 @@ function prepareRoomMessages(room) {
     const transformData = (data) => {
       const transformed = {};
       for (const [key, value] of Object.entries(data)) {
-        transformed[key] = `${value.x}:${value.y}:${value.h}:${value.sh}:${value.t}`;
+        transformed[key] = `${value.x}:${value.y}:${value.health}:${value.starthealth}:${value.type}`;
       }
       return transformed;
     };

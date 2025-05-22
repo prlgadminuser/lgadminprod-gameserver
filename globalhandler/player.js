@@ -120,15 +120,15 @@ function handleDummyCollision(room, shootingPlayer, dummyKey, damage) {
   }
 
 
-  const GUN_BULLET_DAMAGE = Math.min(damage, dummy.h);
+  const GUN_BULLET_DAMAGE = Math.min(damage, dummy.health);
 
-  dummy.h -= GUN_BULLET_DAMAGE;
+  dummy.health -= GUN_BULLET_DAMAGE;
 
   const hit = `${dummy.x}:${dummy.y}:${GUN_BULLET_DAMAGE}`
 
   shootingPlayer.hitmarkers.push(hit);
 
-  if (dummy.h < 1) {
+  if (dummy.health < 1) {
     spawnAnimation(room, dummy, "death")
 
     delete room.dummies[dummyKey];
@@ -152,7 +152,7 @@ function respawnDummy(room, dummyKey, dummy, player) {
       ...dummy
     };
 
-    originalDummy.h = dummy.sh
+    originalDummy.health = dummy.starthealth
 
     if (room) {
       room.dummies[dummyKey] = originalDummy;

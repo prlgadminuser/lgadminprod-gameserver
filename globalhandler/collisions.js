@@ -158,7 +158,7 @@ function findCollidedWall(grid, x, y, height, width) {
   const nearbyWalls = grid.getWallsInArea(xMin, xMax, yMin, yMax);
 
   return nearbyWalls.find((wall) => {
-    const wallLeft = wall.x - halfBlockSize;
+    const wallLeft = wall.x - halfBlockSize;233
     const wallRight = wall.x + halfBlockSize;
     const wallTop = wall.y - halfBlockSize;
     const wallBottom = wall.y + halfBlockSize;

@@ -197,13 +197,16 @@ wss.on("connection", (ws, req) => {
     }
     // Check for maintenance mode
     checkForMaintenance()
-      .then(isMaintenance => {
-        if (isMaintenance) {
-          ws.close(4008, "maintenance");
-          //ws.on("close", () => console.log("Closed for maintenance"));
-          return;
-        
-        }
+  .then(isMaintenance => {
+    if (isMaintenance) {
+      ws.send("matchmaking_disabled"); // First send a message
+
+      setTimeout(() => {
+        ws.close(4008, "maintenance"); // Then close after 10ms
+      }, 10);
+
+      return;
+    }
         // Parse URL and headers
         const [_, token, gamemode] = req.url.split('/');
         const origin = req.headers["sec-websocket-origin"] || req.headers.origin;
@@ -366,7 +369,7 @@ server.on("upgrade", (request, socket, head) => {
     const ip = request.socket["true-client-ip"] || request.socket["x-forwarded-for"] || request.socket.remoteAddress;
 
     try {
-   //   await rateLimiterConnection.consume(ip);
+      await rateLimiterConnection.consume(ip);
 
       const origin = request.headers["sec-websocket-origin"] || request.headers.origin;
 
