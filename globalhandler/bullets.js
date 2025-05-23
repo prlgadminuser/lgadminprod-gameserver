@@ -86,8 +86,19 @@ function moveBullet(room, player, bullet) {
       const dummy = room.dummies[key];
       if (isCollisionWithPlayer(bullet, dummy, height, width, direction - 90)) {
         const finalDamage = calculateFinalDamage(distanceTraveled, distance, damage, damageconfig);
+
         handleDummyCollision(room, player, key, finalDamage);
-        AddAffliction(room, dummy, player, 1, 500, 3000)
+
+         const data = {
+          target_type: "dummy",
+          damage: 1,
+          speed: 500,
+          duration: 3000,
+          gunid: gunid,
+          dummykey: key,
+        }
+
+        AddAffliction(room, player, target, data)
        
         DeleteBullet(player, timestamp, room)
         return;

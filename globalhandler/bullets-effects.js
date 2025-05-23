@@ -1,13 +1,24 @@
 
-function AddAffliction(room, target, shootingPlayer, damage, speed, duration) {
+const { handlePlayerCollision, handleDummyCollision } = require("./player")
+
+function AddAffliction(room, shootingPlayer, target, data) {
+
+    const { target_type, damage, speed, duration, gunid, dummykey } = data
 
     const interval = setInterval(() => {
 
-        target.health -= damage
 
-        const hit = `${target.x}:${target.y}:${damage}`
+        if (!target) return
+        
+        if (target.type === "dummy") {
 
-        shootingPlayer.hitmarkers.push(hit);
+        handleDummyCollision(room, player, dummykey, damage)
+           
+        } else if (target.type === "player") {
+
+        handlePlayerCollision(room, player, target, damage, gunid)
+
+        }
 
     }, speed);
 
