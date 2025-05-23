@@ -481,6 +481,16 @@ const getAllKeys = (data) => {
   return allKeys;
 };
 
+
+
+  const transformData = (data) => {
+    const transformed = {};
+    for (const [key, value] of Object.entries(data)) {
+      transformed[key] = `${value.x}:${value.y}:${value.health}:${value.starthealth}:${value.type}`;
+    }
+    return transformed;
+  };
+
 function SendPreStartMessage(room) {
   let AllPlayerData = {};
 
@@ -496,13 +506,7 @@ function SendPreStartMessage(room) {
     };
   });
 
-  const transformData = (data) => {
-    const transformed = {};
-    for (const [key, value] of Object.entries(data)) {
-      transformed[key] = `${value.x}:${value.y}:${value.h}:${value.sh}:${value.t}`;
-    }
-    return transformed;
-  };
+
 
   const dummiesfiltered = room.dummies ? transformData(room.dummies) : undefined;
 
@@ -571,13 +575,6 @@ function prepareRoomMessages(room) {
   const playercountroom = Array.from(room.players.values()).filter(player => !player.eliminated).length;
 
   if (room.dummies) {
-    const transformData = (data) => {
-      const transformed = {};
-      for (const [key, value] of Object.entries(data)) {
-        transformed[key] = `${value.x}:${value.y}:${value.health}:${value.starthealth}:${value.type}`;
-      }
-      return transformed;
-    };
 
     const dummiesfiltered = transformData(room.dummies);
 
@@ -966,6 +963,10 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
 
   room.matchmaketimeout = setTimeout(() => {
+
+    room.players.forEach(player => {
+    player.ws.send("matchmaking_timeout")
+    })
 
     closeRoom(roomId);
 

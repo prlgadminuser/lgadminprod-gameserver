@@ -4,7 +4,7 @@ const { isCollisionWithBullet, adjustBulletDirection, findCollidedWall, isCollis
 const { handlePlayerCollision, handleDummyCollision } = require('./player');
 const { playerHitboxHeight, playerHitboxWidth, gunsconfig, server_tick_rate, globalspeedmultiplier } = require('./config');
 const { compressMessage } = require('./..//index.js');
-
+const { AddAffliction } = require('./bullets-effects')
 const BULLET_MOVE_INTERVAL = server_tick_rate // milliseconds
 
 // Helper functions
@@ -87,6 +87,8 @@ function moveBullet(room, player, bullet) {
       if (isCollisionWithPlayer(bullet, dummy, height, width, direction - 90)) {
         const finalDamage = calculateFinalDamage(distanceTraveled, distance, damage, damageconfig);
         handleDummyCollision(room, player, key, finalDamage);
+        AddAffliction(room, dummy, player, 1, 500, 3000)
+       
         DeleteBullet(player, timestamp, room)
         return;
       }
