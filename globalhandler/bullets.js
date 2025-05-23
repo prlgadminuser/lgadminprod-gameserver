@@ -98,7 +98,7 @@ function moveBullet(room, player, bullet) {
           dummykey: key,
         }
 
-        AddAffliction(room, player, target, data)
+        AddAffliction(room, player, dummy, data)
        
         DeleteBullet(player, timestamp, room)
         return;

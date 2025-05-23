@@ -10,13 +10,13 @@ function AddAffliction(room, shootingPlayer, target, data) {
 
         if (!target) return
         
-        if (target.type === "dummy") {
+        if (target_type === "dummy") {
 
-        handleDummyCollision(room, player, dummykey, damage)
+        handleDummyCollision(room, shootingPlayer, dummykey, damage)
            
-        } else if (target.type === "player") {
+        } else if (target_type === "player") {
 
-        handlePlayerCollision(room, player, target, damage, gunid)
+        handlePlayerCollision(room, shootingPlayer, target, damage, gunid)
 
         }
 
