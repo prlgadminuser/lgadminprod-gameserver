@@ -101,7 +101,7 @@ function moveBullet(room, player, bullet) {
         AddAffliction(room, player, dummy, data)
        
         DeleteBullet(player, timestamp, room)
-        return;
+        return;  
       }
     }
   }

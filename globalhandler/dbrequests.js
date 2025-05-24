@@ -235,7 +235,7 @@ async function increasePlayerPlace(playerId, place2, room) {
     );
 
     await battlePassCollection.updateOne(
-      { "account.username": username },
+      { username },
       {
         $inc: {
           season_coins: season_coins,
