@@ -74,6 +74,17 @@ function moveBullet(room, player, bullet) {
       if (isCollisionWithPlayer(bullet, otherPlayer, height, width, direction - 90)) {
         const finalDamage = calculateFinalDamage(distanceTraveled, distance, damage, damageconfig);
         handlePlayerCollision(room, player, otherPlayer, finalDamage, gunid);
+
+        const data = {
+          target_type: "player",
+          damage: 1,
+          speed: 500,
+          duration: 3000,
+          gunid: gunid,
+        }
+
+        AddAffliction(room, player, otherPlayer, data)
+       
         DeleteBullet(player, timestamp, room)
         return;
       }
