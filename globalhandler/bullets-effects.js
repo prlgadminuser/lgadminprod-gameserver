@@ -18,6 +18,11 @@ function AddAffliction(room, shootingPlayer, target, data) {
             clearInterval(interval);
             return;
         }
+       
+        if (target_type === "dummy" && !room.dummies[dummykey]) {
+            clearInterval(interval);
+            return;
+        }
 
 
         
