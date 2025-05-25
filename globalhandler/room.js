@@ -312,7 +312,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
 
     newPlayer.gun = newPlayer.loadout[1];
 
-    newPlayer.loadout[3] = 5
+    //newPlayer.loadout[3] = 5
     
 
     if (newPlayer.gadgetchangevars) {
