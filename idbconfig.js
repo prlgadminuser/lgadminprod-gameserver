@@ -1,11 +1,12 @@
 
 
-const password = process.env.DB_KEY || "8RLj5Vr3F6DRBAYc"
-const encodedPassword = encodeURIComponent(password);
 
-const tokenkey = "d8ce40604d359eeb9f2bff31beca4b4b"
+const { MONGO_URI, TOKEN_KEY, DISCORDWEBHOOK } = require("./ENV")
 
-const lgconnecturi = `mongodb+srv://Liquem:${encodedPassword}@cluster0.ed4zami.mongodb.net/?retryWrites=true&w=majority`;
+const lgconnecturi = process.env.MONGO_URI || MONGO_URI
+const tokenkey = process.env.TOKEN_KEY || TOKEN_KEY
+const webhookURL = process.env.DISCORDWEBHOOK || DISCORDWEBHOOK
+
 
 const uri = lgconnecturi
 
