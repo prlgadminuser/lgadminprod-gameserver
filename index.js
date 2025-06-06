@@ -15,10 +15,7 @@ const { rooms } = require('./roomhandler/manager')
 
 
 function compressMessage(msg) {
-  let parsed
-      parsed = msg
-  
-  return msgpack.encode(parsed);
+  return msgpack.encode(msg);
 }
 
 
