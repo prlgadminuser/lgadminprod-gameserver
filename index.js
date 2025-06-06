@@ -18,9 +18,6 @@ function compressMessage(msg) {
   let parsed
       parsed = msg
       parsed = JSON.stringify(parsed)
-      parsed = JSON.parse(parsed); 
-
-      console.log(parsed)
   
   return msgpack.encode(parsed);
 }
