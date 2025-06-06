@@ -15,10 +15,13 @@ const { rooms } = require('./roomhandler/manager')
 
 
 function compressMessage(msg) {
-  //const encoded = msgpack.encode(FinalPreMessage)
-  //const encoded = LZString.compressToUint8Array(FinalPreMessage)
-  const encoded = msgpack.encode(msg)
-  return encoded
+  let obj;
+  try {
+    obj = typeof msg === 'string' ? JSON.parse(msg) : msg;
+  } catch {
+    obj = msg; // fallback if not JSON string
+  }
+  return msgpack.encode(obj);
 }
 
 
