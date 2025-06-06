@@ -15,12 +15,8 @@ const { rooms } = require('./roomhandler/manager')
 
 
 function compressMessage(msg) {
-  let obj;
-  try {
-    obj = typeof msg === 'string' ? JSON.parse(msg) : msg;
-  } catch {
-    obj = msg; // fallback if not JSON string
-  }
+
+  obj = JSON.parse(msg) 
   return msgpack.encode(obj);
 }
 
