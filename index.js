@@ -15,8 +15,13 @@ const { rooms } = require('./roomhandler/manager')
 
 
 function compressMessage(msg) {
-  return msgpack.encode(msg);
+
+  let sendmsg
+  sendmsg = JSON.parse(msg)
+  return msgpack.encode(sendmsg);
 }
+
+
 
 
 const ConnectionOptionsRateLimit = {
