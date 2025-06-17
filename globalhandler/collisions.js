@@ -158,7 +158,7 @@ function findCollidedWall(grid, x, y, height, width) {
   const nearbyWalls = grid.getWallsInArea(xMin, xMax, yMin, yMax);
 
   return nearbyWalls.find((wall) => {
-    const wallLeft = wall.x - halfBlockSize;233
+    const wallLeft = wall.x - halfBlockSize;
     const wallRight = wall.x + halfBlockSize;
     const wallTop = wall.y - halfBlockSize;
     const wallBottom = wall.y + halfBlockSize;
@@ -176,18 +176,33 @@ function toRadians(degrees) {
   return degrees * (Math.PI / 180);
 }
 
-function adjustBulletDirection(bullet, wall, wallBlockSize) {
-  const halfBlockSize = wallBlockSize / 2;
+function adjustBulletDirection(bullet, wall) {
+  const wallLeft = wall.x;
+  const wallRight = wall.x + halfBlockSize;
+  const wallTop = wall.y;
+  const wallBottom = wall.y + halfBlockSize;
 
-  const deltaX = bullet.x - wall.x;
-  const deltaY = bullet.y - wall.y;
+  const bulletCenterX = bullet.x;
+  const bulletCenterY = bullet.y;
+
+  // Find distances from bullet to each side of the wall
+  const distLeft = Math.abs(bulletCenterX - wallLeft);
+  const distRight = Math.abs(bulletCenterX - wallRight);
+  const distTop = Math.abs(bulletCenterY - wallTop);
+  const distBottom = Math.abs(bulletCenterY - wallBottom);
+
+  // Determine which side the bullet is closest to
+  const minDist = Math.min(distLeft, distRight, distTop, distBottom);
 
   let normalAngle;
-
-  if (Math.abs(deltaX) > Math.abs(deltaY)) {
-    normalAngle = deltaX < 0 ? 180 : 0;
+  if (minDist === distLeft) {
+    normalAngle = 180; // From left
+  } else if (minDist === distRight) {
+    normalAngle = 0; // From right
+  } else if (minDist === distTop) {
+    normalAngle = 90; // From top
   } else {
-    normalAngle = deltaY < 0 ? 90 : 270;
+    normalAngle = 270; // From bottom
   }
 
   const incomingAngle = toRadians(bullet.direction);
@@ -199,6 +214,11 @@ function adjustBulletDirection(bullet, wall, wallBlockSize) {
 
   bullet.direction = reflectionAngleDegrees;
 }
+
+function toRadians(degrees) {
+  return (degrees * Math.PI) / 180;
+}
+
 
 
 function doPolygonsIntersect(a, b) {
