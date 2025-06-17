@@ -1,5 +1,6 @@
 "use strict";
 
+const { isHalfWidth } = require('validator');
 const {
   playerHitboxHeight,
   playerHitboxWidth,
@@ -172,13 +173,11 @@ function findCollidedWall(grid, x, y, height, width) {
   });
 }
 
-
-
 function adjustBulletDirection(bullet, wall) {
   const wallLeft = wall.x;
-  const wallRight = wall.x + wallblocksize;
+  const wallRight = wall.x + halfBlockSize;
   const wallTop = wall.y;
-  const wallBottom = wall.y + wallblocksize;
+  const wallBottom = wall.y + halfBlockSize;
 
   const bulletX = bullet.x;
   const bulletY = bullet.y;
@@ -190,6 +189,7 @@ function adjustBulletDirection(bullet, wall) {
 
   const minDist = Math.min(distLeft, distRight, distTop, distBottom);
 
+  // Reflect based on which side was hit
   if (minDist === distLeft || minDist === distRight) {
     // Reflect horizontally
     bullet.direction = (540 - bullet.direction) % 360;
@@ -197,7 +197,14 @@ function adjustBulletDirection(bullet, wall) {
     // Reflect vertically
     bullet.direction = (360 - bullet.direction) % 360;
   }
+
+  // Normalize direction to be positive
+  if (bullet.direction < 0) {
+    bullet.direction += 360;
+  }
 }
+
+
 
 
 function toRadians(degrees) {

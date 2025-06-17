@@ -820,7 +820,7 @@ function prepareRoomMessages(room) {
     const currentMessageHash = generateHash(playerSpecificMessage);
     player.tick_send_allow = false
     const playermsg = JSON.stringify(playerSpecificMessage)
-    if (player.ws && currentMessageHash !== player.lastMessageHash && playermsg !== "{}" ) { // 
+    if (player.ws && currentMessageHash !== player.lastMessageHash ) { // && playermsg !== "{}"
       const compressedPlayerMessage = compressMessage(playermsg)
       player.lastcompressedmessage = compressedPlayerMessage
       player.tick_send_allow = true

@@ -274,7 +274,7 @@ async function checkForMaintenance() {
   try {
     // Find the maintenanceStatus directly from the document
     const result = await shopcollection.findOne(
-      { _id: maintenanceId },
+      { _id: "maintenance" },
       { projection: { status: 1 } } // Only retrieve the maintenanceStatus field
     );
 

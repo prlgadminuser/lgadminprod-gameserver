@@ -140,6 +140,8 @@ function DeleteBullet(player, timestamp, room, bullet) {
   player.bullets.delete(timestamp);
 
 
+
+
   const Message = `DEL:${timestamp}`
   
   room.bulletsUpdates.push(Message)
