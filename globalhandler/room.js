@@ -1,5 +1,5 @@
 
-const { axios, Limiter, msgpack, LZString, compressMessage } = require('./..//index.js');
+const { Limiter, compressMessage } = require('./..//index.js');
 const { matchmaking_timeout, server_tick_rate, game_start_time, mapsconfig, gunsconfig, gamemodeconfig, matchmakingsp, player_idle_timeout, room_max_open_time } = require('./config.js');
 const { handleBulletFired } = require('./bullets.js');
 const { handleMovement } = require('./player.js');
@@ -18,7 +18,7 @@ const { roomIndex, rooms, closeRoom, addRoomToIndex, getAvailableRoom } = requir
 
 
 function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+  return 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = Math.random() * 16 | 0;
     const v = c === 'x' ? r : (r & 0x3 | 0x8); // Ensures UUID version 4
     return v.toString(16);
@@ -564,6 +564,14 @@ function SendPreStartMessage(room) {
   });
 }
 
+function getNearbyBullets(room, centerX, centerY, xThreshold, yThreshold, cellSize) {
+  const bulletsInRange = [];
+
+      
+   
+}
+
+
 
 
 function prepareRoomMessages(room) {
@@ -607,6 +615,8 @@ function prepareRoomMessages(room) {
   } else {
     roomdata = undefined;
   }
+
+
 
   /*let roomData = {
     st: state_map[room.state],
@@ -810,7 +820,7 @@ function prepareRoomMessages(room) {
     const currentMessageHash = generateHash(playerSpecificMessage);
     player.tick_send_allow = false
     const playermsg = JSON.stringify(playerSpecificMessage)
-    if (player.ws && currentMessageHash !== player.lastMessageHash && playermsg !== "{}") {
+    if (player.ws && currentMessageHash !== player.lastMessageHash && playermsg !== "{}" ) { // 
       const compressedPlayerMessage = compressMessage(playermsg)
       player.lastcompressedmessage = compressedPlayerMessage
       player.tick_send_allow = true
@@ -870,6 +880,8 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
   const itemgrid = new SpatialGrid(gridcellsize); // grid system for items
 
+  const bulletgrid = new SpatialGrid(50);
+
   const roomgrid = cloneSpatialGrid(mapsconfig[mapid].grid)
 
 
@@ -893,6 +905,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
     // Game Configuration
     itemgrid: itemgrid,
+    bulletgrid: bulletgrid,
     maxplayers: gmconfig.maxplayers,
     modifiers: gmconfig.modifiers,
     place_counts: gmconfig.placereward,

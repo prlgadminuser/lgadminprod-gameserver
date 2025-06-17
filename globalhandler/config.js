@@ -23,8 +23,8 @@ const playerhitbox = {
   yMax: 49, //49
 }
 
-const playerHitboxWidth = 23;
-const playerHitboxHeight = 51;
+const playerHitboxWidth = 29;
+const playerHitboxHeight = 46;
 
 const validDirections = [-90, 0, 180, -180, 90, 45, 135, -135, -45];
 
@@ -39,6 +39,7 @@ class SpatialGrid {
 
       this.grid = new Map(); 
   }
+
 
   _getCellKey(x, y) {
     const cellX = Math.floor(x / this.cellSize);

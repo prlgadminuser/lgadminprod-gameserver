@@ -2,7 +2,7 @@
 
 const { isCollisionWithBullet, adjustBulletDirection, findCollidedWall, isCollisionWithPlayer } = require('./collisions');
 const { handlePlayerCollision, handleDummyCollision } = require('./player');
-const { playerHitboxHeight, playerHitboxWidth, gunsconfig, server_tick_rate, globalspeedmultiplier } = require('./config');
+const { gunsconfig, server_tick_rate } = require('./config');
 const { compressMessage } = require('./..//index.js');
 const { AddAffliction } = require('./bullets-effects')
 const BULLET_MOVE_INTERVAL = server_tick_rate // milliseconds
@@ -39,7 +39,7 @@ function moveBullet(room, player, bullet) {
    // } 
 
   if (distanceTraveled > distance || timenow > maxtime) {
-    DeleteBullet(player, timestamp, room)
+    DeleteBullet(player, timestamp, room, bullet)
     return;
   }
 
@@ -51,7 +51,7 @@ function moveBullet(room, player, bullet) {
       if (collidedWall) DestroyWall(collidedWall, room);
     } else if (GunHasModifier("DestroyWalls(DestroyBullet)", room, modifiers)) {
       if (collidedWall) {
-        DeleteBullet(player, timestamp, room)
+        DeleteBullet(player, timestamp, room, bullet)
         DestroyWall(collidedWall, room);
         return;
       }
@@ -59,7 +59,7 @@ function moveBullet(room, player, bullet) {
       adjustBulletDirection(bullet, collidedWall, 50);
       return;
     } else {
-      DeleteBullet(player, timestamp, room)
+      DeleteBullet(player, timestamp, room, bullet)
       return;
     }
   }
@@ -85,7 +85,7 @@ function moveBullet(room, player, bullet) {
 
         AddAffliction(room, player, otherPlayer, data)
        
-        DeleteBullet(player, timestamp, room)
+        DeleteBullet(player, timestamp, room, bullet)
         return;
       }
     }
@@ -111,7 +111,7 @@ function moveBullet(room, player, bullet) {
 
         AddAffliction(room, player, dummy, data)
        
-        DeleteBullet(player, timestamp, room)
+        DeleteBullet(player, timestamp, room, bullet)
         return;  
       }
     }
@@ -134,9 +134,13 @@ function DestroyWall(wall, room) {
 
 }
 
-function DeleteBullet(player, timestamp, room) {
+function DeleteBullet(player, timestamp, room, bullet) {
 
+   
   player.bullets.delete(timestamp);
+
+   room.bulletgrid.removeBullet(bullet.timestamp);
+
 
   const Message = `DEL:${timestamp}`
   
@@ -175,7 +179,8 @@ async function shootBullet(room, player, bulletdata) {
     startX: player.x + xOffset + x1,
     startY: player.y + yOffset + y1,
     direction: angle,
-    timestamp,
+    owner: player.playerId,
+    timestamp: timestamp,
     damage,
     speed,
     height,
@@ -187,6 +192,7 @@ async function shootBullet(room, player, bulletdata) {
     modifiers,
     spinning_speed,
   };
+
 
   const pos = { x: parseFloat(bullet.x.toFixed(4)), y: parseFloat(bullet.y.toFixed(4))}
 
