@@ -23,7 +23,7 @@ const playerhitbox = {
   yMax: 49, //49
 }
 
-const playerHitboxWidth = 29;
+const playerHitboxWidth = 20;
 const playerHitboxHeight = 46;
 
 const validDirections = [-90, 0, 180, -180, 90, 45, 135, -135, -45];
