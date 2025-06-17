@@ -172,48 +172,33 @@ function findCollidedWall(grid, x, y, height, width) {
   });
 }
 
-function toRadians(degrees) {
-  return degrees * (Math.PI / 180);
-}
+
 
 function adjustBulletDirection(bullet, wall) {
   const wallLeft = wall.x;
-  const wallRight = wall.x + halfBlockSize;
+  const wallRight = wall.x + wallblocksize;
   const wallTop = wall.y;
-  const wallBottom = wall.y + halfBlockSize;
+  const wallBottom = wall.y + wallblocksize;
 
-  const bulletCenterX = bullet.x;
-  const bulletCenterY = bullet.y;
+  const bulletX = bullet.x;
+  const bulletY = bullet.y;
 
-  // Find distances from bullet to each side of the wall
-  const distLeft = Math.abs(bulletCenterX - wallLeft);
-  const distRight = Math.abs(bulletCenterX - wallRight);
-  const distTop = Math.abs(bulletCenterY - wallTop);
-  const distBottom = Math.abs(bulletCenterY - wallBottom);
+  const distLeft = Math.abs(bulletX - wallLeft);
+  const distRight = Math.abs(bulletX - wallRight);
+  const distTop = Math.abs(bulletY - wallTop);
+  const distBottom = Math.abs(bulletY - wallBottom);
 
-  // Determine which side the bullet is closest to
   const minDist = Math.min(distLeft, distRight, distTop, distBottom);
 
-  let normalAngle;
-  if (minDist === distLeft) {
-    normalAngle = 180; // From left
-  } else if (minDist === distRight) {
-    normalAngle = 0; // From right
-  } else if (minDist === distTop) {
-    normalAngle = 90; // From top
+  if (minDist === distLeft || minDist === distRight) {
+    // Reflect horizontally
+    bullet.direction = (540 - bullet.direction) % 360;
   } else {
-    normalAngle = 270; // From bottom
+    // Reflect vertically
+    bullet.direction = (360 - bullet.direction) % 360;
   }
-
-  const incomingAngle = toRadians(bullet.direction);
-  const normalAngleRadians = toRadians(normalAngle);
-  const reflectionAngleRadians = 2 * normalAngleRadians - incomingAngle;
-
-  let reflectionAngleDegrees = (reflectionAngleRadians * 180) / Math.PI;
-  reflectionAngleDegrees = (reflectionAngleDegrees + 360) % 360;
-
-  bullet.direction = reflectionAngleDegrees;
 }
+
 
 function toRadians(degrees) {
   return (degrees * Math.PI) / 180;
