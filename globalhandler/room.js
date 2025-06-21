@@ -590,7 +590,7 @@ function prepareRoomMessages(room) {
   }
 
   // Room data hash
-  const roomdata = [
+  let roomdata = [
     state_map[room.state],
     room.zone,
     room.maxplayers,
@@ -599,6 +599,7 @@ function prepareRoomMessages(room) {
     room.countdown,
     room.winner,
   ].join(':');
+  
   roomdata === room.rdlast ? roomdata = undefined : room.rdlast = roomdata;
 
   // Player data aggregation
