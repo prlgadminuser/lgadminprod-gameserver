@@ -43,7 +43,6 @@ function getPlayersInRange(player, players, centerX, centerY, xThreshold, yThres
 
     player.nearbyplayers.clear()
 
-  const playersInRange = player.nearbyplayers 
 
   players.forEach(player => {
     if (player.nmb !== excludePlayerId) {
@@ -51,7 +50,7 @@ function getPlayersInRange(player, players, centerX, centerY, xThreshold, yThres
       const isNearY = Math.abs(player.y - centerY) <= yThreshold;
 
       if (isNearX && isNearY) {
-        playersInRange.add(player.nmb);
+        player.nearbyplayers.add(player.nmb);
       }
     }
   });
