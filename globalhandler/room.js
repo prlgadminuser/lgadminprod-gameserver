@@ -607,15 +607,22 @@ function prepareRoomMessages(room) {
   for (const player of players) {
     if (player.visible === false) continue;
 
-    let finalBullets;
-    if (player.bullets.length) {
-      finalBullets = '$b' + player.bullets.map(bullet => {
-        const { bullet_id, x, y, direction, gunid } = bullet;
-        return `${bullet_id}=${x.toFixed(1)},${y.toFixed(1)},${Math.round(direction)},${gunid};`;
-      }).join('');
-    }
+    if (player.visible !== false) {
+      const formattedBullets = {};
+      player.bullets.forEach(bullet => {
+        const bullet_id = bullet.bullet_id;
+        const x = bullet.x.toFixed(1)
+        const y = bullet.y.toFixed(1)
+        const direction = Math.round(bullet.direction);
+        const gunid = bullet.gunid;
+          formattedBullets[bullet_id] = `${bullet_id}=${x},${y},${direction},${gunid};`;
+      });
 
-    player.finalbullets = finalBullets;
+      const finalBullets = Object.keys(formattedBullets).length > 0
+        ? "$b" + Object.values(formattedBullets).join("")
+        : undefined;
+
+      player.finalbullets = finalBullets
 
     if (GameRunningState) {
       playerData[player.nmb] = [
@@ -628,6 +635,7 @@ function prepareRoomMessages(room) {
         finalBullets
       ].join(':');
     }
+  }
   }
 
   for (const player of players) {
