@@ -270,6 +270,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
       can_bullets_bounce: false,
       bullets: new Map(),
       nearbyids: new Set(),
+      nearbyplayers: new Set(),
 
       // movement
       moving: false,
