@@ -235,7 +235,7 @@ async function increasePlayerPlace(playerId, place2, room) {
     );
 
     await battlePassCollection.updateOne(
-      { "account.username": username },
+      { username },
       {
         $inc: {
           season_coins: season_coins,
@@ -274,7 +274,7 @@ async function checkForMaintenance() {
   try {
     // Find the maintenanceStatus directly from the document
     const result = await shopcollection.findOne(
-      { _id: maintenanceId },
+      { _id: "maintenance" },
       { projection: { status: 1 } } // Only retrieve the maintenanceStatus field
     );
 
