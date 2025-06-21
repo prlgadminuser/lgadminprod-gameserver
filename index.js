@@ -9,16 +9,14 @@ const LZString = require("lz-string")
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const jwt = require("jsonwebtoken");
 const { RateLimiterMemory } = require("rate-limiter-flexible");
-const { uri } = require("./idbconfig");
+const { uri, DB_NAME } = require("./idbconfig");
 const msgpack = require("msgpack-lite");
-const { rooms } = require('./roomhandler/manager')
 
 
 function compressMessage(msg) {
-  
+
   return msgpack.encode(msg);
 }
-
 
 
 

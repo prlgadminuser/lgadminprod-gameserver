@@ -23,7 +23,7 @@ function GunHasModifier(name, room, modifiers) {
 function moveBullet(room, player, bullet) {
   if (!bullet || !room) return;
 
-  const { speed, direction, timestamp, height, width, maxtime, distance, damageconfig, damage, gunid, modifiers, spinning_speed } = bullet;
+  const { speed, direction, bullet_id, height, width, maxtime, distance, damageconfig, damage, gunid, modifiers, spinning_speed } = bullet;
 
   const radians = toRadians(direction - 90);
   const xDelta = speed * Math.cos(radians);
@@ -39,7 +39,7 @@ function moveBullet(room, player, bullet) {
    // } 
 
   if (distanceTraveled > distance || timenow > maxtime) {
-    DeleteBullet(player, timestamp, room, bullet)
+    DeleteBullet(player, bullet_id, room, bullet)
     return;
   }
 
@@ -51,7 +51,7 @@ function moveBullet(room, player, bullet) {
       if (collidedWall) DestroyWall(collidedWall, room);
     } else if (GunHasModifier("DestroyWalls(DestroyBullet)", room, modifiers)) {
       if (collidedWall) {
-        DeleteBullet(player, timestamp, room, bullet)
+        DeleteBullet(player, bullet_id, room, bullet)
         DestroyWall(collidedWall, room);
         return;
       }
@@ -59,7 +59,7 @@ function moveBullet(room, player, bullet) {
       adjustBulletDirection(bullet, collidedWall, 50);
       return;
     } else {
-      DeleteBullet(player, timestamp, room, bullet)
+      DeleteBullet(player, bullet_id, room, bullet)
       return;
     }
   }
@@ -85,7 +85,7 @@ function moveBullet(room, player, bullet) {
 
         AddAffliction(room, player, otherPlayer, data)
        
-        DeleteBullet(player, timestamp, room, bullet)
+        DeleteBullet(player, bullet_id, room, bullet)
         return;
       }
     }
@@ -111,7 +111,7 @@ function moveBullet(room, player, bullet) {
 
         AddAffliction(room, player, dummy, data)
        
-        DeleteBullet(player, timestamp, room, bullet)
+        DeleteBullet(player, bullet_id, room, bullet)
         return;  
       }
     }
@@ -134,15 +134,15 @@ function DestroyWall(wall, room) {
 
 }
 
-function DeleteBullet(player, timestamp, room, bullet) {
+function DeleteBullet(player, bullet_id, room, bullet) {
 
    
-  player.bullets.delete(timestamp);
+  player.bullets.delete(bullet_id);
 
 
 
 
-  const Message = `DEL:${timestamp}`
+  const Message = `DEL:${bullet_id}`
   
   room.bulletsUpdates.push(Message)
 
@@ -168,7 +168,7 @@ async function shootBullet(room, player, bulletdata) {
   const radians1 = toRadians(angle - 90);
   const xOffset = offset * Math.cos(radians);
   const yOffset = offset * Math.sin(radians);
-  const timestamp = Math.random().toString(36).substring(2, 7);
+  const bullet_id = Math.random().toString(36).substring(2, 7);
 
   const x1 = parseFloat((30 * Math.cos(radians1)).toFixed(1)); // Offset along the x-axis
   const y1 = parseFloat((30 * Math.sin(radians1)).toFixed(1)); // Offset along the y-axis
@@ -180,7 +180,7 @@ async function shootBullet(room, player, bulletdata) {
     startY: player.y + yOffset + y1,
     direction: angle,
     owner: player.playerId,
-    timestamp: timestamp,
+    bullet_id: bullet_id,
     damage,
     speed,
     height,
@@ -196,13 +196,13 @@ async function shootBullet(room, player, bulletdata) {
 
   const pos = { x: parseFloat(bullet.x.toFixed(4)), y: parseFloat(bullet.y.toFixed(4))}
 
-  player.bullets.set(timestamp, bullet);
-  const Message = `${timestamp}:${pos.x}:${pos.y}:${bullet.direction}:${bullet.speed}:${bullet.gunid}`
+  player.bullets.set(bullet_id, bullet);
+  const Message = `${bullet_id}:${pos.x}:${pos.y}:${bullet.direction}:${bullet.speed}:${bullet.gunid}`
   room.bulletsUpdates.push(Message)
 
-  while (player.bullets.has(timestamp)) {
+  while (player.bullets.has(bullet_id)) {
     moveBullet(room, player, bullet);
-    if (!player.bullets.has(timestamp)) break;
+    if (!player.bullets.has(bullet_id)) break;
     await new Promise(resolve => player.timeoutIds.push(setTimeout(resolve, BULLET_MOVE_INTERVAL)));
   }
 }
