@@ -700,7 +700,7 @@ function prepareRoomMessages(room) {
 
     // Prepare filtered players
     let filteredplayers = {};
-    player.nearbyids.clear();
+    player.nearbyids = new Set();
 
     if (GameRunningState) {
       const playersInRange = player.nearbyplayers;
