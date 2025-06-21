@@ -40,7 +40,9 @@ function findNearestEvents(player, room) {
 
 
 function getPlayersInRange(player, players, centerX, centerY, xThreshold, yThreshold, excludePlayerId) {
-  
+
+    player.nearbyplayers.clear()
+
   const playersInRange = player.nearbyplayers 
 
   players.forEach(player => {

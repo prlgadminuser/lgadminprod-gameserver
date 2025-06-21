@@ -701,32 +701,37 @@ function prepareRoomMessages(room) {
 
     player.nearbyids.clear()
 
-    if (GameRunningState) {
+   if (GameRunningState) {
       const playersInRange = player.nearbyplayers;
       const previousHashes = player.pdHashes || {};
 
-      for (const [playerId, pdata] of Object.entries(playerData)) {
-        const pidNum = Number(playerId);
-        if (playersInRange.has(pidNum)) {
+      filteredplayers = Object.entries(playerData).reduce((result, [playerId, playerData]) => {
+        if (playersInRange.has(Number(playerId))) {
           player.nearbyids.add(playerId);
+          const currentHash = generateHash(playerData);
 
-          const previousHash = previousHashes[playerId];
-          const currentHash = generateHash(pdata);
-
-          if (previousHash !== currentHash) {
-            filteredplayers[playerId] = pdata;
+          if (!previousHashes[playerId] || previousHashes[playerId] !== currentHash) {
+            result[playerId] = playerData;
             previousHashes[playerId] = currentHash;
           }
         }
-      }
+        return result;
+      }, {});
 
-      player.nearbyfinalids = player.nearbyids;
+      player.nearbyfinalids = player.nearbyids
+
       player.pd = filteredplayers;
       player.pdHashes = previousHashes;
     } else {
-      player.pd = GameRunningState ? playerData : {};
-      player.pdHashes = {};
+      if (GameRunningState) {
+        player.pd = playerData;
+        player.pdHashes = {};
+      } else {
+        player.pd = {};
+        player.pdHashes = {};
+      }
     }
+  
 
     // Construct player-specific message efficiently
     const newMessage = {
