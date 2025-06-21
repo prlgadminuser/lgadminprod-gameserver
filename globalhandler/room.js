@@ -1,5 +1,5 @@
 
-const { Limiter, compressMessage } = require('./..//index.js');
+const { axios, Limiter, msgpack, LZString, compressMessage } = require('./..//index.js');
 const { matchmaking_timeout, server_tick_rate, game_start_time, mapsconfig, gunsconfig, gamemodeconfig, matchmakingsp, player_idle_timeout, room_max_open_time } = require('./config.js');
 const { handleBulletFired } = require('./bullets.js');
 const { handleMovement } = require('./player.js');
@@ -13,53 +13,29 @@ const { playerchunkrenderer } = require('./../playerhandler/playerchunks')
 const { SpatialGrid, gridcellsize } = require('./config.js');
 const { compressToUint8Array } = require('lz-string');
 const { increasePlayerKills, increasePlayerDamage } = require('./dbrequests');
-const { roomIndex, rooms, closeRoom, addRoomToIndex, getAvailableRoom } = require('./../roomhandler/manager')
+const { roomIndex, rooms, closeRoom } = require('./../roomhandler/manager')
 
 
 
 function generateUUID() {
-  return 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = Math.random() * 16 | 0;
     const v = c === 'x' ? r : (r & 0x3 | 0x8); // Ensures UUID version 4
     return v.toString(16);
   });
 }
 
-
-function generateHash(message) {
-  let hash = 0;
-  const str = JSON.stringify(message);
-  for (let i = 0; i < str.length; i++) {
-    hash = (hash << 5) - hash + str.charCodeAt(i);
-    hash |= 0; // Convert to 32bit integer
-  }
-  return hash;
+function getAvailableRoom(gamemode, spLevel) {
+  const key = `${gamemode}_${spLevel}`;
+  const roomList = roomIndex.get(key) || [];
+  return roomList.find(room => room.players.size < room.maxplayers && room.state === 'waiting');
 }
 
-function getDistance(x1, y1, x2, y2) {
-  return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+function addRoomToIndex(room) {
+  const key = `${room.gamemode}_${room.sp_level}`;
+  if (!roomIndex.has(key)) roomIndex.set(key, []);
+  roomIndex.get(key).push(room);
 }
-
-function deepCopy(obj) {
-  return JSON.parse(JSON.stringify(obj));
-}
-
-function cloneSpatialGrid(original) {
-  const clone = new SpatialGrid(original.cellSize);
-
-  // Deep clone the grid
-  for (const [key, originalSet] of original.grid.entries()) {
-    const clonedSet = new Set();
-    for (const obj of originalSet) {
-      // Clone object if needed (shallow copy here, do deep copy if required)
-      clonedSet.add({ ...obj });
-    }
-    clone.grid.set(key, clonedSet);
-  }
-
-  return clone;
-}
-
 
 
 
@@ -174,21 +150,19 @@ function clearAndRemoveCompletedTimeouts(timeoutArray, clearFn) {
 
 
 
-
-
 function RemoveRoomPlayer(room, player) {
 
 
-  player.timeoutIds?.forEach(clearTimeout);
-  player.intervalIds?.forEach(clearInterval);
+    player.timeoutIds?.forEach(clearTimeout);
+    player.intervalIds?.forEach(clearInterval);
 
-  if (player.damage > 0) increasePlayerDamage(player.playerId, player.damage);
-  if (player.kills > 0) increasePlayerKills(player.playerId, player.kills);
+    if (player.damage > 0) increasePlayerDamage(player.playerId, player.damage);
+    if (player.kills > 0) increasePlayerKills(player.playerId, player.kills);
 
-  player.ws.close();
+    player.ws.close();
 
-  addKillToKillfeed(room, 5, null, player.nmb, null)
-  room.players.delete(player.playerId);
+    addKillToKillfeed(room, 5, null, player.nmb, null)
+    room.players.delete(player.playerId);
 
 
 
@@ -266,11 +240,8 @@ async function joinRoom(ws, gamemode, playerVerified) {
       shooting: false,
       shoot_direction: 90,
       hitmarkers: [],
-      eliminations: [],
       can_bullets_bounce: false,
       bullets: new Map(),
-      nearbyids: new Set(),
-      nearbyplayers: new Set(),
 
       // movement
       moving: false,
@@ -283,7 +254,6 @@ async function joinRoom(ws, gamemode, playerVerified) {
       loadout_formatted: [loadout[1], loadout[2], loadout[3]].join('$'),
       gadgetid: gadgetselected,
       canusegadget: true,
-      gadgetactive: false,
       gadgetcooldown: gadgetconfig[gadgetselected].cooldown,
       gadgetuselimit: gadgetconfig[gadgetselected].use_limit,
       gadgetchangevars: gadgetconfig[gadgetselected].changevariables,
@@ -313,9 +283,6 @@ async function joinRoom(ws, gamemode, playerVerified) {
     };
 
     newPlayer.gun = newPlayer.loadout[1];
-
-    //newPlayer.loadout[3] = 5
-    
 
     if (newPlayer.gadgetchangevars) {
       for (const [variable, change] of Object.entries(newPlayer.gadgetchangevars)) {
@@ -349,8 +316,9 @@ async function joinRoom(ws, gamemode, playerVerified) {
 
       room.maxopentimeout = setTimeout(() => {
         closeRoom(roomId);
+        console.log(`Room ${roomId} closed due to timeout.`);
       }, room_max_open_time);
-
+    
       await setupRoomPlayers(room)
 
       await CreateTeams(room)
@@ -358,7 +326,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
       playerchunkrenderer(room)
       SendPreStartMessage(room)
 
-
+     
 
       try {
 
@@ -374,8 +342,8 @@ async function joinRoom(ws, gamemode, playerVerified) {
             room.scoreboard = [
               t1.id,
               t1.score,
-              //   t2.id,
-              //  t2.score,
+           //   t2.id,
+            //  t2.score,
             ].join('$')
 
           }
@@ -455,6 +423,7 @@ function cleanupRoom(roomId) {
   //console.log(playersWithOpenConnections);
   // Close the room if it has no players
   if (room.players.size < 1 || playersWithOpenConnections.length < 1 || !room.players || room.players.size === 0) {
+    console.log("room clear interval room close")
     closeRoom(roomId);
   }
 }
@@ -483,16 +452,6 @@ const getAllKeys = (data) => {
   return allKeys;
 };
 
-
-
-  const transformData = (data) => {
-    const transformed = {};
-    for (const [key, value] of Object.entries(data)) {
-      transformed[key] = `${value.x}:${value.y}:${value.health}:${value.starthealth}:${value.type}`;
-    }
-    return transformed;
-  };
-
 function SendPreStartMessage(room) {
   let AllPlayerData = {};
 
@@ -508,7 +467,13 @@ function SendPreStartMessage(room) {
     };
   });
 
-
+  const transformData = (data) => {
+    const transformed = {};
+    for (const [key, value] of Object.entries(data)) {
+      transformed[key] = `${value.x}:${value.y}:${value.h}:${value.sh}:${value.t}`;
+    }
+    return transformed;
+  };
 
   const dummiesfiltered = room.dummies ? transformData(room.dummies) : undefined;
 
@@ -527,10 +492,9 @@ function SendPreStartMessage(room) {
       killer: player.eliminator,
       cg: player.canusegadget ? 1 : 0,
       lg: player.gadgetuselimit,
-      ag: player.gadgetactive ? 1 : 0,
       x: player.x,
       y: player.y,
-      el: player.eliminations,
+      el: player.elimlast,
       em: player.emote,
       spc: player.spectateid,
       guns: player.loadout_formatted,
@@ -541,8 +505,7 @@ function SendPreStartMessage(room) {
       teamdata: player.teamdata,
       pid: player.nmb,
       self_info: selfinfo,
-      dummies: room.dummies ? dummiesfiltered : undefined,
-      gadget: player.gadgetid,
+      dummies: room.dummies ? dummiesfiltered : undefined
     };
 
     const roomdata = {
@@ -568,7 +531,6 @@ function SendPreStartMessage(room) {
 
 
 
-
 function prepareRoomMessages(room) {
 
   handlePlayerMoveIntervalAll(room)
@@ -578,6 +540,13 @@ function prepareRoomMessages(room) {
   const playercountroom = Array.from(room.players.values()).filter(player => !player.eliminated).length;
 
   if (room.dummies) {
+    const transformData = (data) => {
+      const transformed = {};
+      for (const [key, value] of Object.entries(data)) {
+        transformed[key] = `${value.x}:${value.y}:${value.h}:${value.sh}:${value.t}`;
+      }
+      return transformed;
+    };
 
     const dummiesfiltered = transformData(room.dummies);
 
@@ -592,6 +561,7 @@ function prepareRoomMessages(room) {
     } else {
       room.dummiesfiltered = dummiesfiltered;
     }
+
   }
 
   let roomdata = [
@@ -617,12 +587,12 @@ function prepareRoomMessages(room) {
     if (player.visible !== false) {
       const formattedBullets = {};
       player.bullets.forEach(bullet => {
-        const bullet_id = bullet.bullet_id;
-        const x = bullet.x.toFixed(1)
-        const y = bullet.y.toFixed(1)
+        const timestamp = bullet.timestamp;
+        const x = Math.round(bullet.x);
+        const y = Math.round(bullet.y);
         const direction = Math.round(bullet.direction);
         const gunid = bullet.gunid;
-          formattedBullets[bullet_id] = `${bullet_id}=${x},${y},${direction},${gunid}`;
+        formattedBullets[timestamp] = `${timestamp}=${x},${y},${direction},${gunid};`;
       });
 
       const finalBullets = Object.keys(formattedBullets).length > 0
@@ -651,11 +621,9 @@ function prepareRoomMessages(room) {
 
 
   room.players.forEach(player => {
-    
+
     player.npfix = JSON.stringify(player.nearbyfinalids ? Array.from(player.nearbyfinalids) : [])
     hitmarkerfix = JSON.stringify(player.hitmarkers ? Array.from(player.hitmarkers) : [])
-    eliminationsfix = JSON.stringify(player.eliminations ? Array.from(player.eliminations) : [])
-
     const selfdata = {
       id: player.nmb,
       state: player.state,
@@ -669,16 +637,14 @@ function prepareRoomMessages(room) {
       killer: player.eliminator,
       cg: player.canusegadget ? 1 : 0,
       lg: player.gadgetuselimit,
-      ag: player.gadgetactive ? 1 : 0,
       x: player.x,
       y: player.y,
-      el: eliminationsfix,
+      el: player.elimlast,
       em: player.emote,
       spc: player.spectateid,
       guns: player.loadout_formatted,
       np: player.npfix,
       ht: hitmarkerfix,
-      //bn: nearbybulletsfix
     };
 
     const lastSelfData = player.lastSelfData || {};
@@ -759,7 +725,6 @@ function prepareRoomMessages(room) {
         ['cl', player.nearbycircles],
         ['an', player.nearbyanimations],
         ['b', player.finalbullets],
-      //  ['nb', player.nearbybullets],
         ['pd', player.pd],
       ];
 
@@ -778,7 +743,7 @@ function prepareRoomMessages(room) {
     const currentMessageHash = generateHash(playerSpecificMessage);
     player.tick_send_allow = false
     const playermsg = JSON.stringify(playerSpecificMessage)
-    if (player.ws && currentMessageHash !== player.lastMessageHash ) { // && playermsg !== "{}"
+    if (player.ws && currentMessageHash !== player.lastMessageHash) { // && playermsg !== "{}" 
       const compressedPlayerMessage = compressMessage(playermsg)
       player.lastcompressedmessage = compressedPlayerMessage
       player.tick_send_allow = true
@@ -788,32 +753,60 @@ function prepareRoomMessages(room) {
 
 
   room.destroyedWalls = [];
- // room.bulletsUpdates = [];
 
-  room.players.forEach(player => {
-    player.hitmarkers = []
-    player.eliminations = []
-    // player.nearbybullets = []
-
-  })
+  room.players.forEach(player => { player.hitmarkers = [] })
 }
-
-
-
 
 
 function sendRoomMessages(room) {
 
-  room.players.forEach(player => {
-
+  room.players.forEach(player => { 
+    
     if (player.tick_send_allow) {
 
-      player.ws.send(player.lastcompressedmessage, { binary: true });
+    player.ws.send(player.lastcompressedmessage, { binary: true });
 
     }
 
   })
 
+}
+
+
+
+function generateHash(message) {
+  let hash = 0;
+  const str = JSON.stringify(message);
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
+}
+
+
+function getDistance(x1, y1, x2, y2) {
+  return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+}
+
+function deepCopy(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
+
+function cloneSpatialGrid(original) {
+  const clone = new SpatialGrid(original.cellSize);
+
+  // Deep clone the grid
+  for (const [key, originalSet] of original.grid.entries()) {
+    const clonedSet = new Set();
+    for (const obj of originalSet) {
+      // Clone object if needed (shallow copy here, do deep copy if required)
+      clonedSet.add({ ...obj });
+    }
+    clone.grid.set(key, clonedSet);
+  }
+
+  return clone;
 }
 
 function createRoom(roomId, gamemode, gmconfig, splevel) {
@@ -826,25 +819,23 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
     const keyToExclude = "training";
     const prefix = "";
-
+    
     // Get all keys of the object, excluding the one you don't want and those that don't start with the prefix
     const filteredKeys = Object.keys(mapsconfig)
       .filter(key => key !== keyToExclude && key.startsWith(prefix));
-
+    
     // Check if there are any valid keys left
     if (filteredKeys.length > 0) {
       // Select a random index from the filtered keys
       const randomIndex = Math.floor(Math.random() * filteredKeys.length);
       mapid = filteredKeys[randomIndex];
-    }
   }
-
+}
+ 
   const itemgrid = new SpatialGrid(gridcellsize); // grid system for items
 
-  const bulletgrid = new SpatialGrid(50);
-
   const roomgrid = cloneSpatialGrid(mapsconfig[mapid].grid)
-
+  
 
   const room = {
     // Game State
@@ -857,7 +848,6 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     newkillfeed: [],
     objects: [],
     destroyedWalls: [],
-    bulletsUpdates: [],
     players: new Map(),
     snap: [],
     state: "waiting", // Possible values: "waiting", "playing", "countdown"
@@ -866,7 +856,6 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
     // Game Configuration
     itemgrid: itemgrid,
-    bulletgrid: bulletgrid,
     maxplayers: gmconfig.maxplayers,
     modifiers: gmconfig.modifiers,
     place_counts: gmconfig.placereward,
@@ -875,7 +864,6 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     sp_level: splevel,
     ss_counts: gmconfig.seasoncoinsreward,
     teamsize: gmconfig.teamsize,
-    weapons_modifiers_override: gmconfig.weapons_modifiers_override,
 
     // Map Configuration
     grid: roomgrid,
@@ -911,7 +899,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
   rooms.set(roomId, room);
 
 
-
+  
   room.xcleaninterval = setInterval(() => {
     if (room) {
       // Clear room's timeout and interval arrays
@@ -934,30 +922,27 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
       });
     }
   }, 1000);
-
+  
 
   room.matchmaketimeout = setTimeout(() => {
 
-    room.players.forEach(player => {
-    player.ws.send("matchmaking_timeout")
-    })
-
+    console.log("timeout match")
     closeRoom(roomId);
 
   }, matchmaking_timeout);
 
 
   // Start sending batched messages at regular intervals
-  // in ms
-  room.intervalIds.push(setInterval(() => { // this could take some time...
+// in ms
+room.intervalIds.push(setInterval(() => { // this could take some time...
 
-    prepareRoomMessages(room);
+  prepareRoomMessages(room);
 
-    setTimeout(() => {
+  setTimeout(() => {
       sendRoomMessages(room);
-    }, 3);
+  }, 3);
 
-  }, server_tick_rate));
+}, server_tick_rate));
 
 
 
