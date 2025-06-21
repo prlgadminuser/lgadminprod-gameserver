@@ -570,31 +570,27 @@ function SendPreStartMessage(room) {
 
 
 function prepareRoomMessages(room) {
+  handlePlayerMoveIntervalAll(room);
 
-  handlePlayerMoveIntervalAll(room)
+  const GameRunningState = room.state === "playing" || room.state === "countdown";
+  const players = Array.from(room.players.values());
+  const playercountroom = players.reduce((count, player) => count + (!player.eliminated ? 1 : 0), 0);
 
-  const GameRunningState = room.state === "playing" || room.state === "countdown"
-
-  const playercountroom = Array.from(room.players.values()).filter(player => !player.eliminated).length;
-
+  // Dummies handling
   if (room.dummies) {
-
     const dummiesfiltered = transformData(room.dummies);
+    const hash = generateHash(JSON.stringify(dummiesfiltered));
 
     if (GameRunningState) {
-
-      if (generateHash(JSON.stringify(dummiesfiltered)) !== room.previousdummies) {
-        room.dummiesfiltered = dummiesfiltered;
-      } else {
-        room.dummiesfiltered = undefined
-      }
-      room.previousdummies = generateHash(JSON.stringify(dummiesfiltered));
+      room.dummiesfiltered = hash !== room.previousdummies ? dummiesfiltered : undefined;
+      room.previousdummies = hash;
     } else {
       room.dummiesfiltered = dummiesfiltered;
     }
   }
 
-  let roomdata = [
+  // Room data hash
+  const roomdata = [
     state_map[room.state],
     room.zone,
     room.maxplayers,
@@ -603,91 +599,76 @@ function prepareRoomMessages(room) {
     room.countdown,
     room.winner,
   ].join(':');
+  roomdata === room.rdlast ? roomdata = undefined : room.rdlast = roomdata;
 
-  if (room.rdlast !== roomdata) {
-    room.rdlast = roomdata;
-  } else {
-    roomdata = undefined;
+  // Player data aggregation
+  const playerData = {};
+  for (const player of players) {
+    if (player.visible === false) continue;
+
+    let finalBullets;
+    if (player.bullets.length) {
+      finalBullets = '$b' + player.bullets.map(bullet => {
+        const { bullet_id, x, y, direction, gunid } = bullet;
+        return `${bullet_id}=${x.toFixed(1)},${y.toFixed(1)},${Math.round(direction)},${gunid};`;
+      }).join('');
+    }
+
+    player.finalbullets = finalBullets;
+
+    if (GameRunningState) {
+      playerData[player.nmb] = [
+        player.x,
+        player.y,
+        player.direction2,
+        player.health,
+        player.gun,
+        player.emote,
+        finalBullets
+      ].join(':');
+    }
   }
 
-  let playerData = {};
-
-  Array.from(room.players.values()).forEach(player => {
-
-    if (player.visible !== false) {
-      const formattedBullets = {};
-      player.bullets.forEach(bullet => {
-        const bullet_id = bullet.bullet_id;
-        const x = bullet.x.toFixed(1)
-        const y = bullet.y.toFixed(1)
-        const direction = Math.round(bullet.direction);
-        const gunid = bullet.gunid;
-          formattedBullets[bullet_id] = `${bullet_id}=${x},${y},${direction},${gunid};`;
-      });
-
-      const finalBullets = Object.keys(formattedBullets).length > 0
-        ? "$b" + Object.values(formattedBullets).join("")
-        : undefined;
-
-      player.finalbullets = finalBullets
-
-      if (GameRunningState) {
-
-        const currentPlayerData = [
-          player.x,
-          player.y,
-          player.direction2,
-          player.health,
-          player.gun,
-          player.emote,
-          finalBullets,
-        ].join(':');
-
-        playerData[player.nmb] = currentPlayerData;
-      }
-    }
-  });
-
-
-
-  room.players.forEach(player => {
-    
-    player.npfix = JSON.stringify(player.nearbyfinalids ? Array.from(player.nearbyfinalids) : [])
-    hitmarkerfix = JSON.stringify(player.hitmarkers ? Array.from(player.hitmarkers) : [])
-    eliminationsfix = JSON.stringify(player.eliminations ? Array.from(player.eliminations) : [])
+  for (const player of players) {
+    const nearbyfinalids = player.nearbyfinalids ? Array.from(player.nearbyfinalids) : [];
+    const hitmarkers = player.hitmarkers ? Array.from(player.hitmarkers) : [];
+    const eliminations = player.eliminations ? Array.from(player.eliminations) : [];
 
     const selfdata = {
       id: player.nmb,
       state: player.state,
       h: player.health,
       sh: player.starthealth,
-      s: player.shooting ? 1 : 0,
+      s: +player.shooting,
       g: player.gun,
       kil: player.kills,
       dmg: player.damage,
       rwds: [player.place, player.skillpoints_inc, player.seasoncoins_inc].join('$'),
       killer: player.eliminator,
-      cg: player.canusegadget ? 1 : 0,
+      cg: +player.canusegadget,
       lg: player.gadgetuselimit,
-      ag: player.gadgetactive ? 1 : 0,
+      ag: +player.gadgetactive,
       x: player.x,
       y: player.y,
-      el: eliminationsfix,
+      el: JSON.stringify(eliminations),
       em: player.emote,
       spc: player.spectateid,
       guns: player.loadout_formatted,
-      np: player.npfix,
-      ht: hitmarkerfix,
-      //bn: nearbybulletsfix
+      np: JSON.stringify(nearbyfinalids),
+      ht: JSON.stringify(hitmarkers),
     };
 
     const lastSelfData = player.lastSelfData || {};
-    const changedSelfData = Object.fromEntries(
-      Object.entries(selfdata).filter(([key, value]) => lastSelfData[key] !== value)
-    );
+    const selfPlayerData = {};
+    let hasChanges = false;
+    for (const key in selfdata) {
+      if (selfdata[key] !== lastSelfData[key]) {
+        selfPlayerData[key] = selfdata[key];
+        hasChanges = true;
+      }
+    }
 
-    player.lastSelfData = selfdata
-    const selfPlayerData = Object.keys(changedSelfData).length > 0 ? changedSelfData : {};
+    player.lastSelfData = selfdata;
 
     let filteredplayers = {};
     player.nearbyids = new Set();
@@ -695,107 +676,81 @@ function prepareRoomMessages(room) {
     if (GameRunningState) {
       const playersInRange = player.nearbyplayers;
       const previousHashes = player.pdHashes || {};
+      const currentHashes = {};
 
-      filteredplayers = Object.entries(playerData).reduce((result, [playerId, playerData]) => {
-        if (playersInRange.has(Number(playerId))) {
-          player.nearbyids.add(playerId);
-          const currentHash = generateHash(playerData);
+      for (const [id, data] of Object.entries(playerData)) {
+        if (!playersInRange.has(+id)) continue;
 
-          if (!previousHashes[playerId] || previousHashes[playerId] !== currentHash) {
-            result[playerId] = playerData;
-            previousHashes[playerId] = currentHash;
-          }
+        const hash = generateHash(data);
+        if (previousHashes[id] !== hash) {
+          filteredplayers[id] = data;
         }
-        return result;
-      }, {});
-
-      player.nearbyfinalids = player.nearbyids
-
-      player.pd = filteredplayers;
-      player.pdHashes = previousHashes;
-    } else {
-      if (GameRunningState) {
-        player.pd = playerData;
-        player.pdHashes = {};
-      } else {
-        player.pd = {};
-        player.pdHashes = {};
+        currentHashes[id] = hash;
+        player.nearbyids.add(id);
       }
+
+      player.nearbyfinalids = player.nearbyids;
+      player.pd = filteredplayers;
+      player.pdHashes = currentHashes;
+    } else {
+      player.pd = {};
+      player.pdHashes = {};
     }
 
-    const newMessage = {
-      pd: playerData,
+    // Message packaging
+    const baseMsg = {
       rd: roomdata,
-      dm: room.dummiesfiltered,
+      dm: GameRunningState ? room.dummiesfiltered : undefined,
     };
 
     let playerSpecificMessage;
-
     if (room.state === "waiting") {
-      playerSpecificMessage = {
-        rd: newMessage.rd,
-      };
+      playerSpecificMessage = { rd: baseMsg.rd };
     } else {
-      let finalselfdata
-      if (GameRunningState) {
-
-        if (player.selflastmsg !== selfPlayerData) {
-          player.selflastmsg = selfPlayerData;
-          finalselfdata = selfPlayerData
-        } else {
-          finalselfdata = undefined;
-        }
-      } else {
-        finalselfdata = selfdata
-      }
+      const finalselfdata = GameRunningState
+        ? (player.selflastmsg !== selfPlayerData ? (player.selflastmsg = selfPlayerData) : undefined)
+        : selfdata;
 
       const entries = [
-        ['rd', newMessage.rd],
-        ['dm', GameRunningState ? newMessage.dm : undefined],
+        ['rd', baseMsg.rd],
+        ['dm', baseMsg.dm],
         ['kf', room.newkillfeed],
         ['sb', room.scoreboard],
-        ['sd', GameRunningState ? finalselfdata : undefined],
+        ['sd', finalselfdata],
         ['WLD', room.destroyedWalls],
         ['cl', player.nearbycircles],
         ['an', player.nearbyanimations],
         ['b', player.finalbullets],
-      //  ['nb', player.nearbybullets],
         ['pd', player.pd],
       ];
 
-
-
       playerSpecificMessage = Object.fromEntries(
         entries.filter(([_, value]) => {
-          if (value == null) return false; // filters null and undefined
-          if (Array.isArray(value)) return value.length > 0;
-          if (typeof value === 'object') return Object.keys(value).length > 0;
+          if (!value || (Array.isArray(value) && value.length === 0)) return false;
+          if (typeof value === 'object' && Object.keys(value).length === 0) return false;
           return true;
         })
       );
     }
 
+    // Hash and compress message
     const currentMessageHash = generateHash(playerSpecificMessage);
-    player.tick_send_allow = false
-    const playermsg = JSON.stringify(playerSpecificMessage)
-    if (player.ws && currentMessageHash !== player.lastMessageHash ) { // && playermsg !== "{}"
-      const compressedPlayerMessage = compressMessage(playermsg)
-      player.lastcompressedmessage = compressedPlayerMessage
-      player.tick_send_allow = true
+    player.tick_send_allow = false;
+
+    if (player.ws && player.lastMessageHash !== currentMessageHash) {
+      player.lastcompressedmessage = compressMessage(JSON.stringify(playerSpecificMessage));
+      player.tick_send_allow = true;
       player.lastMessageHash = currentMessageHash;
     }
-  });
+  }
 
-
+  // Cleanup
   room.destroyedWalls = [];
- // room.bulletsUpdates = [];
 
-  room.players.forEach(player => {
-    player.hitmarkers = []
-    player.eliminations = []
-    // player.nearbybullets = []
-
-  })
+  for (const player of players) {
+    player.hitmarkers = [];
+    player.eliminations = [];
+  }
 }
 
 
