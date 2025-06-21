@@ -42,15 +42,14 @@ function findNearestEvents(player, room) {
 function getPlayersInRange(player, players, centerX, centerY, xThreshold, yThreshold, excludePlayerId) {
 
     player.nearbyplayers.clear()
-
-
-  players.forEach(player => {
-    if (player.nmb !== excludePlayerId) {
-      const isNearX = Math.abs(player.x - centerX) <= xThreshold;
-      const isNearY = Math.abs(player.y - centerY) <= yThreshold;
+    
+      players.forEach(otherPlayer => {
+    if (otherPlayer.nmb !== excludePlayerId) {
+      const isNearX = Math.abs(otherPlayer.x - centerX) <= xThreshold;
+      const isNearY = Math.abs(otherPlayer.y - centerY) <= yThreshold;
 
       if (isNearX && isNearY) {
-        player.nearbyplayers.add(player.nmb);
+        player.nearbyplayers.add(otherPlayer.nmb);
       }
     }
   });
@@ -59,7 +58,7 @@ function getPlayersInRange(player, players, centerX, centerY, xThreshold, yThres
 
 function UpdatePlayerChunks(room, player) {
 
-  getPlayersInRange(player, Array.from(room.players.values()).filter(p => p.visible), player.x, player.y, 400, 270, player.nmb);
+ player.nearbyplayers = getPlayersInRange(player, Array.from(room.players.values()).filter(p => p.visible), player.x, player.y, 400, 270, player.nmb);
 
 
 }
