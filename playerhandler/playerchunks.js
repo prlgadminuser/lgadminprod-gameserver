@@ -54,8 +54,6 @@ function getPlayersInRange(player, players, centerX, centerY, xThreshold, yThres
       }
     }
   });
-
-  return playersInRange;
 }
 
 
