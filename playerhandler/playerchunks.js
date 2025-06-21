@@ -18,43 +18,42 @@ function findNearestEvents(player, room) {
 
   // Filter and map the circles in the area
   const circles = objectsInArea
-    .filter(obj => obj.id === "circle")
-    .map(circle => [
-      circle.type,
-      circle.x,
-      circle.y,
-      circle.radius
-    ].join(':'));
+  .filter(obj => obj.id === "circle")
+  .map(circle => [
+    circle.type,
+    circle.x,
+    circle.y,
+    circle.radius
+  ].join(':'));
 
   const animations = {};
-  objectsInArea
-    .filter(obj => obj.id === "death" || obj.id === "respawn")
-    .forEach(obj => {
-      animations[obj.obj_id] = `${obj.type}:${obj.x}:${obj.y}`;
-    });
+objectsInArea
+  .filter(obj => obj.id === "death" || obj.id === "respawn")
+  .forEach(obj => {
+    animations[obj.obj_id] = `${obj.type}:${obj.x}:${obj.y}`;
+  });
 
-  // Assign the results to the player
-  player.nearbycircles = circles;
-  player.nearbyanimations = animations;
+// Assign the results to the player
+player.nearbycircles = circles;
+player.nearbyanimations = animations;
 }
 
 
 function getPlayersInRange(players, centerX, centerY, xThreshold, yThreshold, excludePlayerId) {
-  const nearbySet = new Set();
+  const playersInRange = new Set();
 
-  players.forEach(otherPlayer => {
-    if (otherPlayer.nmb !== excludePlayerId) {
-      const isNearX = Math.abs(otherPlayer.x - centerX) <= xThreshold;
-      const isNearY = Math.abs(otherPlayer.y - centerY) <= yThreshold;
+  players.forEach(player => {
+    if (player.nmb !== excludePlayerId) {
+      const isNearX = Math.abs(player.x - centerX) <= xThreshold;
+      const isNearY = Math.abs(player.y - centerY) <= yThreshold;
 
       if (isNearX && isNearY) {
-        nearbySet.add(otherPlayer.nmb);
+        playersInRange.add(player.nmb);
       }
     }
   });
 
-  // Only assign once the set is fully computed
-   return nearbySet;
+  return playersInRange;
 }
 
 
@@ -62,8 +61,8 @@ function UpdatePlayerChunks(room, player) {
 
   player.nearbyplayers = getPlayersInRange(Array.from(room.players.values()).filter(p => p.visible), player.x, player.y, 400, 270, player.nmb);
 
-
 }
+
 
 
 
@@ -86,7 +85,7 @@ function playerchunkrenderer(room) {
 
 
 
-  room.intervalIds.push(setInterval(() => {
+ room.intervalIds.push(setInterval(() => {
 
     room.players.forEach((player) => {
 
@@ -96,7 +95,7 @@ function playerchunkrenderer(room) {
   }, 100));
 }
 
-
 module.exports = {
-  playerchunkrenderer
-};
+    playerchunkrenderer
+  };
+  
