@@ -617,12 +617,12 @@ function prepareRoomMessages(room) {
     if (player.visible !== false) {
       const formattedBullets = {};
       player.bullets.forEach(bullet => {
-        const timestamp = bullet.timestamp;
+        const bullet_id = bullet.bullet_id;
         const x = bullet.x.toFixed(1)
         const y = bullet.y.toFixed(1)
         const direction = Math.round(bullet.direction);
         const gunid = bullet.gunid;
-          formattedBullets[timestamp] = `${timestamp}=${x},${y},${direction},${gunid}`;
+          formattedBullets[bullet_id] = `${bullet_id}=${x},${y},${direction},${gunid}`;
       });
 
       const finalBullets = Object.keys(formattedBullets).length > 0
