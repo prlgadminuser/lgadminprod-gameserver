@@ -59,7 +59,7 @@ function getPlayersInRange(player, players, centerX, centerY, xThreshold, yThres
 
 function UpdatePlayerChunks(room, player) {
 
-   player.nearbyplayers = getPlayersInRange(player, Array.from(room.players.values()).filter(p => p.visible), player.x, player.y, 400, 270, player.nmb);
+  getPlayersInRange(player, Array.from(room.players.values()).filter(p => p.visible), player.x, player.y, 400, 270, player.nmb);
 
 
 }
