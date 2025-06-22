@@ -71,7 +71,7 @@ async function increasePlayerDamage(playerId, damage) {
   const damagecount = +damage; 
   
     if (isNaN(damagecount)) {
-      return res.status(400).json({ error: "Invalid damage count provided" });
+      return { error: "Invalid damage count provided" };
     }
   
     try {
@@ -117,7 +117,6 @@ async function increasePlayerKills(playerId, kills) {
       {
         $inc: { "stats.kills": killcount },
       },
-      { upsert: true }
     );
 
     console.log(JSON.stringify(incrementResult))
@@ -148,7 +147,7 @@ async function increasePlayerWins(playerId, wins2) {
   const wins = +wins2; 
 
   if (isNaN(wins)) {
-    return res.status(400).json({ error: "Invalid damage count provided" });
+    return { error: "Invalid damage count provided" };
   }
 
   try {
@@ -183,28 +182,14 @@ async function increasePlayerPlace(playerId, place2, room) {
     player.seasoncoins_inc = season_coins
     
 
-    const updateResult = await userCollection.updateOne(
-      { "account.username": username },
-      [
-        {
-          $set: {
-            "stats.sp": {
-              $add: [
-                { $ifNull: ["$stats.sp", 0] },
-                skillpoints
-              ]
-            }
-          }
-        },
-        {
-          $set: {
-            "stats.sp": {
-              $max: [ "$stats.sp", 0 ] 
-            }
-          }
-        }
-      ]
-    );
+   const updateResult = await userCollection.updateOne(
+  { "account.username": username },
+  {
+    $inc: { "stats.sp": skillpoints },
+    $max: { "stats.sp": 0 } // Ensures it doesn't go below 0
+  }
+);
+
 
     await battlePassCollection.updateOne(
       { username },
@@ -219,7 +204,7 @@ async function increasePlayerPlace(playerId, place2, room) {
     );
 
   } catch (error) {
-    console.error("Error updating damage in the database:", error);
+    console.error("Error updating damage in the database:", JSON.stringify(error));
   }
 }
 
