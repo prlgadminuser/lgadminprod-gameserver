@@ -245,24 +245,10 @@ async function increasePlayerPlace(playerId, place2, room) {
         upsert: true,
       },
     );
-
    
-    if (updateResult.matchedCount === 0 && updateResult.modifiedCount === 0) {
-    
-      const upsertResult = await userCollection.updateOne(
-        { "account.username": username },
-        {
-          $setOnInsert: {
-            "stats.sp": { $max: [ skillpoints, 0 ] } 
-          },
-        },
-        { upsert: true }
-      );
-
-      if (upsertResult.matchedCount === 0 && upsertResult.upsertedCount === 0) {
+      if (updateResult.matchedCount === 0) {
         return res.status(404).json({ error: "User not found" });
       }
-    }
   } catch (error) {
     console.error("Error updating damage in the database:", error);
   }
