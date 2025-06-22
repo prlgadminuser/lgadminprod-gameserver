@@ -537,8 +537,6 @@ function SendPreStartMessage(room) {
       np: player.npfix
     };
 
-       player.lastSelfData = selfinfo
-
     const selfdata = {
       teamdata: player.teamdata,
       pid: player.nmb,
@@ -573,6 +571,7 @@ function SendPreStartMessage(room) {
 
 function prepareRoomMessages(room) {
 
+
   const players = Array.from(room.players.values());
   const playercountroom = players.reduce((count, player) => count + (!player.eliminated ? 1 : 0), 0);
 
@@ -606,7 +605,7 @@ function prepareRoomMessages(room) {
   }
 
 
-
+  // after this is game running state
 
   handlePlayerMoveIntervalAll(room);
   const GameRunningState = room.state === "playing" || room.state === "countdown";
@@ -622,8 +621,6 @@ function prepareRoomMessages(room) {
       room.dummiesfiltered = dummiesfiltered;
     }
   }
-
-
 
   // Room data hash
   let roomdata = [
@@ -705,13 +702,11 @@ function prepareRoomMessages(room) {
       ht: JSON.stringify(hitmarkers),
     };
 
-    const lastSelfData = player.lastSelfData || {};
+    const lastSelfData = player.lastSelfData || selfdata;
     const selfPlayerData = {};
-    let hasChanges = false;
     for (const key in selfdata) {
       if (selfdata[key] !== lastSelfData[key]) {
         selfPlayerData[key] = selfdata[key];
-        hasChanges = true;
       }
     }
 
@@ -954,7 +949,6 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
   // Start sending batched messages at regular intervals
   // in ms
   room.intervalIds.push(setInterval(() => { // this could take some time...
-
     prepareRoomMessages(room);
 
     setTimeout(() => {
