@@ -723,7 +723,7 @@ function prepareRoomMessages(room) {
       const previousHashes = player.pdHashes || {};
       const currentHashes = {};
 
-      for (const [id, data] of Object.entries(playerData)) {
+      for (const [id, data] of Object.entries(players)) {
         if (!playersInRange.has(+id)) continue;
 
         const hash = generateHash(data);
