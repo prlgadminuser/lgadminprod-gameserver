@@ -250,7 +250,7 @@ async function increasePlayerPlace(playerId, place2, room) {
         return res.status(404).json({ error: "User not found" });
       }
   } catch (error) {
-    console.error("Error updating damage in the database:", error);
+    console.error("Error updating damage in the database:", JSON.stringify(error));
   }
 }
 
