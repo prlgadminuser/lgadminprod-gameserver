@@ -95,22 +95,10 @@ async function increasePlayerDamage(playerId, damage) {
           upsert: true,
         },
       );
-
-      if (incrementResult.matchedCount === 0) {
-        const upsertResult = await userCollection.updateOne(
-          { "account.username": username },
-          {
-            $setOnInsert: {
-              "stats.damage": damagecount,
-            },
-          },
-          { upsert: true }
-        );
-  
-        if (upsertResult.matchedCount === 0 && upsertResult.upsertedCount === 0) {
+        if (incrementResult.matchedCount === 0) {
           return res.status(404).json({ error: "User not found" });
         }
-      }
+      
   
   } catch (error) {
     console.error("Error updating damage in the database:", error);
@@ -173,20 +161,9 @@ async function increasePlayerWins(playerId, wins2) {
       }
     );
 
-    if (incrementResult.matchedCount === 0) {
-      const upsertResult = await userCollection.updateOne(
-        { "account.username": username },
-        {
-          $setOnInsert: {
-            "stats.wins": wins,
-          },
-        },
-        { upsert: true }
-      );
-
-      if (upsertResult.matchedCount === 0 && upsertResult.upsertedCount === 0) {
+      if (incrementResult.matchedCount === 0) {
         return res.status(404).json({ error: "User not found" });
-      }
+      
     }
   } catch (error) {
     console.error("Error updating damage in the database:", error);
@@ -250,7 +227,7 @@ async function increasePlayerPlace(playerId, place2, room) {
         return res.status(404).json({ error: "User not found" });
       }
   } catch (error) {
-    console.error("Error updating damage in the database:", JSON.stringify(error));
+    console.error("Error updating damage in the database:", error);
   }
 }
 
