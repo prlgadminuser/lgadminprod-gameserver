@@ -181,12 +181,11 @@ async function increasePlayerPlace(playerId, place2, room) {
     player.skillpoints_inc = skillpoints
     player.seasoncoins_inc = season_coins
     
-
-   const updateResult = await userCollection.updateOne(
+const updateResult = await userCollection.updateOne(
   { "account.username": username },
   {
     $inc: { "stats.sp": skillpoints },
-    $max: { "stats.sp": 0 } // Ensures it doesn't go below 0
+    $min: { "stats.sp": 0 }
   }
 );
 
