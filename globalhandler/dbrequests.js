@@ -95,9 +95,6 @@ async function increasePlayerDamage(playerId, damage) {
           upsert: true,
         },
       );
-        if (incrementResult.matchedCount === 0) {
-          return res.status(404).json({ error: "User not found" });
-        }
       
   
   } catch (error) {
@@ -122,6 +119,8 @@ async function increasePlayerKills(playerId, kills) {
       },
       { upsert: true }
     );
+
+    console.log(JSON.stringify(incrementResult))
 
     if (incrementResult.modifiedCount > 0 || incrementResult.upsertedCount > 0) {
       // If player's kill count was updated or a new player document was inserted
@@ -161,10 +160,6 @@ async function increasePlayerWins(playerId, wins2) {
       }
     );
 
-      if (incrementResult.matchedCount === 0) {
-        return res.status(404).json({ error: "User not found" });
-      
-    }
   } catch (error) {
     console.error("Error updating damage in the database:", error);
   }
@@ -222,10 +217,7 @@ async function increasePlayerPlace(playerId, place2, room) {
         upsert: true,
       },
     );
-   
-      if (updateResult.matchedCount === 0) {
-        return res.status(404).json({ error: "User not found" });
-      }
+
   } catch (error) {
     console.error("Error updating damage in the database:", error);
   }
