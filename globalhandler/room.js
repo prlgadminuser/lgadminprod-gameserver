@@ -537,6 +537,8 @@ function SendPreStartMessage(room) {
       np: player.npfix
     };
 
+       player.lastSelfData = selfinfo
+
     const selfdata = {
       teamdata: player.teamdata,
       pid: player.nmb,
