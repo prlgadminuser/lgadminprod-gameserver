@@ -588,7 +588,7 @@ function prepareRoomMessages(room) {
             room.dummiesfiltered = currentDummiesFiltered;
         }
     } else {
-        room.dummiesfiltered = undefined;a
+        room.dummiesfiltered = undefined
     }
 
 
