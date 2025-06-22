@@ -172,8 +172,8 @@ async function increasePlayerPlace(playerId, place2, room) {
   if (isNaN(place) || place < 1 || place > 5 || player.finalrewards_awarded) {
     return;
   }
-  
-  player.finalrewards_awarded = true
+
+    player.finalrewards_awarded = true
 
   try {
     const skillpoints = room.place_counts[place - 1];
@@ -181,12 +181,19 @@ async function increasePlayerPlace(playerId, place2, room) {
     player.skillpoints_inc = skillpoints
     player.seasoncoins_inc = season_coins
     
+
+
 const updateResult = await userCollection.updateOne(
   { "account.username": username },
-  {
-    $inc: { "stats.sp": skillpoints },
-    $min: { "stats.sp": 0 }
-  }
+  [
+    {
+      $set: {
+        "stats.sp": {
+          $max: [0, { $add: ["$stats.sp", skillpoints] }] // Ensure it doesn't go below 0
+        }
+      }
+    }
+  ]
 );
 
 
