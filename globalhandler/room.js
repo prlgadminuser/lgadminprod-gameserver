@@ -570,13 +570,45 @@ function SendPreStartMessage(room) {
 
 
 function prepareRoomMessages(room) {
-  handlePlayerMoveIntervalAll(room);
 
-  const GameRunningState = room.state === "playing" || room.state === "countdown";
   const players = Array.from(room.players.values());
   const playercountroom = players.reduce((count, player) => count + (!player.eliminated ? 1 : 0), 0);
 
-  // Dummies handling
+  // Only calculate basic data in waiting state
+  if (room.state === "waiting") {
+    let roomdata = [
+      state_map[room.state],
+      room.zone,
+      room.maxplayers,
+      playercountroom,
+      "",
+      room.countdown,
+      room.winner,
+    ].join(':');
+
+    roomdata === room.rdlast ? roomdata = undefined : room.rdlast = roomdata;
+
+    for (const player of players) {
+      const msg = { rd: roomdata };
+
+      const currentMessageHash = generateHash(msg);
+      player.tick_send_allow = false;
+
+      if (player.ws && player.lastMessageHash !== currentMessageHash) {
+        player.lastcompressedmessage = compressMessage(JSON.stringify(msg));
+        player.tick_send_allow = true;
+        player.lastMessageHash = currentMessageHash;
+      }
+    }
+    return; // ⛔ Exit early if waiting
+  }
+
+
+
+
+  handlePlayerMoveIntervalAll(room);
+  const GameRunningState = room.state === "playing" || room.state === "countdown";
+
   if (room.dummies) {
     const dummiesfiltered = transformData(room.dummies);
     const hash = generateHash(JSON.stringify(dummiesfiltered));
@@ -589,6 +621,8 @@ function prepareRoomMessages(room) {
     }
   }
 
+
+
   // Room data hash
   let roomdata = [
     state_map[room.state],
@@ -599,43 +633,45 @@ function prepareRoomMessages(room) {
     room.countdown,
     room.winner,
   ].join(':');
-  
+
   roomdata === room.rdlast ? roomdata = undefined : room.rdlast = roomdata;
 
-  // Player data aggregation
-  const playerData = {};
-  for (const player of players) {
-    if (player.visible === false) continue;
+  if (GameRunningState) {
 
-    if (player.visible !== false) {
-      const formattedBullets = {};
-      player.bullets.forEach(bullet => {
-        const bullet_id = bullet.bullet_id;
-        const x = bullet.x.toFixed(1)
-        const y = bullet.y.toFixed(1)
-        const direction = Math.round(bullet.direction);
-        const gunid = bullet.gunid;
+
+    const playerData = {};
+    for (const player of players) {
+      if (player.visible === false) continue;
+
+      if (player.visible !== false) {
+        const formattedBullets = {};
+        player.bullets.forEach(bullet => {
+          const bullet_id = bullet.bullet_id;
+          const x = bullet.x.toFixed(1)
+          const y = bullet.y.toFixed(1)
+          const direction = Math.round(bullet.direction);
+          const gunid = bullet.gunid;
           formattedBullets[bullet_id] = `${bullet_id}=${x},${y},${direction},${gunid};`;
-      });
+        });
 
-      const finalBullets = Object.keys(formattedBullets).length > 0
-        ? "$b" + Object.values(formattedBullets).join("")
-        : undefined;
+        const finalBullets = Object.keys(formattedBullets).length > 0
+          ? "$b" + Object.values(formattedBullets).join("")
+          : undefined;
 
-      player.finalbullets = finalBullets
+        player.finalbullets = finalBullets
 
-    if (GameRunningState) {
-      playerData[player.nmb] = [
-        player.x,
-        player.y,
-        player.direction2,
-        player.health,
-        player.gun,
-        player.emote,
-        finalBullets
-      ].join(':');
+
+        playerData[player.nmb] = [
+          player.x,
+          player.y,
+          player.direction2,
+          player.health,
+          player.gun,
+          player.emote,
+          finalBullets
+        ].join(':');
+      }
     }
-  }
   }
 
   for (const player of players) {
@@ -706,11 +742,13 @@ function prepareRoomMessages(room) {
       player.pdHashes = {};
     }
 
+
     // Message packaging
     const baseMsg = {
       rd: roomdata,
       dm: GameRunningState ? room.dummiesfiltered : undefined,
     };
+
 
     let playerSpecificMessage;
     if (room.state === "waiting") {
