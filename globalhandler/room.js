@@ -636,7 +636,7 @@ function prepareRoomMessages(room) {
 
   roomdata === room.rdlast ? roomdata = undefined : room.rdlast = roomdata;
 
-  if (GameRunningState) {
+ 
 
 
     const playerData = {};
@@ -672,7 +672,7 @@ function prepareRoomMessages(room) {
         ].join(':');
       }
     }
-  }
+  
 
   for (const player of players) {
     const nearbyfinalids = player.nearbyfinalids ? Array.from(player.nearbyfinalids) : [];
@@ -723,7 +723,7 @@ function prepareRoomMessages(room) {
       const previousHashes = player.pdHashes || {};
       const currentHashes = {};
 
-      for (const [id, data] of Object.entries(players)) {
+      for (const [id, data] of Object.entries(playerData)) {
         if (!playersInRange.has(+id)) continue;
 
         const hash = generateHash(data);
