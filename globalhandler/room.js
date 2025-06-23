@@ -710,7 +710,7 @@ function prepareRoomMessages(room) {
       }
     }
 
-    player.selflastmsg = selfdata;
+    player.selflastmsg = selfPlayerData;
 
     let filteredplayers = {};
     player.nearbyids = new Set();
