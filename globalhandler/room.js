@@ -703,14 +703,19 @@ function prepareRoomMessages(room) {
     };
 
     const lastSelfData = player.selflastmsg || {};
-    const selfPlayerData = {};
-    for (const key in selfdata) {
-      if (selfdata[key] !== lastSelfData[key]) {
-        selfPlayerData[key] = selfdata[key];
-      }
-    }
+const selfPlayerData = {};
+for (const key in selfdata) {
+  if (selfdata[key] !== lastSelfData[key]) {
+    selfPlayerData[key] = selfdata[key];
+  }
+}
 
-    player.selflastmsg = selfPlayerData;
+if (Object.keys(selfPlayerData).length > 0) {
+  player.selflastmsg = { ...lastSelfData, ...selfPlayerData };
+}
+
+const finalselfdata = Object.keys(selfPlayerData).length > 0 ? selfPlayerData : undefined;
+
 
     let filteredplayers = {};
     player.nearbyids = new Set();
@@ -744,13 +749,8 @@ function prepareRoomMessages(room) {
     };
 
 
-    let playerSpecificMessage;
-    if (room.state === "waiting") {
-      playerSpecificMessage = { rd: baseMsg.rd };
-    } else {
-       const finalselfdata = GameRunningState
-        ? (player.selflastmsg !== selfPlayerData ? (player.selflastmsg = selfPlayerData) : undefined)
-        : selfdata;
+       let playerSpecificMessage;
+
 
 
       const entries = [
@@ -793,7 +793,7 @@ function prepareRoomMessages(room) {
     player.hitmarkers = [];
     player.eliminations = [];
   }
-}
+
 
 
 
