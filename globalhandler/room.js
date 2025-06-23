@@ -702,7 +702,7 @@ function prepareRoomMessages(room) {
       ht: JSON.stringify(hitmarkers),
     };
 
-    const lastSelfData = player.selflastmsg || selfdata;
+    const lastSelfData = player.selflastmsg || {};
     const selfPlayerData = {};
     for (const key in selfdata) {
       if (selfdata[key] !== lastSelfData[key]) {
