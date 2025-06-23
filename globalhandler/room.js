@@ -748,9 +748,9 @@ function prepareRoomMessages(room) {
     if (room.state === "waiting") {
       playerSpecificMessage = { rd: baseMsg.rd };
     } else {
-      const finalselfdata = (player.selflastmsg !== selfPlayerData)
-        ? (player.selflastmsg = selfPlayerData)
-        : undefined;
+       const finalselfdata = GameRunningState
+        ? (player.selflastmsg !== selfPlayerData ? (player.selflastmsg = selfPlayerData) : undefined)
+        : selfdata;
 
 
       const entries = [
