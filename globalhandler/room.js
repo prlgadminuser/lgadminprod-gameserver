@@ -749,8 +749,9 @@ const finalselfdata = Object.keys(selfPlayerData).length > 0 ? selfPlayerData : 
     };
 
 
-       let playerSpecificMessage;
-
+    let playerSpecificMessage;
+   
+    
 
 
       const entries = [
@@ -773,7 +774,7 @@ const finalselfdata = Object.keys(selfPlayerData).length > 0 ? selfPlayerData : 
           return true;
         })
       );
-    }
+    
 
     // Hash and compress message
     const currentMessageHash = generateHash(playerSpecificMessage);
@@ -793,7 +794,7 @@ const finalselfdata = Object.keys(selfPlayerData).length > 0 ? selfPlayerData : 
     player.hitmarkers = [];
     player.eliminations = [];
   }
-
+}
 
 
 
