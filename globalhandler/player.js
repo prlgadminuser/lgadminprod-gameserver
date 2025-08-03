@@ -12,28 +12,22 @@ const { playerhitbox } = require('./config.js')
 
 function handleMovement(player, room) { // all hitbox should be more then the other function in collsision
 
-  const deltaTime = 1; // Fixed time step in ms
-
   const xMin = player.x - (playerhitbox.xMin + 2);
   const xMax = player.x + (playerhitbox.xMax + 2);
   const yMin = player.y - (playerhitbox.yMin + 2);
   const yMax = player.y + (playerhitbox.yMax + 2)
 
   player.nearbywalls = room.grid.getWallsInArea(xMin, xMax, yMin, yMax);
-
   // Calculate radians for final direction
   const finalDirection = player.moving ? player.direction - 90 : player.direction;
 
   const radians = (finalDirection * Math.PI) / 180;
-
   // Calculate movement deltas
   const xDelta = player.speed * Math.cos(radians);
   const yDelta = player.speed * Math.sin(radians);
-
   // Update position with precise values
   let newX = player.x + xDelta;
   let newY = player.y + yDelta;
-
   // Perform collision checks
   if (isCollisionWithCachedWalls(player.nearbywalls, newX, newY)) {
     const canMoveX = !isCollisionWithCachedWalls(player.nearbywalls, newX, player.y);
@@ -47,11 +41,9 @@ function handleMovement(player, room) { // all hitbox should be more then the ot
       newY = player.y;
     }
   }
-
   // Constrain new position within map bounds
   newX = Math.min(Math.max(newX, -room.mapWidth), room.mapWidth);
   newY = Math.min(Math.max(newY, -room.mapHeight), room.mapHeight);
-
   // Apply new position and store last processed position
   player.x = parseFloat(newX.toFixed(4)); // Store precise position
   player.y = parseFloat(newY.toFixed(4));

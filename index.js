@@ -144,8 +144,6 @@ const {
 } = require("./roomhandler/manager");
 
 const {
-  increasePlayerDamage,
-  increasePlayerKills,
   increasePlayerPlace,
   increasePlayerWins,
   verifyPlayer,

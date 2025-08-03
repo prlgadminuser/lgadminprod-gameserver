@@ -12,9 +12,8 @@ const { initializeAnimations } = require('./../gameObjectEvents/deathrespawn')
 const { playerchunkrenderer } = require('./../playerhandler/playerchunks')
 const { SpatialGrid, gridcellsize } = require('./config.js');
 const { compressToUint8Array } = require('lz-string');
-const { increasePlayerKills, increasePlayerDamage } = require('./dbrequests');
+const { increasePlayerKillsAndDamage } = require('./dbrequests');
 const { roomIndex, rooms, closeRoom, addRoomToIndex, getAvailableRoom } = require('./../roomhandler/manager')
-
 
 
 function generateUUID() {
@@ -60,9 +59,6 @@ function cloneSpatialGrid(original) {
   return clone;
 }
 
-
-
-
 function createRateLimiter() {
   const rate = 40; // Allow one request every 50 milliseconds
   return new Limiter({
@@ -70,6 +66,7 @@ function createRateLimiter() {
     interval: 1000, // milliseconds
   });
 }
+
 
 async function setupRoomPlayers(room) {
 
@@ -182,21 +179,181 @@ function RemoveRoomPlayer(room, player) {
   player.timeoutIds?.forEach(clearTimeout);
   player.intervalIds?.forEach(clearInterval);
 
-  if (player.damage > 0) increasePlayerDamage(player.playerId, player.damage);
-  if (player.kills > 0) increasePlayerKills(player.playerId, player.kills);
+
+  if (player.kills > 0 || player.damage > 0) increasePlayerKillsAndDamage(player.playerId, player.kills, player.damage);
 
   player.ws.close();
 
   addKillToKillfeed(room, 5, null, player.nmb, null)
   room.players.delete(player.playerId);
 
-
-
-
 }
 
 
 
+function createRoom(roomId, gamemode, gmconfig, splevel) {
+
+
+  let mapid
+  if (gmconfig.custom_map) {
+    mapid = gmconfig.custom_map
+  } else {
+
+    const keyToExclude = "training";
+    const prefix = "";
+
+    // Get all keys of the object, excluding the one you don't want and those that don't start with the prefix
+    const filteredKeys = Object.keys(mapsconfig)
+      .filter(key => key !== keyToExclude && key.startsWith(prefix));
+
+    // Check if there are any valid keys left
+    if (filteredKeys.length > 0) {
+      // Select a random index from the filtered keys
+      const randomIndex = Math.floor(Math.random() * filteredKeys.length);
+      mapid = filteredKeys[randomIndex];
+    }
+  }
+
+  const itemgrid = new SpatialGrid(gridcellsize); // grid system for items
+
+  const bulletgrid = new SpatialGrid(50);
+
+  const roomgrid = cloneSpatialGrid(mapsconfig[mapid].grid)
+
+
+  const room = {
+    // Game State
+    currentplayerid: 0,
+    eliminatedTeams: [],
+    gamemode: gamemode,
+    intervalIds: [],
+    killfeed: [],
+    matchtype: gmconfig.matchtype,
+    newkillfeed: [],
+    objects: [],
+    destroyedWalls: [],
+    bulletsUpdates: [],
+    players: new Map(),
+    snap: [],
+    state: "waiting", // Possible values: "waiting", "playing", "countdown"
+    timeoutIds: [],
+    winner: -1,
+
+    // Game Configuration
+    itemgrid: itemgrid,
+    bulletgrid: bulletgrid,
+    maxplayers: gmconfig.maxplayers,
+    modifiers: gmconfig.modifiers,
+    place_counts: gmconfig.placereward,
+    respawns: gmconfig.respawns_allowed,
+    showtimer: gmconfig.show_timer,
+    sp_level: splevel,
+    ss_counts: gmconfig.seasoncoinsreward,
+    teamsize: gmconfig.teamsize,
+    weapons_modifiers_override: gmconfig.weapons_modifiers_override,
+
+    // Map Configuration
+    grid: roomgrid,
+    map: mapid,
+    mapHeight: mapsconfig[mapid].height,
+    mapWidth: mapsconfig[mapid].width,
+    spawns: mapsconfig[mapid].spawns,
+    walls: mapsconfig[mapid].walls, // Could be mapped differently if needed
+    zoneStartX: -mapsconfig[mapid].width,
+    zoneStartY: -mapsconfig[mapid].height,
+    zoneEndX: mapsconfig[mapid].width,
+    zoneEndY: mapsconfig[mapid].height,
+
+    // Metadata
+    roomId: roomId,
+  };
+
+
+
+  if (gmconfig.can_hit_dummies && mapsconfig[mapid].dummies) {
+    room.dummies = deepCopy(mapsconfig[mapid].dummies) //dummy crash fix
+  }
+
+  const roomConfig = {
+    canCollideWithDummies: gmconfig.can_hit_dummies, // Disable collision with dummies
+    canCollideWithPlayers: gmconfig.can_hit_players,// Enable collision with players
+  };
+
+  room.config = roomConfig
+
+
+  addRoomToIndex(room)
+  rooms.set(roomId, room);
+
+
+
+  room.xcleaninterval = setInterval(() => {
+    if (room) {
+      // Clear room's timeout and interval arrays
+      if (room.timeoutIds) {
+        room.timeoutIds = clearAndRemoveCompletedTimeouts(room.timeoutIds, clearTimeout);
+      }
+      if (room.intervalIds) {
+
+        room.intervalIds = clearAndRemoveInactiveTimers(room.intervalIds, clearInterval);
+      }
+
+      // Clear player-specific timeouts and intervals
+      room.players.forEach(player => {
+        if (player.timeoutIds) {
+          player.timeoutIds = clearAndRemoveCompletedTimeouts(player.timeoutIds, clearTimeout);
+        }
+        if (player.intervalIds) {
+          player.intervalIds = clearAndRemoveInactiveTimers(player.intervalIds, clearInterval);
+        }
+      });
+    }
+  }, 1000);
+
+
+  room.matchmaketimeout = setTimeout(() => {
+
+    room.players.forEach(player => {
+    player.ws.send("matchmaking_timeout")
+    })
+
+    closeRoom(roomId);
+
+  }, matchmaking_timeout);
+
+
+  // Start sending batched messages at regular intervals
+  // in ms
+  room.intervalIds.push(setInterval(() => { // this could take some time...
+    prepareRoomMessages(room);
+
+    setTimeout(() => {
+      sendRoomMessages(room);
+    }, 3);
+
+  }, server_tick_rate));
+
+
+
+  // room.intervalId = intervalId;
+  room.timeoutIds.push(setTimeout(() => {
+
+
+    room.intervalIds.push(setInterval(() => {
+
+      if (room) {
+        cleanupRoom(room);
+      }
+    }, 1000));
+  }, 10000));
+
+
+  // Countdown timer update every second
+
+
+  // console.log("Room", room.roomId, "created")
+  return room;
+}
 
 
 async function joinRoom(ws, gamemode, playerVerified) {
@@ -331,7 +488,14 @@ async function joinRoom(ws, gamemode, playerVerified) {
         }
       }, player_idle_timeout));
 
-      room.players.set(playerId, newPlayer);
+
+      if (!(room.state === 'waiting' && room.players.size < room.maxplayers)) {
+        return;
+      } else {
+        room.players.set(playerId, newPlayer);
+      }
+
+
 
       if (ws.readyState === ws.CLOSED) {
         RemoveRoomPlayer(room, newPlayer);
@@ -568,7 +732,6 @@ function SendPreStartMessage(room) {
 
 
 
-
 function prepareRoomMessages(room) {
 
 
@@ -604,7 +767,6 @@ function prepareRoomMessages(room) {
     }
     return; // ⛔ Exit early if waiting
   }
-
 
   // after this is game running state
 
@@ -813,172 +975,6 @@ function sendRoomMessages(room) {
   })
 
 }
-
-function createRoom(roomId, gamemode, gmconfig, splevel) {
-
-
-  let mapid
-  if (gmconfig.custom_map) {
-    mapid = gmconfig.custom_map
-  } else {
-
-    const keyToExclude = "training";
-    const prefix = "";
-
-    // Get all keys of the object, excluding the one you don't want and those that don't start with the prefix
-    const filteredKeys = Object.keys(mapsconfig)
-      .filter(key => key !== keyToExclude && key.startsWith(prefix));
-
-    // Check if there are any valid keys left
-    if (filteredKeys.length > 0) {
-      // Select a random index from the filtered keys
-      const randomIndex = Math.floor(Math.random() * filteredKeys.length);
-      mapid = filteredKeys[randomIndex];
-    }
-  }
-
-  const itemgrid = new SpatialGrid(gridcellsize); // grid system for items
-
-  const bulletgrid = new SpatialGrid(50);
-
-  const roomgrid = cloneSpatialGrid(mapsconfig[mapid].grid)
-
-
-  const room = {
-    // Game State
-    currentplayerid: 0,
-    eliminatedTeams: [],
-    gamemode: gamemode,
-    intervalIds: [],
-    killfeed: [],
-    matchtype: gmconfig.matchtype,
-    newkillfeed: [],
-    objects: [],
-    destroyedWalls: [],
-    bulletsUpdates: [],
-    players: new Map(),
-    snap: [],
-    state: "waiting", // Possible values: "waiting", "playing", "countdown"
-    timeoutIds: [],
-    winner: -1,
-
-    // Game Configuration
-    itemgrid: itemgrid,
-    bulletgrid: bulletgrid,
-    maxplayers: gmconfig.maxplayers,
-    modifiers: gmconfig.modifiers,
-    place_counts: gmconfig.placereward,
-    respawns: gmconfig.respawns_allowed,
-    showtimer: gmconfig.show_timer,
-    sp_level: splevel,
-    ss_counts: gmconfig.seasoncoinsreward,
-    teamsize: gmconfig.teamsize,
-    weapons_modifiers_override: gmconfig.weapons_modifiers_override,
-
-    // Map Configuration
-    grid: roomgrid,
-    map: mapid,
-    mapHeight: mapsconfig[mapid].height,
-    mapWidth: mapsconfig[mapid].width,
-    spawns: mapsconfig[mapid].spawns,
-    walls: mapsconfig[mapid].walls, // Could be mapped differently if needed
-    zoneStartX: -mapsconfig[mapid].width,
-    zoneStartY: -mapsconfig[mapid].height,
-    zoneEndX: mapsconfig[mapid].width,
-    zoneEndY: mapsconfig[mapid].height,
-
-    // Metadata
-    roomId: roomId,
-  };
-
-
-
-  if (gmconfig.can_hit_dummies && mapsconfig[mapid].dummies) {
-    room.dummies = deepCopy(mapsconfig[mapid].dummies) //dummy crash fix
-  }
-
-  const roomConfig = {
-    canCollideWithDummies: gmconfig.can_hit_dummies, // Disable collision with dummies
-    canCollideWithPlayers: gmconfig.can_hit_players,// Enable collision with players
-  };
-
-  room.config = roomConfig
-
-
-  addRoomToIndex(room)
-  rooms.set(roomId, room);
-
-
-
-  room.xcleaninterval = setInterval(() => {
-    if (room) {
-      // Clear room's timeout and interval arrays
-      if (room.timeoutIds) {
-        room.timeoutIds = clearAndRemoveCompletedTimeouts(room.timeoutIds, clearTimeout);
-      }
-      if (room.intervalIds) {
-
-        room.intervalIds = clearAndRemoveInactiveTimers(room.intervalIds, clearInterval);
-      }
-
-      // Clear player-specific timeouts and intervals
-      room.players.forEach(player => {
-        if (player.timeoutIds) {
-          player.timeoutIds = clearAndRemoveCompletedTimeouts(player.timeoutIds, clearTimeout);
-        }
-        if (player.intervalIds) {
-          player.intervalIds = clearAndRemoveInactiveTimers(player.intervalIds, clearInterval);
-        }
-      });
-    }
-  }, 1000);
-
-
-  room.matchmaketimeout = setTimeout(() => {
-
-    room.players.forEach(player => {
-    player.ws.send("matchmaking_timeout")
-    })
-
-    closeRoom(roomId);
-
-  }, matchmaking_timeout);
-
-
-  // Start sending batched messages at regular intervals
-  // in ms
-  room.intervalIds.push(setInterval(() => { // this could take some time...
-    prepareRoomMessages(room);
-
-    setTimeout(() => {
-      sendRoomMessages(room);
-    }, 3);
-
-  }, server_tick_rate));
-
-
-
-  // room.intervalId = intervalId;
-  room.timeoutIds.push(setTimeout(() => {
-
-
-    room.intervalIds.push(setInterval(() => {
-
-      if (room) {
-        cleanupRoom(room);
-      }
-    }, 1000));
-  }, 10000));
-
-
-  // Countdown timer update every second
-
-
-  // console.log("Room", room.roomId, "created")
-  return room;
-}
-
-
 
 const validDirections = [-90, 0, 180, -180, 90, 45, 135, -135, -45];
 

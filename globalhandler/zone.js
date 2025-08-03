@@ -8,6 +8,8 @@ const { TeamPlayersActive } = require('./../teamhandler/aliveteam');
 const PLAYER_WIDTH = 40;
 const PLAYER_HEIGHT = 60;
 
+const RandomZone = false
+
 function isWithinZone(room, playerX, playerY) {
   return playerX - PLAYER_WIDTH >= room.zoneStartX && playerX + PLAYER_WIDTH <= room.zoneEndX &&
     playerY - PLAYER_HEIGHT >= room.zoneStartY && playerY + PLAYER_HEIGHT <= room.zoneEndY;
@@ -120,7 +122,6 @@ function pingPlayers(room) {
   );
 }
 
-const RandomZone = false
 
 function generateRandomTarget(prevZone, targetSize) {
   if (RandomZone) {

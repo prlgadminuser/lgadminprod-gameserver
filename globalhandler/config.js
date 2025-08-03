@@ -26,10 +26,10 @@ const playerhitbox = {
 const playerHitboxWidth = 22;
 const playerHitboxHeight = 47;
 
-const validDirections = [-90, 0, 180, -180, 90, 45, 135, -135, -45];
+const validDirections = new Set([-90, 0, 180, -180, 90, 45, 135, -135, -45]);
 
 const isValidDirection = (direction) => {
-  return validDirections.includes(direction);
+  return validDirections.has(direction);
 };
 
 

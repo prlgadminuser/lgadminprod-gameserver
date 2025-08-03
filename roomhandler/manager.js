@@ -8,7 +8,7 @@ function getAvailableRoom(gamemode, spLevel) {
   if (!roomList) return null;
 
   for (const room of roomList.values()) {
-    if (room.players.size < room.maxplayers && room.state === 'waiting') {
+    if (room.state === 'waiting' && room.players.size < room.maxplayers) {
       return room;
     }
   }

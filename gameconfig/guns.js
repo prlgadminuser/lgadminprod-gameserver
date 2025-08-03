@@ -3,7 +3,6 @@ const gunsconfig = {
 
   1: {  // Default pistol
     modifiers: new Set([
-        "DestroyWalls",
       // "CanBounce",
       // "DestroyWalls"
     ]),
@@ -91,7 +90,6 @@ const gunsconfig = {
   4: {  // XNITRO SMG
     modifiers: new Set([
       "CanBounce",
-    
       //  "DestroyWalls"
     ]),
     cooldown: 300,

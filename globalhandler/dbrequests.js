@@ -3,7 +3,7 @@
 const { shopcollection, userCollection, battlePassCollection, jwt } = require('./..//index.js');
 const { tokenkey } = require('./..//idbconfig.js');
 
-const maintenanceId = "maintenance"; 
+const maintenanceId = "maintenance";
 
 async function verifyPlayer(token) {
   if (!token) {
@@ -12,12 +12,12 @@ async function verifyPlayer(token) {
 
   try {
 
-     const tokenExists = await userCollection.findOne({ "account.token": token });
+    const tokenExists = await userCollection.findOne({ "account.token": token });
 
     if (!tokenExists) {
       throw new Error("Invalid token");
     }
-    
+
     const decodedToken = jwt.verify(token, tokenkey);
     const username = decodedToken.username;
 
@@ -59,82 +59,54 @@ async function verifyPlayer(token) {
       loadout: user.inventory.loadout,
     };
 
-   
+
   } catch (error) {
     console.error('Error handling request:', error);
     return false;
   }
 }
 
-async function increasePlayerDamage(playerId, damage) {
+async function increasePlayerKillsAndDamage(playerId, kills, damage) {
   const username = playerId;
-  const damagecount = +damage; 
-  
-    if (isNaN(damagecount)) {
-      return { error: "Invalid damage count provided" };
-    }
-  
-    try {
-   
-      const incrementResult = await userCollection.updateOne(
-        { "account.username": username },
-        {
-          $inc: { "stats.damage": damagecount },
-        }
-      );
-  
-  
-          await battlePassCollection.updateOne(
-        { username },
-        {
-          $inc: {
-            bonusitem_damage: damagecount,
-          },
-        },
-        {
-          upsert: true,
-        },
-      );
-      
-  
-  } catch (error) {
-    console.error("Error updating damage in the database:", error);
-  }
-}
+  const killcount = +kills;
+  const damagecount = +damage;
 
-async function increasePlayerKills(playerId, kills) {
-  const username = playerId;
-  const killcount = +kills; 
-
-  if (isNaN(killcount)) {
-    return { error: "Invalid kill count provided" }; // Assuming we return an object instead of using res
+  if (isNaN(killcount) || isNaN(damagecount)) {
+    return { error: "Invalid count provided" };
   }
+
+  const updateObject = {
+    $inc: {
+      ...(killcount > 0 && { "stats.kills": killcount }),
+      ...(damagecount > 0 && { "stats.damage": damagecount }),
+    },
+  };
 
   try {
-    // Attempt to increment the player's kill count or insert a new player document if not found
-    const incrementResult = await userCollection.updateOne(
-      { "account.username": username },
-      {
-        $inc: { "stats.kills": killcount },
-      },
-    );
+    if (Object.keys(updateObject.$inc).length > 0) {
 
-    console.log(JSON.stringify(incrementResult))
+      const incrementResult = await userCollection.updateOne(
+        { "account.username": username },
+        updateObject
 
-    if (incrementResult.modifiedCount > 0 || incrementResult.upsertedCount > 0) {
-      // If player's kill count was updated or a new player document was inserted
-      const eventKillUpdate = await shopcollection.updateOne(
-        { _id: "eventKillsCounter" },
-        { $inc: { eventKills: killcount } } // Increment the eventKills by the number of kills
       );
 
-      if (eventKillUpdate.modifiedCount === 0) {
-        return { error: "Failed to update event kill counter" };
-      }
+      if (incrementResult.modifiedCount > 0 || incrementResult.upsertedCount > 0) {
+        // If player's kill count was updated or a new player document was inserted
+        const eventKillUpdate = await shopcollection.updateOne(
+          { _id: "eventKillsCounter" },
+          { $inc: { eventKills: killcount } } // Increment the eventKills by the number of kills
+        );
 
-      return { success: true, message: "Player kills and event counter updated successfully" };
-    } else {
-      return { error: "User not found or kill count not updated" };
+
+        if (eventKillUpdate.modifiedCount === 0) {
+          return { error: "Failed to update event kill counter" };
+        }
+
+        return { success: true, message: "Player kills and event counter updated successfully" };
+      } else {
+        return { error: "User not found or kill count not updated" };
+      }
     }
   } catch (error) {
     console.error("Error updating kills in the database:", error);
@@ -144,7 +116,7 @@ async function increasePlayerKills(playerId, kills) {
 
 async function increasePlayerWins(playerId, wins2) {
   const username = playerId;
-  const wins = +wins2; 
+  const wins = +wins2;
 
   if (isNaN(wins)) {
     return { error: "Invalid damage count provided" };
@@ -166,35 +138,35 @@ async function increasePlayerWins(playerId, wins2) {
 
 async function increasePlayerPlace(playerId, place2, room) {
   const username = playerId;
-  const place = +place2; 
+  const place = +place2;
   const player = room.players.get(playerId)
 
   if (isNaN(place) || place < 1 || place > 5 || player.finalrewards_awarded) {
     return;
   }
 
-    player.finalrewards_awarded = true
+  player.finalrewards_awarded = true
 
   try {
     const skillpoints = room.place_counts[place - 1];
     const season_coins = room.ss_counts[place - 1];
     player.skillpoints_inc = skillpoints
     player.seasoncoins_inc = season_coins
-    
 
 
-const updateResult = await userCollection.updateOne(
-  { "account.username": username },
-  [
-    {
-      $set: {
-        "stats.sp": {
-          $max: [0, { $add: ["$stats.sp", skillpoints] }] // Ensure it doesn't go below 0
+
+    const updateResult = await userCollection.updateOne(
+      { "account.username": username },
+      [
+        {
+          $set: {
+            "stats.sp": {
+              $max: [0, { $add: ["$stats.sp", skillpoints] }] // Ensure it doesn't go below 0
+            }
+          }
         }
-      }
-    }
-  ]
-);
+      ]
+    );
 
 
     await battlePassCollection.updateOne(
@@ -224,8 +196,8 @@ async function checkForMaintenance() {
       { projection: { status: 1 } } // Only retrieve the maintenanceStatus field
     );
 
-    if (result.status === "await" || result.status === "true" ) {
-maintenanceMode = true;
+    if (result.status === "await" || result.status === "true") {
+      maintenanceMode = true;
     } else {
       maintenanceMode = false;
     }
@@ -240,8 +212,7 @@ maintenanceMode = true;
 
 
 module.exports = {
-  increasePlayerDamage,
-  increasePlayerKills,
+  increasePlayerKillsAndDamage,
   increasePlayerPlace,
   increasePlayerWins,
   verifyPlayer,

@@ -5,10 +5,8 @@ const { increasePlayerPlace, increasePlayerWins } = require('./../globalhandler/
 const { game_win_rest_time } = require('./../globalhandler/config')
 const { startSpectatingLogic } = require('./spectating')
 
-const {
-    closeRoom,
-  } = require("./../roomhandler/manager");
-  
+const { closeRoom } = require("./../roomhandler/manager");
+
 
 
 
