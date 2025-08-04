@@ -930,9 +930,18 @@ if (Object.keys(selfPlayerData).length > 0) {
 
 const finalselfdata = Object.keys(selfPlayerData).length > 0 ? selfPlayerData : undefined;
 
+        if (!player.nearbyids) {
+      player.nearbyids = new Set();
+    }
+    
+    // Clear the Set before populating it with new IDs.
+    // This is the efficient alternative to `new Set()`.
+    player.nearbyids.clear();
+
+
 
     let filteredplayers = {};
-    player.nearbyids = new Set();
+ //   player.nearbyids = new Set();
 
 
     const playersInRange = player.nearbyplayers;
