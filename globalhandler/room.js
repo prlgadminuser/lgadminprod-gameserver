@@ -760,7 +760,7 @@ function prepareRoomMessages(room) {
       player.tick_send_allow = false;
 
       if (player.ws && player.lastMessageHash !== currentMessageHash) {
-        player.lastcompressedmessage = compressMessage(msg));
+        player.lastcompressedmessage = compressMessage(msg);
         player.tick_send_allow = true;
         player.lastMessageHash = currentMessageHash;
       }
