@@ -751,20 +751,10 @@ function prepareRoomMessages(room) {
       room.winner,
     ].join(':');
 
-  
-
-    const isDataUnchanged = roomdata === room.rdlast; room.rdlast = roomdata; 
-
-  if (isDataUnchanged) {
-    // If the data is the same, there's no need to send a message.
-    roomdata === null
-    return;
-  }
+    roomdata === room.rdlast ? roomdata = undefined : room.rdlast = roomdata;
 
     for (const player of players) {
-      const msg = {
-      rd: roomdata,
-    };
+      const msg = roomdata === null ? "{}":  { rd: roomdata } ;
 
 
       const currentMessageHash = generateHash(msg);
