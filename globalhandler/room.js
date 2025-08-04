@@ -723,7 +723,7 @@ function SendPreStartMessage(room) {
       //roomid: room.roomId
     };
 
-    const FinalPreMessage = JSON.stringify(MessageToSend)
+    const FinalPreMessage = MessageToSend
 
     const compressedPlayerMessage = compressMessage(FinalPreMessage)
     player.ws.send(compressedPlayerMessage, { binary: true })
@@ -943,7 +943,7 @@ const finalselfdata = Object.keys(selfPlayerData).length > 0 ? selfPlayerData : 
     player.tick_send_allow = false;
 
     if (player.ws && player.lastMessageHash !== currentMessageHash) {
-      player.lastcompressedmessage = compressMessage(JSON.stringify(playerSpecificMessage));
+      player.lastcompressedmessage = compressMessage(playerSpecificMessage);
       player.tick_send_allow = true;
       player.lastMessageHash = currentMessageHash;
     }
