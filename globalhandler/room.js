@@ -35,6 +35,52 @@ function generateHash(message) {
   return hash;
 }
 
+function stringHash(str) {
+    if (typeof str !== 'string') str = String(str);
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+}
+
+// A recursive function to hash objects and arrays directly.
+// This is the core of the optimization that replaces JSON.stringify.
+function deepHash(value, visited = new WeakSet()) {
+    if (value === null || typeof value !== 'object') {
+        // Handle primitives: null, undefined, strings, numbers, booleans
+        return stringHash(value);
+    }
+
+    if (visited.has(value)) {
+        // Handle circular references to prevent infinite loops
+        return stringHash('[Circular]');
+    }
+    visited.add(value);
+
+    let hash = 0;
+
+    if (Array.isArray(value)) {
+        // Hash arrays by hashing each element
+        for (const item of value) {
+            hash ^= deepHash(item, visited);
+        }
+    } else {
+        // Hash objects by hashing each key and value
+        // CRUCIAL: Sort the keys to ensure a consistent hash regardless of key order
+        const keys = Object.keys(value).sort();
+        for (const key of keys) {
+            hash ^= stringHash(key);
+            hash ^= deepHash(value[key], visited);
+        }
+    }
+    
+    visited.delete(value); // Clean up for the next call
+    
+    return hash;
+}
+
 //function generateHash(message) {
  // const str = JSON.stringify(message);
  // return murmurHash3.x86.hash32(str); // Use a standard, tested algorithm
@@ -781,17 +827,14 @@ function prepareRoomMessages(room) {
 
   handlePlayerMoveIntervalAll(room);
 
-  if (room.dummies) {
-    const dummiesfiltered = transformData(room.dummies);
-    const hash = generateHash(JSON.stringify(dummiesfiltered));
-
-    if (GameRunningState) {
-      room.dummiesfiltered = hash !== room.previousdummies ? dummiesfiltered : undefined;
-      room.previousdummies = hash;
-    } else {
-      room.dummiesfiltered = dummiesfiltered;
+    if (room.dummies && GameRunningState) {
+        const dummiesfiltered = transformData(room.dummies);
+        const hash = deepHash(dummiesfiltered);
+        
+        room.dummiesfiltered = hash !== room.previousdummies ? dummiesfiltered : undefined;
+        room.previousdummies = hash;
     }
-  }
+
 
   // Room data hash
   let roomdata = [
