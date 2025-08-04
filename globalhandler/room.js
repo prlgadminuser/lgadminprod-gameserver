@@ -751,10 +751,13 @@ function prepareRoomMessages(room) {
       room.winner,
     ].join(':');
 
+  
+
     const isDataUnchanged = roomdata === room.rdlast; room.rdlast = roomdata; 
 
   if (isDataUnchanged) {
     // If the data is the same, there's no need to send a message.
+    roomdata === null
     return;
   }
 
