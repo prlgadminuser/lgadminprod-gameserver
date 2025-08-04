@@ -753,8 +753,11 @@ function prepareRoomMessages(room) {
 
     roomdata === room.rdlast ? roomdata = undefined : room.rdlast = roomdata;
 
+    const finalroomdata = roomdata === undefined ? "{}":  { rd: roomdata } ;
+
+
     for (const player of players) {
-      const msg = roomdata === null ? "{}":  { rd: roomdata } ;
+      const msg = finalroomdata
 
 
       const currentMessageHash = generateHash(msg);
