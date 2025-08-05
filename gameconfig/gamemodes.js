@@ -2,12 +2,13 @@
 // MODIFIERS:
 
 
+
 const allowed_gamemodes = new Set([
   
-  "fightdown",
+ // "fightdown",
   "1v1",
  // "deathmatch",
-  "breakthrough",
+  //"breakthrough",
   "training",
 
 
@@ -159,3 +160,4 @@ module.exports = {
   gamemodeconfig,
   allowed_gamemodes
 }
+
