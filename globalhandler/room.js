@@ -409,7 +409,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
 async function joinRoom(ws, gamemode, playerVerified) {
   try {
-    const { playerId, hat, top, player_color, hat_color, top_color, gadget, skillpoints, nickname, loadout } = playerVerified;
+    const { playerId, nickname, hat, top, player_color, hat_color, top_color, gadget, skillpoints, loadout } = playerVerified;
 
     //const fallbackloadout = { 1: "1", 2: "5", 3: "DEVLOCKED" }
     const fallbackloadout = { 1: "1", 2: "2", 3: "3" }
