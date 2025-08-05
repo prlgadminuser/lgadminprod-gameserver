@@ -210,14 +210,14 @@ wss.on("connection", (ws, req) => {
         // Validate request
         if (gamemode.length > 20 || req.length > 2000 || (origin && origin.length > 50) || !isValidOrigin(origin)) {
           ws.close(4004, "Unauthorized");
-          console.log("1")
+          
           return;
         }
 
         if (!(token && token.length < 300 && allowed_gamemodes.has(gamemode))) {
           ws.close(4094, "Unauthorized");
           // console.log("Invalid token or gamemode");
-          console.log("2")
+         
           return;
         }
 
@@ -225,13 +225,13 @@ wss.on("connection", (ws, req) => {
         handlePlayerVerification(token).then(playerVerified => {
           if (!playerVerified) {
             ws.close(4001, "Invalid token");
-            console.log("3")
+            
             return;
           }
 
           if (connectedUsernames.has(playerVerified.playerId)) {
             ws.close(4006, "code:double");
-             console.log("4")
+          
             return;
           }
 
@@ -239,7 +239,7 @@ wss.on("connection", (ws, req) => {
           joinRoom(ws, gamemode, playerVerified).then(result => {
             if (!result) {
               ws.close(4001, "Invalid token");
-               console.log("5")
+              
               return;
             }
 

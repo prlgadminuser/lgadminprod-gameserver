@@ -29,6 +29,7 @@ async function verifyPlayer(token) {
       { "account.username": username },
       {
         projection: {
+          "account.nickname": 1,
           "equipped.hat": 1,
           "equipped.top": 1,
           "equipped.color": 1,
@@ -36,7 +37,6 @@ async function verifyPlayer(token) {
           "equipped.top_color": 1,
           "stats.sp": 1,
           "equipped.gadget": 1,
-          "account.nickname": 1,
           "inventory.loadout": 1,
         },
       }
@@ -47,7 +47,7 @@ async function verifyPlayer(token) {
     }
 
     return {
-      playerId: user.account.username,
+      playerId: username,
       nickname: user.account.nickname,
       hat: user.equipped.hat,
       top: user.equipped.top,
