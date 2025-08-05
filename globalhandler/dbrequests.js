@@ -15,7 +15,7 @@ async function verifyPlayer(token) {
   try {
 
     const decodedToken = jwt.verify(token, tokenkey);
-    const { username } = decodedToken;
+    const username = decodedToken.username;
 
     if (!username) {
       throw new Error("Invalid token");
@@ -25,7 +25,7 @@ async function verifyPlayer(token) {
       { "account.token": token },
       {
         projection: {
-          "account.nickname": 1,
+          "account.username": 1,
           "account.nickname": 1,
           "equipped.hat": 1,
           "equipped.top": 1,
