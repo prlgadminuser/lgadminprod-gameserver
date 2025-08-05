@@ -47,7 +47,7 @@ async function verifyPlayer(token) {
     }
 
     return {
-      playerId: user.account.nickname,
+      playerId: user.account.username,
       hat: user.equipped.hat,
       top: user.equipped.top,
       player_color: user.equipped.color,
