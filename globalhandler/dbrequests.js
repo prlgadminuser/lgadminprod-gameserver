@@ -39,7 +39,7 @@ async function verifyPlayer(token) {
       }
     );
 
-    if (!userInformation || userInformation.account.username !== username) {
+    if (!user || user.account.username !== username) {
       throw new Error("Invalid token or user not found");
     }
 
