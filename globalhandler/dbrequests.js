@@ -5,6 +5,8 @@ const { tokenkey } = require('./..//idbconfig.js');
 
 const maintenanceId = "maintenance";
 
+
+
 async function verifyPlayer(token) {
   if (!token) {
     throw new Error("Unauthorized");
@@ -12,23 +14,18 @@ async function verifyPlayer(token) {
 
   try {
 
-    const tokenExists = await userCollection.findOne({ "account.token": token });
-
-    if (!tokenExists) {
-      throw new Error("Invalid token");
-    }
-
     const decodedToken = jwt.verify(token, tokenkey);
-    const username = decodedToken.username;
+    const { username } = decodedToken;
 
     if (!username) {
       throw new Error("Invalid token");
     }
 
-    const user = await userCollection.findOne(
-      { "account.username": username },
+     const user = await userCollection.findOne(
+      { "account.token": token },
       {
         projection: {
+          "account.nickname": 1,
           "account.nickname": 1,
           "equipped.hat": 1,
           "equipped.top": 1,
@@ -41,6 +38,10 @@ async function verifyPlayer(token) {
         },
       }
     );
+
+    if (!userInformation || userInformation.account.username !== username) {
+      throw new Error("Invalid token or user not found");
+    }
 
     if (!user) {
       throw new Error("User not found");
@@ -59,12 +60,14 @@ async function verifyPlayer(token) {
       loadout: user.inventory.loadout,
     };
 
-
   } catch (error) {
     console.error('Error handling request:', error);
     return false;
   }
 }
+
+
+
 
 async function increasePlayerKillsAndDamage(playerId, kills, damage) {
   const username = playerId;
