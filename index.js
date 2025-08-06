@@ -24,13 +24,12 @@ const REDIS_PORT = 6379;         // Adjust if Redis is on a different port
 const REDIS_CHANNEL = 'user_status_updates'; // Channel for Pub/Sub (for inter-server cleanup notifications)
 const USER_SESSION_MAP_KEY = 'user_to_server_map'; // Redis Hash key for user -> server mapping
 const SERVER_HEARTBEAT_PREFIX = 'server_heartbeat:'; // Prefix for server heartbeat keys
-const HEARTBEAT_INTERVAL_MS = 15000; // Send heartbeat every 5 seconds
-const HEARTBEAT_TTL_SECONDS = 30;   // Heartbeat expires after 15 seconds (should be > interval)
-const CLEANUP_INTERVAL_MS = 30000;  // Run stale session cleanup every 30 seconds (must be > HEARTBEAT_TTL_SECONDS)
+const HEARTBEAT_INTERVAL_MS = 30000; // Send heartbeat every 5 seconds
+const HEARTBEAT_TTL_SECONDS = 60;   // Heartbeat expires after 15 seconds (should be > interval)
+const CLEANUP_INTERVAL_MS = 60000;  // Run stale session cleanup every 30 seconds (must be > HEARTBEAT_TTL_SECONDS)
 
 const redisClient = new Redis("rediss://default:ATBeAAIncDE4ZGNmMDlhNGM0MTI0YTljODU4YzhhZTg3NmFjMzk3YnAxMTIzODI@talented-dassie-12382.upstash.io:6379");
 
-const subscriberClient = new Redis("rediss://default:ATBeAAIncDE4ZGNmMDlhNGM0MTI0YTljODU4YzhhZTg3NmFjMzk3YnAxMTIzODI@talented-dassie-12382.upstash.io:6379");
 
 function compressMessage(msg) {
 
@@ -56,39 +55,10 @@ redisClient.on('connect', () => {
     setInterval(cleanStaleSessions, CLEANUP_INTERVAL_MS);
     console.log(`Stale session cleanup scheduled every ${CLEANUP_INTERVAL_MS / 1000} seconds.`);
 });
+
 redisClient.on('error', (err) => console.error('Redis command client error:', err));
 
-// Subscribe the dedicated subscriber client to the channel
-subscriberClient.on('connect', () => {
-    console.log('Redis subscriber client connected to Upstash.');
-    subscriberClient.subscribe(REDIS_CHANNEL, (err, count) => {
-        if (err) {
-            console.error(`Error subscribing to ${REDIS_CHANNEL}:`, err);
-        } else {
-            console.log(`Subscribed to ${count} channel(s).`);
-        }
-    });
-});
-subscriberClient.on('error', (err) => console.error('Redis subscriber client error:', err));
 
-
-// Handle messages received via Redis Pub/Sub (on the subscriber client)
-subscriberClient.on('message', (channel, message) => {
-    if (channel === REDIS_CHANNEL) {
-        try {
-            const data = JSON.parse(message);
-            // console.log(`Received Pub/Sub message: ${JSON.stringify(data)}`); // Uncomment for verbose logging
-            // No direct call to cleanStaleSessions here. It runs on its own interval.
-        } catch (error) {
-            console.error('Error parsing Pub/Sub message:', error);
-        }
-    }
-});
-
-/**
- * Sends a periodic heartbeat to Redis to indicate this server instance is alive.
- * Uses SETEX to automatically expire the key if the server crashes.
- */
 function startHeartbeat() {
     // Use redisClient for SETEX command
     setInterval(async () => {
@@ -119,12 +89,8 @@ async function cleanStaleSessions() {
 
             if (!isServerAlive) {
                 // Server is not alive, remove this stale session
-                console.log(`Cleaning up stale session for user "${username}" on crashed server "${serverId}".`);
                 await redisClient.hdel(USER_SESSION_MAP_KEY, username);
                 cleanedCount++;
-                // Publish an update to notify other servers about the cleanup
-                // This specific publish is kept as it's critical for immediate awareness of a *crash* cleanup.
-                await redisClient.publish(REDIS_CHANNEL, JSON.stringify({ type: 'stale_cleaned', username: username }));
             }
         }
         if (cleanedCount > 0) {
@@ -362,7 +328,6 @@ wss.on("connection", async (ws, req) => { // Made the connection handler async
                 console.log(`Stale session detected for user "${username}" on crashed server "${existingServerId}". Cleaning up.`);
                 await redisClient.hdel(USER_SESSION_MAP_KEY, username);
                 // Publish an update to notify other servers about the cleanup (using redisClient)
-                await redisClient.publish(REDIS_CHANNEL, JSON.stringify({ type: 'stale_cleaned', username: username }));
             }
         }
         // --- End Redis-based duplicate user check ---
