@@ -26,7 +26,7 @@ const HEARTBEAT_INTERVAL_MS = 60000 * multiplier // Send heartbeat every 5 secon
 const HEARTBEAT_TTL_MS = 180000 * multiplier;   // Heartbeat expires after 15 seconds (should be > interval)
 const CLEANUP_INTERVAL_MS = 360000 * multiplier;  // Run stale session cleanup every 30 seconds (must be > HEARTBEAT_TTL_SECONDS)
 
-const redisClient = new Redis(rediskey);
+const redisClient = new Redis("rediss://default:ATBeAAIncDE4ZGNmMDlhNGM0MTI0YTljODU4YzhhZTg3NmFjMzk3YnAxMTIzODI@talented-dassie-12382.upstash.io:6379");
 
 
 function compressMessage(msg) {
