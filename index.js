@@ -24,9 +24,9 @@ const REDIS_PORT = 6379;         // Adjust if Redis is on a different port
 const REDIS_CHANNEL = 'user_status_updates'; // Channel for Pub/Sub (for inter-server cleanup notifications)
 const USER_SESSION_MAP_KEY = 'user_to_server_map'; // Redis Hash key for user -> server mapping
 const SERVER_HEARTBEAT_PREFIX = 'server_heartbeat:'; // Prefix for server heartbeat keys
-const HEARTBEAT_INTERVAL_MS = 20000; // Send heartbeat every 5 seconds
-const HEARTBEAT_TTL_SECONDS = 60;   // Heartbeat expires after 15 seconds (should be > interval)
-const CLEANUP_INTERVAL_MS = 300000;  // Run stale session cleanup every 30 seconds (must be > HEARTBEAT_TTL_SECONDS)
+const HEARTBEAT_INTERVAL_MS = 10000; // Send heartbeat every 5 seconds
+const HEARTBEAT_TTL_SECONDS = 30000;   // Heartbeat expires after 15 seconds (should be > interval)
+const CLEANUP_INTERVAL_MS = 60000;  // Run stale session cleanup every 30 seconds (must be > HEARTBEAT_TTL_SECONDS)
 
 const redisClient = new Redis("rediss://default:ATBeAAIncDE4ZGNmMDlhNGM0MTI0YTljODU4YzhhZTg3NmFjMzk3YnAxMTIzODI@talented-dassie-12382.upstash.io:6379");
 
