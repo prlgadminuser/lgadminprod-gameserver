@@ -9,7 +9,7 @@ const LZString = require("lz-string")
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const jwt = require("jsonwebtoken");
 const { RateLimiterMemory } = require("rate-limiter-flexible");
-const { uri, DB_NAME } = require("./idbconfig");
+const { uri, rediskey } = require("./idbconfig");
 const msgpack = require("msgpack-lite");
 const Redis = require('ioredis');
 
@@ -21,12 +21,12 @@ const SERVER_INSTANCE_ID = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'.replace(/[xy]/
 
 const USER_SESSION_MAP_KEY = 'user_to_server_map'; // Redis Hash key for user -> server mapping
 const SERVER_HEARTBEAT_PREFIX = 'server_heartbeat:'; // Prefix for server heartbeat keys
-const multiplier = 5
-const HEARTBEAT_INTERVAL_MS = 60000 * multiplier ; // Send heartbeat every 5 seconds
+const multiplier = 2
+const HEARTBEAT_INTERVAL_MS = 60000 * multiplier // Send heartbeat every 5 seconds
 const HEARTBEAT_TTL_MS = 180000 * multiplier;   // Heartbeat expires after 15 seconds (should be > interval)
 const CLEANUP_INTERVAL_MS = 360000 * multiplier;  // Run stale session cleanup every 30 seconds (must be > HEARTBEAT_TTL_SECONDS)
 
-const redisClient = new Redis("rediss://default:ATBeAAIncDE4ZGNmMDlhNGM0MTI0YTljODU4YzhhZTg3NmFjMzk3YnAxMTIzODI@talented-dassie-12382.upstash.io:6379");
+const redisClient = new Redis(rediskey);
 
 
 function compressMessage(msg) {
