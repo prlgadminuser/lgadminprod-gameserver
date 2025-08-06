@@ -9,7 +9,7 @@ const LZString = require("lz-string")
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const jwt = require("jsonwebtoken");
 const { RateLimiterMemory } = require("rate-limiter-flexible");
-const { uri, rediskey } = require("./idbconfig");
+const { uri, DB_NAME } = require("./idbconfig");
 const msgpack = require("msgpack-lite");
 const Redis = require('ioredis');
 
@@ -19,12 +19,14 @@ const SERVER_INSTANCE_ID = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'.replace(/[xy]/
     return v.toString(16);
   });
 
+const REDIS_HOST = '127.0.0.1'; // Adjust if Redis is on a different host
+const REDIS_PORT = 6379;         // Adjust if Redis is on a different port
+const REDIS_CHANNEL = 'user_status_updates'; // Channel for Pub/Sub (for inter-server cleanup notifications)
 const USER_SESSION_MAP_KEY = 'user_to_server_map'; // Redis Hash key for user -> server mapping
 const SERVER_HEARTBEAT_PREFIX = 'server_heartbeat:'; // Prefix for server heartbeat keys
-const multiplier = 2
-const HEARTBEAT_INTERVAL_MS = 60000 * multiplier // Send heartbeat every 5 seconds
-const HEARTBEAT_TTL_MS = 180000 * multiplier;   // Heartbeat expires after 15 seconds (should be > interval)
-const CLEANUP_INTERVAL_MS = 360000 * multiplier;  // Run stale session cleanup every 30 seconds (must be > HEARTBEAT_TTL_SECONDS)
+const HEARTBEAT_INTERVAL_MS = 10000; // Send heartbeat every 5 seconds
+const HEARTBEAT_TTL_SECONDS = 30;   // Heartbeat expires after 15 seconds (should be > interval)
+const CLEANUP_INTERVAL_MS = 60000;  // Run stale session cleanup every 30 seconds (must be > HEARTBEAT_TTL_SECONDS)
 
 const redisClient = new Redis("rediss://default:ATBeAAIncDE4ZGNmMDlhNGM0MTI0YTljODU4YzhhZTg3NmFjMzk3YnAxMTIzODI@talented-dassie-12382.upstash.io:6379");
 
@@ -62,7 +64,7 @@ function startHeartbeat() {
     setInterval(async () => {
         try {
             const heartbeatKey = `${SERVER_HEARTBEAT_PREFIX}${SERVER_INSTANCE_ID}`;
-            await redisClient.setex(heartbeatKey, HEARTBEAT_TTL_MS, Date.now().toString());
+            await redisClient.setex(heartbeatKey, HEARTBEAT_TTL_SECONDS, Date.now().toString());
             // console.log(`Heartbeat sent for ${SERVER_INSTANCE_ID}`); // Uncomment for verbose logging
         } catch (error) {
             console.error('Error sending heartbeat to Redis:', error);
@@ -489,4 +491,5 @@ const PORT = process.env.PORT || 8070;
 server.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}`);
 });
+
 
