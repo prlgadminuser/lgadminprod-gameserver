@@ -26,7 +26,7 @@ const USER_SESSION_MAP_KEY = 'user_to_server_map'; // Redis Hash key for user ->
 const SERVER_HEARTBEAT_PREFIX = 'server_heartbeat:'; // Prefix for server heartbeat keys
 const HEARTBEAT_INTERVAL_MS = 30000; // Send heartbeat every 5 seconds
 const HEARTBEAT_TTL_SECONDS = 60;   // Heartbeat expires after 15 seconds (should be > interval)
-const CLEANUP_INTERVAL_MS = 60000;  // Run stale session cleanup every 30 seconds (must be > HEARTBEAT_TTL_SECONDS)
+const CLEANUP_INTERVAL_MS = 300000;  // Run stale session cleanup every 30 seconds (must be > HEARTBEAT_TTL_SECONDS)
 
 const redisClient = new Redis("rediss://default:ATBeAAIncDE4ZGNmMDlhNGM0MTI0YTljODU4YzhhZTg3NmFjMzk3YnAxMTIzODI@talented-dassie-12382.upstash.io:6379");
 
@@ -318,14 +318,12 @@ wss.on("connection", async (ws, req) => { // Made the connection handler async
 
             if (isExistingServerAlive) {
                 // User is connected to an active server, reject new connection
-                console.log(`User "${username}" attempted to connect but is already active on server "${existingServerId}". Rejecting new connection.`);
                 ws.send(JSON.stringify({ type: 'error', message: `User "${username}" is already connected.` })); // Send error to client
                 ws.close(4006, "code:double"); // Custom code for double login
                 return;
             } else {
                 // The existing server is NOT alive (heartbeat expired), so it crashed.
                 // Clean up the stale session and allow this new connection.
-                console.log(`Stale session detected for user "${username}" on crashed server "${existingServerId}". Cleaning up.`);
                 await redisClient.hdel(USER_SESSION_MAP_KEY, username);
                 // Publish an update to notify other servers about the cleanup (using redisClient)
             }
@@ -338,10 +336,6 @@ wss.on("connection", async (ws, req) => { // Made the connection handler async
 
         // Add user to the global user_to_server_map in Redis (using redisClient)
         await redisClient.hset(USER_SESSION_MAP_KEY, username, SERVER_INSTANCE_ID);
-        console.log(`User "${username}" connected and mapped to server ${SERVER_INSTANCE_ID}.`);
-
-        // Removed: Publish user join event to Redis Pub/Sub channel
-        // await redisClient.publish(REDIS_CHANNEL, JSON.stringify({ type: 'joined', username: username }));
 
         let joinResult;
         try {
@@ -384,7 +378,6 @@ wss.on("connection", async (ws, req) => { // Made the connection handler async
 
                 // Remove user from the global user_to_server_map in Redis (using redisClient)
                 await redisClient.hdel(USER_SESSION_MAP_KEY, currentUser);
-                console.log(`User "${currentUser}" disconnected and removed from global map.`);
 
                 // Removed: Publish user leave event to Redis Pub/Sub channel
                 // await redisClient.publish(REDIS_CHANNEL, JSON.stringify({ type: 'left', username: currentUser }));
