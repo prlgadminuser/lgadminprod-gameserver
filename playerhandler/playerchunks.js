@@ -59,8 +59,6 @@ function getPlayersInRange(variable, players, centerX, centerY, xThreshold, yThr
       }
     }
   });
-
-  return playersInRange;
 }
 
 
@@ -69,6 +67,7 @@ function UpdatePlayerChunks(room, player) {
   player.nearbyplayers = getPlayersInRange(player.nearbyplayers, Array.from(room.players.values()).filter(p => p.visible), player.x, player.y, 400, 270, player.nmb);
 
 }
+
 
 
 
@@ -106,3 +105,4 @@ module.exports = {
   };
 
   
+
