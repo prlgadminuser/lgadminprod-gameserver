@@ -252,7 +252,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
   let mapid
   if (gmconfig.custom_map) {
-    mapid = gmconfig.custom_map
+    mapid = gmconfig.custom_map.toString()
   } else {
 
     const keyToExclude = "training";
