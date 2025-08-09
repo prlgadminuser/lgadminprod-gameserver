@@ -808,12 +808,10 @@ function prepareRoomMessages(room) {
 
     for (const p of players) {
       p.tick_send_allow = false;
-    } 
+    }
 
     if (roomdata !== room.rdlast) {
       room.rdlast = roomdata;
-
-      console.log(room.rdlast)
       const compressed = compressMessage(roomdata);
       for (const p of players) {
         if (!p.ws) continue;
@@ -824,7 +822,7 @@ function prepareRoomMessages(room) {
     }
     return;
   }
-console.log("tf")
+  
   // PLAYING STATE
   const aliveCount = players.reduce((c, p) => c + !p.eliminated, 0);
   handlePlayerMoveIntervalAll(room);
