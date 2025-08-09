@@ -787,24 +787,15 @@ function prepareRoomMessages(room) {
 
 
   const players = Array.from(room.players.values());
-  const playercountroom = players.reduce((count, player) => count + (!player.eliminated ? 1 : 0), 0);
   const GameRunningState = room.state === "playing" || room.state === "countdown";
 
   // Only calculate basic data in waiting state
   if (!GameRunningState) {
-    let roomdata = [
-      state_map[room.state],
-      room.zone,
-      room.maxplayers,
-      playercountroom,
-      "",
-      room.countdown,
-      room.winner,
-    ].join(':');
+    let roomdata = [state_map[room.state], room.maxplayers, players.length].join(':');
 
     roomdata === room.rdlast ? roomdata = undefined : room.rdlast = roomdata;
 
-    const finalroomdata = roomdata === undefined ? {}:  { rd: roomdata } ;
+    const finalroomdata = roomdata === undefined ? {}: roomdata;
 
 
     for (const player of players) {
@@ -822,6 +813,11 @@ function prepareRoomMessages(room) {
     }
     return; // ⛔ Exit early if waiting
   }
+
+
+  const playercountroom = players.reduce((count, player) => count + (!player.eliminated ? 1 : 0), 0);
+
+  
 
   // after this is game running state
 
