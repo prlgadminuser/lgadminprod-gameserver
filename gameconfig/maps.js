@@ -65,5 +65,5 @@ const mapsconfig = {
   };
 
   module.exports = {
-    mapsconfig 
+     mapsconfig: new Map(Object.entries(mapsconfig)) 
 }

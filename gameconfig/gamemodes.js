@@ -156,6 +156,6 @@ const gamemodeconfig = {
 };
 
 module.exports = {
-  gamemodeconfig,
+  gamemodeconfig: new Map(Object.entries(gamemodeconfig)),
   allowed_gamemodes
 }

@@ -209,7 +209,7 @@ async function shootBullet(room, player, bulletdata) {
 
 // Handle Bullet Fired
 async function handleBulletFired(room, player, gunType) {
-  const gun = gunsconfig[gunType];
+  const gun = gunsconfig.get(gunType);
   const currentTime = Date.now();
   const lastShootTime = player.lastShootTime || 0;
   const shootCooldown = gun.cooldown;

@@ -444,12 +444,14 @@ async function joinRoom(ws, gamemode, playerVerified) {
     // Check if there's an existing room with available slots
     const availableRoom = getAvailableRoom(gamemode, roomjoiningvalue)
 
+    const gamemodeSettings = gamemodeconfig.get(gamemode)
+
     if (availableRoom) {
       roomId = availableRoom.roomId;
       room = availableRoom;
     } else {
       roomId = generateUUID();
-      room = createRoom(roomId, gamemode, gamemodeconfig[gamemode], roomjoiningvalue);
+      room = createRoom(roomId, gamemode, gamemodeSettings, roomjoiningvalue);
     }
 
 
@@ -466,10 +468,10 @@ async function joinRoom(ws, gamemode, playerVerified) {
       top_color: top_color,
 
       // game state
-      health: gamemodeconfig[gamemode].playerhealth,
-      starthealth: gamemodeconfig[gamemode].playerhealth,
-      speed: gamemodeconfig[gamemode].playerspeed,
-      startspeed: gamemodeconfig[gamemode].playerspeed,
+      health: gamemodeSettings.playerhealth,
+      starthealth: gamemodeSettings.playerhealth,
+      speed: gamemodeSettings.playerspeed,
+      startspeed: gamemodeSettings.playerspeed,
       damage: 0,
       kills: 0,
       place: null,
@@ -1136,9 +1138,8 @@ function handleShoot(data, player, room) {
 
 function handleSwitchGun(data, player) {
   const GunID = parseFloat(data[1]);
-  const allguns = Object.keys(gunsconfig);
   if (
-    GunID !== player.gun && !player.shooting && GunID >= 1 && GunID <= 3 && GunID in allguns) {
+    GunID !== player.gun && !player.shooting && GunID >= 1 && GunID <= 3 && gunsconfig.has(GunID)) {
 
     player.gun = player.loadout[GunID];
 
