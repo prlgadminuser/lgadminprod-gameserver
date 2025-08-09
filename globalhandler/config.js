@@ -242,21 +242,18 @@ class SpatialGrid {
 
 // Initialize grids for all maps
 // Adjust as necessary
+
+
 mapsconfig.forEach((map, mapKey) => {
   const grid = new SpatialGrid(gridcellsize);
 
-  map.walls.forEach((wall, index) => {
-    // Assign a unique ID to each wall for O(1) lookups
-    const wallWithId = { ...wall, id: `wall_${index}` };
-    grid.addObject(wallWithId);
-  });
+  map.walls.forEach(wall => grid.addWall(wall));
 
-
-
+  // Save the grid in the map configuration
   map.grid = grid;
-
-  console.log("cloning map:", mapKey)
 });
+
+
 
 module.exports = {
   server_tick_rate,
