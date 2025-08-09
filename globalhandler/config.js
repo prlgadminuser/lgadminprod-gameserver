@@ -37,7 +37,7 @@ class SpatialGrid {
   constructor(cellSize) {
     this.cellSize = cellSize;
 
-      this.grid = new Map(); 
+    this.grid = new Map();
   }
 
 
@@ -63,12 +63,12 @@ class SpatialGrid {
     cell.set(obj.id, obj);
     obj._gridKey = key;
   }
-  
+
   removeObject(obj) {
     if (!obj || !obj._gridKey) {
       return;
     }
-    
+
     const cell = this.grid.get(obj._gridKey);
     if (cell) {
       cell.delete(obj.id);
@@ -77,7 +77,7 @@ class SpatialGrid {
         this.grid.delete(obj._gridKey);
       }
     }
-    
+
     delete obj._gridKey;
   }
 
@@ -97,14 +97,16 @@ class SpatialGrid {
     this.addObject(obj);
   }
 
+
   getObjectsInArea(xMin, xMax, yMin, yMax) {
-    const result = [];
+
     const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
+
+    const result = [];
 
     for (const key of keys) {
       const cell = this.grid.get(key);
       if (cell) {
-        // Spread the values from the Map into the result array
         result.push(...cell);
       }
     }
@@ -112,21 +114,24 @@ class SpatialGrid {
   }
 
   _getKeysInArea(xMin, xMax, yMin, yMax) {
+
     const keys = [];
+
     const startX = Math.floor(xMin / this.cellSize);
     const endX = Math.floor(xMax / this.cellSize);
     const startY = Math.floor(yMin / this.cellSize);
     const endY = Math.floor(yMax / this.cellSize);
 
     for (let x = startX; x <= endX; x++) {
+
       for (let y = startY; y <= endY; y++) {
-        keys.push(`${x}_${y}`);
+
+        keys.push(`${x},${y}`);
       }
     }
     return keys;
+
   }
-
-
 
 
 
@@ -194,23 +199,23 @@ class SpatialGrid {
   addWallAt(x, y) {
     const key = this._getCellKey(x, y);
     let cell = this.grid.get(key);
-  
+
     if (!cell) {
       cell = new Set();
       this.grid.set(key, cell);
     }
-  
+
     // Check if a wall at this position already exists
     for (const obj of cell) {
       if (obj.x === x && obj.y === y) {
         return; // Wall already exists, do nothing
       }
     }
-  
+
     // Add a new wall object
     cell.add({ x, y });
   }
-  
+
   getObjectsInAreaWithId(xMin, xMax, yMin, yMax, id) {
     const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
     const result = [];
@@ -247,10 +252,10 @@ mapsconfig.forEach((map, mapKey) => {
   });
 
 
-  
+
   map.grid = grid;
 
-  console.log("cloning map:",mapKey)
+  console.log("cloning map:", mapKey)
 });
 
 module.exports = {
