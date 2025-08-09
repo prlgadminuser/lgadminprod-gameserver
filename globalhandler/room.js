@@ -94,21 +94,17 @@ function deepCopy(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
-function cloneSpatialGrid(original) {
-  const clone = new SpatialGrid(original.cellSize);
+function cloneSpatialGrid(originalGrid) {
+  const clone = new SpatialGrid(originalGrid.cellSize);
 
-  // Deep clone the grid
-  for (const [key, originalSet] of original.grid.entries()) {
-    const clonedSet = new Set();
-    for (const obj of originalSet) {
-      // Clone object if needed (shallow copy here, do deep copy if required)
-      clonedSet.add({ ...obj });
-    }
-    clone.grid.set(key, clonedSet);
-  }
+  // Directly copy the Map. This is a shallow copy of the grid structure.
+  // The Maps for each cell and the objects within them are shared references.
+  // This is safe because walls are static.
+  clone.grid = new Map(originalGrid.grid);
 
   return clone;
 }
+
 
 function createRateLimiter() {
   const rate = 40; // Allow one request every 50 milliseconds
@@ -814,9 +810,42 @@ function prepareRoomMessages(room) {
     return; // ⛔ Exit early if waiting
   }
 
+/*
 
 
+  const players = Array.from(room.players.values());
+  const GameRunningState = room.state === "playing" || room.state === "countdown";
 
+  // Only calculate basic data in waiting state
+  if (!GameRunningState) {
+     let roomdata = [
+    state_map[room.state],
+    room.zone,
+    room.maxplayers,
+    playercountroom,
+  ].join(':');
+
+    roomdata === room.rdlast ? roomdata = undefined : room.rdlast = { rd: roomdata };
+
+    const finalroomdata = roomdata === undefined ? {} : roomdata;
+
+
+    for (const player of players) {
+      const msg = finalroomdata
+
+
+      const currentMessageHash = generateHash(msg);
+      player.tick_send_allow = false;
+
+      if (player.ws && player.lastMessageHash !== currentMessageHash) {
+        player.lastcompressedmessage = compressMessage(msg);
+        player.tick_send_allow = true;
+        player.lastMessageHash = currentMessageHash;
+      }
+    }
+    return; // ⛔ Exit early if waiting
+  }
+*/
 
 
   // after this is game running state

@@ -41,11 +41,38 @@ class SpatialGrid {
   }
 
 
+    // A more robust way to generate a cell key
   _getCellKey(x, y) {
     const cellX = Math.floor(x / this.cellSize);
     const cellY = Math.floor(y / this.cellSize);
-    return `${cellX},${cellY}`;
+    // Use an array joined by a non-numeric character for clarity
+    return `${cellX}_${cellY}`; 
   }
+
+
+   updateObject(obj, newX, newY) {
+    const oldKey = obj._gridKey;
+    const newKey = this._getCellKey(newX, newY);
+
+    if (oldKey === newKey) {
+      // No cell change, just update the position
+      obj.x = newX;
+      obj.y = newY;
+      return;
+    }
+
+    // Remove from the old cell
+    this.removeObject(obj);
+
+    // Update the object's position
+    obj.x = newX;
+    obj.y = newY;
+    
+    // Add to the new cell
+    this.addObject(obj);
+  }
+
+
 
   _ensureCell(key) {
     if (!this.grid.has(key)) {
@@ -80,16 +107,48 @@ class SpatialGrid {
     }
   }
 
+   // Adds an object to the grid. 
+  // Object must have x, y, and a unique id.
   addObject(obj) {
-    this._addToCell(obj);
+    if (typeof obj.x !== 'number' || typeof obj.y !== 'number' || !obj.id) {
+      throw new Error("Object must have numeric 'x', 'y' and a unique 'id' property.");
+    }
+
+    const key = this._getCellKey(obj.x, obj.y);
+
+    // Get the cell, or create it if it doesn't exist
+    let cell = this.grid.get(key);
+    if (!cell) {
+      cell = new Map(); // Use a Map for fast lookups
+      this.grid.set(key, cell);
+    }
+
+    // Add the object to the cell using its ID as the key for O(1) lookup
+    cell.set(obj.id, obj);
+    
+    // Store the cell key on the object itself for O(1) removal/movement
+    obj._gridKey = key;
   }
 
-  removeObject(obj) {
-    if (!obj.obj_id) {
-      throw new Error("Object must have an 'obj_id' property to be removed.");
+   removeObject(obj) {
+    if (!obj._gridKey) {
+      // If the object doesn't have a grid key, it's not in the grid
+      return;
     }
-    this._removeFromCell(obj, true);
+    
+    const cell = this.grid.get(obj._gridKey);
+    if (cell) {
+      cell.delete(obj.id);
+
+      if (cell.size === 0) {
+        this.grid.delete(obj._gridKey);
+      }
+    }
+
+    // Clean up the object's reference to the grid
+    delete obj._gridKey;
   }
+
 
   addWall(wall) {
     this._addToCell(wall);
@@ -137,7 +196,7 @@ class SpatialGrid {
   }
   
 
-  _getKeysInArea(xMin, xMax, yMin, yMax) {
+    _getKeysInArea(xMin, xMax, yMin, yMax) {
     const keys = [];
     const startX = Math.floor(xMin / this.cellSize);
     const endX = Math.floor(xMax / this.cellSize);
@@ -146,10 +205,9 @@ class SpatialGrid {
 
     for (let x = startX; x <= endX; x++) {
       for (let y = startY; y <= endY; y++) {
-        keys.push(`${x},${y}`);
+        keys.push(`${x}_${y}`);
       }
     }
-
     return keys;
   }
 
@@ -169,14 +227,15 @@ class SpatialGrid {
     return result;
   }
 
-  getObjectsInArea(xMin, xMax, yMin, yMax) {
-    const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
+    getObjectsInArea(xMin, xMax, yMin, yMax) {
     const result = [];
+    const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
 
     for (const key of keys) {
       const cell = this.grid.get(key);
       if (cell) {
-        result.push(...cell);
+        // Spread the values from the Map into the result array
+        result.push(...cell.values());
       }
     }
 
@@ -196,21 +255,14 @@ Object.keys(mapsconfig).forEach(mapKey => {
   const map = mapsconfig[mapKey];
   const grid = new SpatialGrid(gridcellsize);
 
-  map.walls.forEach(wall => grid.addWall(wall));
-
-  // Save the grid in the map configuration
+  map.walls.forEach((wall, index) => {
+    // Assign a unique ID to each wall for O(1) lookups
+    const wallWithId = { ...wall, id: `wall_${index}` };
+    grid.addObject(wallWithId);
+  });
+  
   map.grid = grid;
 });
-
-
-function extractWallCoordinates(mapConfig) {
-  return mapConfig.walls.map(({ x, y }) => ({ x, y }));
-}
-
-const transformedMaps = Object.keys(mapsconfig).reduce((acc, key) => {
-  acc[key] = extractWallCoordinates(mapsconfig[key]);
-  return acc;
-}, {});
 
 
 module.exports = {
