@@ -104,7 +104,7 @@ function deepCopy(obj) {
   //return clone;
 //}
 
-function cloneSpatialGrid(original) {
+function cloneSpatialGrid2(original) {
 
     clone = new SpatialGrid(original.cellSize);
     clone.grid = new Map(original.grid);
@@ -112,6 +112,16 @@ function cloneSpatialGrid(original) {
   return clone;
 }
 
+ function cloneSpatialGrid(original) {
+  const clone = new SpatialGrid(original.cellSize);
+
+  for (const [key, obj] of original.grid.entries()) {
+    // Store a shallow copy so modifications don't affect the original
+    clone.grid.set(key, { ...obj });
+  }
+
+  return clone;
+}
 
 
 
@@ -798,12 +808,11 @@ function prepareRoomMessages(room) {
     if (roomdata !== room.rdlast) {
       room.rdlast = roomdata;
       const compressed = compressMessage(roomdata);
-      const hash = generateHash(roomdata);
       for (const p of players) {
         if (!p.ws) continue;
         p.lastcompressedmessage = compressed;
-        p.lastMessageHash = hash;
-        p.tick_send_allow = true;
+          p.tick_send_allow = true;
+         p.lastMessageHash = generateHash(roomdata);
       }
     }
     return;
