@@ -890,7 +890,7 @@ function prepareRoomMessages(room) {
 
     // Self-data dif
     
-    const nearbyIds = p.nearbyfinalids ? Array.from(p.nearbyfinalids) : [];
+      const nearbyIds = p.nearbyfinalids ? Array.from(p.nearbyfinalids) : [];
     const selfdata = {
       id: p.nmb,
       state: p.state,
@@ -911,9 +911,8 @@ function prepareRoomMessages(room) {
       em: p.emote,
       spc: p.spectateid,
       guns: p.loadout_formatted,
-      np: nearbyIds === "[]" ? undefined : JSON.stringify(nearbyIds),
+      np: JSON.stringify(nearbyIds),
       ht: JSON.stringify(p.hitmarkers || [])
-    };
 
     const changes = {};
     const lastSelf = p.selflastmsg || {};
