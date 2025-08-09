@@ -94,13 +94,28 @@ function deepCopy(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
-function cloneSpatialGrid(originalGrid) {
-  const clone = new SpatialGrid(originalGrid.cellSize);
+//function cloneSpatialGrid(originalGrid) {
+//  const clone = new SpatialGrid(originalGrid.cellSize);
 
   // Directly copy the Map. This is a shallow copy of the grid structure.
   // The Maps for each cell and the objects within them are shared references.
   // This is safe because walls are static.
-  clone.grid = new Map(originalGrid.grid);
+  //clone.grid = new Map(originalGrid.grid);
+
+  //return clone;
+//}
+
+function cloneSpatialGrid(originalGrid) {
+  const clone = new SpatialGrid(originalGrid.cellSize);
+
+  // Iterate over each cell in the original grid
+  for (const [key, originalCellMap] of originalGrid.grid.entries()) {
+    // Create a NEW Map for each cell in the clone
+    const clonedCellMap = new Map(originalCellMap);
+    
+    // Set the new cell Map in the clone's grid
+    clone.grid.set(key, clonedCellMap);
+  }
 
   return clone;
 }
