@@ -822,7 +822,6 @@ function prepareRoomMessages(room) {
     }
     return;
   }
-
   // PLAYING STATE
   const aliveCount = players.reduce((c, p) => c + !p.eliminated, 0);
   handlePlayerMoveIntervalAll(room);
@@ -888,9 +887,8 @@ function prepareRoomMessages(room) {
   for (const p of players) {
     if (!p.ws) continue;
 
-    // Self-data dif
-    
-      const nearbyIds = p.nearbyfinalids ? Array.from(p.nearbyfinalids) : [];
+    // Self-data diff
+    const nearbyIds = p.nearbyfinalids ? Array.from(p.nearbyfinalids) : [];
     const selfdata = {
       id: p.nmb,
       state: p.state,
@@ -913,6 +911,7 @@ function prepareRoomMessages(room) {
       guns: p.loadout_formatted,
       np: JSON.stringify(nearbyIds),
       ht: JSON.stringify(p.hitmarkers || [])
+    };
 
     const changes = {};
     const lastSelf = p.selflastmsg || {};
