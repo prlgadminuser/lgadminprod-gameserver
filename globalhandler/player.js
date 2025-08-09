@@ -17,7 +17,7 @@ function handleMovement(player, room) { // all hitbox should be more then the ot
   const yMin = player.y - (playerhitbox.yMin + 2);
   const yMax = player.y + (playerhitbox.yMax + 2)
 
-  player.nearbywalls = room.grid.getWallsInArea(xMin, xMax, yMin, yMax);
+  player.nearbywalls = room.grid.getObjectsInArea(xMin, xMax, yMin, yMax);
   // Calculate radians for final direction
   const finalDirection = player.moving ? player.direction - 90 : player.direction;
 

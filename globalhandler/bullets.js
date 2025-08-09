@@ -125,7 +125,7 @@ function moveBullet(room, player, bullet) {
 
 function DestroyWall(wall, room) {
 
-  room.grid.removeWallAt(wall.x, wall.y);
+  room.grid.removeObject(wall);
 
   const Message = `${wall.x}:${wall.y}`
 

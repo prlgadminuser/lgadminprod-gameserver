@@ -16,7 +16,7 @@ function isCollisionWithWalls(grid, x, y) {
   const yMin = y - 45;
   const yMax = y + 45;
 
-  const nearbyWalls = grid.getWallsInArea(xMin, xMax, yMin, yMax);
+  const nearbyWalls = grid.getObjectsInArea(xMin, xMax, yMin, yMax);
 
   for (const wall of nearbyWalls) {
     const wallLeft = wall.x - halfBlockSize;
@@ -132,7 +132,7 @@ function isCollisionWithBullet(grid, x, y, height, width, direction) {
   const yMin = Math.min(...bulletCorners.map(c => c.y));
   const yMax = Math.max(...bulletCorners.map(c => c.y));
 
-  const nearbyWalls = grid.getWallsInArea(xMin, xMax, yMin, yMax);
+  const nearbyWalls = grid.getObjectsInArea(xMin, xMax, yMin, yMax);
 
   for (const wall of nearbyWalls) {
     const wallCorners = [
@@ -156,7 +156,7 @@ function findCollidedWall(grid, x, y, height, width) {
   const yMin = y - height;
   const yMax = y + height;
 
-  const nearbyWalls = grid.getWallsInArea(xMin, xMax, yMin, yMax);
+  const nearbyWalls = grid.getObjectsInArea(xMin, xMax, yMin, yMax);
 
   return nearbyWalls.find((wall) => {
     const wallLeft = wall.x - halfBlockSize;

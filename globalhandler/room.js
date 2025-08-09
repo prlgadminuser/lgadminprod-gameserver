@@ -105,19 +105,17 @@ function deepCopy(obj) {
   //return clone;
 //}
 
- function cloneSpatialGrid(original) {
+function cloneSpatialGrid(original) {
+  const clone = new SpatialGrid(original.cellSize);
 
-  const clone = new SpatialGrid(original.cellSize);
+  for (const [key, obj] of original.grid.entries()) {
+    // Store a shallow copy so modifications don't affect the original
+    clone.grid.set(key, { ...obj });
+  }
 
-  for (const [key, originalSet] of original.grid.entries()) {
-    const clonedSet = new Set();
-    for (const obj of originalSet) {
-      clonedSet.add({ ...obj });
-    }
-    clone.grid.set(key, clonedSet);
-  }
-  return clone;
+  return clone;
 }
+
 
 
 
@@ -433,10 +431,11 @@ async function joinRoom(ws, gamemode, playerVerified) {
 
     if (nickname.length < min_length || nickname.length > max_length) {
 
-      ws.close(4004)
+     return ws.close(4004);
     }
 
-    const finalnickname = nickname.replace(/[:$]/g, '');
+    const NICKNAME_SANITIZE = /[:$]/g;
+    const finalnickname = nickname.replace(NICKNAME_SANITIZE, '');
 
     const roomjoiningvalue = matchmakingsp(finalskillpoints);
 
@@ -555,11 +554,8 @@ async function joinRoom(ws, gamemode, playerVerified) {
       }, player_idle_timeout));
 
 
-      if (!(room.state === 'waiting' && room.players.size < room.maxplayers)) {
-        return;
-      } else {
-        room.players.set(playerId, newPlayer);
-      }
+      if (room.state !== 'waiting' || room.players.size >= room.maxplayers) return;
+     room.players.set(playerId, newPlayer);
 
 
 
@@ -571,93 +567,9 @@ async function joinRoom(ws, gamemode, playerVerified) {
 
 
     if (room.state === "waiting" && room.players.size >= room.maxplayers) {
-
-      clearTimeout(room.matchmaketimeout);
-
-      room.state = "await";
-
-
-      room.maxopentimeout = setTimeout(() => {
-        closeRoom(roomId);
-      }, room_max_open_time);
-
-      await setupRoomPlayers(room)
-
-      await CreateTeams(room)
-
-      playerchunkrenderer(room)
-      SendPreStartMessage(room)
-
-
-
-      try {
-
-        //  room.state = "await";
-
-        room.intervalIds.push(setTimeout(() => {
-
-          if (room.matchtype === "td") {
-
-            const t1 = room.teams[0];
-            const t2 = room.teams[1];
-
-            room.scoreboard = [
-              t1.id,
-              t1.score,
-              //   t2.id,
-              //  t2.score,
-            ].join('$')
-
-          }
-
-          room.state = "countdown";
-          //  console.log(`Room ${roomId} entering countdown phase`);
-
-          room.timeoutIds.push(setTimeout(() => {
-            if (!rooms.has(roomId)) return;
-
-            room.state = "playing";
-
-            if (room.showtimer === true) {
-              const countdownDuration = room_max_open_time // 10 minutes in milliseconds
-              const countdownStartTime = Date.now();
-
-              room.intervalIds.push(setInterval(() => {
-                const elapsedTime = Date.now() - countdownStartTime;
-                const remainingTime = countdownDuration - elapsedTime;
-
-                if (remainingTime <= 0) {
-                  clearInterval(room.countdownInterval);
-                  room.countdown = "0-00";
-                } else {
-                  const minutes = Math.floor(remainingTime / 1000 / 60);
-                  const seconds = Math.floor((remainingTime / 1000) % 60);
-                  room.countdown = `${minutes}-${seconds.toString().padStart(2, '0')}`;
-                }
-              }, 1000));
-            }
-
-            // console.log(`Room ${roomId} transitioned to playing state`);
-            StartremoveOldKillfeedEntries(room);
-            initializeAnimations(room);
-            if (room.modifiers.has("HealingCircles")) initializeHealingCircles(room);
-            if (room.modifiers.has("UseZone")) UseZone(room);
-            if (room.modifiers.has("AutoHealthRestore")) startRegeneratingHealth(room, 1);
-            if (room.modifiers.has("AutoHealthDamage")) startDecreasingHealth(room, 1);
-
-          }, game_start_time));
-
-        }, 1000));
-      } catch (err) {
-
-
-      }
+       await startMatch(room, roomId);
     }
-
-    if (ws.readyState === ws.CLOSED) {
-      RemoveRoomPlayer(room, newPlayer);
-      return;
-    }
+   
 
     return { roomId, playerId, room };
 
@@ -667,6 +579,139 @@ async function joinRoom(ws, gamemode, playerVerified) {
     throw error;
   }
 }
+
+
+async function startMatch(room, roomId) {
+  clearTimeout(room.matchmaketimeout);
+  room.state = "await";
+
+  room.maxopentimeout = setTimeout(() => {
+    closeRoom(roomId);
+  }, room_max_open_time);
+
+  await setupRoomPlayers(room);
+  await CreateTeams(room);
+
+  playerchunkrenderer(room);
+  SendPreStartMessage(room);
+
+  try {
+    room.intervalIds.push(setTimeout(() => {
+      if (room.matchtype === "td") {
+        const t1 = room.teams[0];
+        const t2 = room.teams[1];
+        room.scoreboard = [t1.id, t1.score].join('$');
+      }
+
+      room.state = "countdown";
+
+      room.timeoutIds.push(setTimeout(() => {
+        if (!rooms.has(roomId)) return;
+
+        room.state = "playing";
+
+        if (room.showtimer === true) {
+          const countdownDuration = room_max_open_time;
+          const countdownStartTime = Date.now();
+
+          room.countdownInterval = setInterval(() => {
+            const elapsedTime = Date.now() - countdownStartTime;
+            const remainingTime = countdownDuration - elapsedTime;
+
+            if (remainingTime <= 0) {
+              clearInterval(room.countdownInterval);
+              room.countdown = "0-00";
+            } else {
+              const minutes = Math.floor(remainingTime / 1000 / 60);
+              const seconds = Math.floor((remainingTime / 1000) % 60);
+              room.countdown = `${minutes}-${seconds.toString().padStart(2, '0')}`;
+            }
+          }, 1000);
+
+          room.intervalIds.push(room.countdownInterval);
+        }
+
+        StartremoveOldKillfeedEntries(room);
+        initializeAnimations(room);
+
+        if (room.modifiers.has("HealingCircles")) initializeHealingCircles(room);
+        if (room.modifiers.has("UseZone")) UseZone(room);
+        if (room.modifiers.has("AutoHealthRestore")) startRegeneratingHealth(room, 1);
+        if (room.modifiers.has("AutoHealthDamage")) startDecreasingHealth(room, 1);
+
+      }, game_start_time));
+
+    }, 1000));
+  } catch (err) {
+    console.error(`Error starting match in room ${roomId}:`, err);
+  }
+}
+async function startMatch(room, roomId) {
+  clearTimeout(room.matchmaketimeout);
+  room.state = "await";
+
+  room.maxopentimeout = setTimeout(() => {
+    closeRoom(roomId);
+  }, room_max_open_time);
+
+  await setupRoomPlayers(room);
+  await CreateTeams(room);
+
+  playerchunkrenderer(room);
+  SendPreStartMessage(room);
+
+  try {
+    room.intervalIds.push(setTimeout(() => {
+      if (room.matchtype === "td") {
+        const t1 = room.teams[0];
+        const t2 = room.teams[1];
+        room.scoreboard = [t1.id, t1.score].join('$');
+      }
+
+      room.state = "countdown";
+
+      room.timeoutIds.push(setTimeout(() => {
+        if (!rooms.has(roomId)) return;
+
+        room.state = "playing";
+
+        if (room.showtimer === true) {
+          const countdownDuration = room_max_open_time;
+          const countdownStartTime = Date.now();
+
+          room.countdownInterval = setInterval(() => {
+            const elapsedTime = Date.now() - countdownStartTime;
+            const remainingTime = countdownDuration - elapsedTime;
+
+            if (remainingTime <= 0) {
+              clearInterval(room.countdownInterval);
+              room.countdown = "0-00";
+            } else {
+              const minutes = Math.floor(remainingTime / 1000 / 60);
+              const seconds = Math.floor((remainingTime / 1000) % 60);
+              room.countdown = `${minutes}-${seconds.toString().padStart(2, '0')}`;
+            }
+          }, 1000);
+
+          room.intervalIds.push(room.countdownInterval);
+        }
+
+        StartremoveOldKillfeedEntries(room);
+        initializeAnimations(room);
+
+        if (room.modifiers.has("HealingCircles")) initializeHealingCircles(room);
+        if (room.modifiers.has("UseZone")) UseZone(room);
+        if (room.modifiers.has("AutoHealthRestore")) startRegeneratingHealth(room, 1);
+        if (room.modifiers.has("AutoHealthDamage")) startDecreasingHealth(room, 1);
+
+      }, game_start_time));
+
+    }, 1000));
+  } catch (err) {
+    console.error(`Error starting match in room ${roomId}:`, err);
+  }
+}
+
 
 
 function cleanupRoom(roomId) {

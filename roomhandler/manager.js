@@ -39,29 +39,29 @@ function removeRoomFromIndex(room) {
 
 
 function closeRoom(roomId) {
-    const room = rooms.get(roomId);
-  
-    if (room) {
-      room.timeoutIds?.forEach(clearTimeout);
-      room.intervalIds?.forEach(clearInterval);
-  
-      room.players.forEach(player => {
-        player.timeoutIds?.forEach(clearTimeout);
-        player.intervalIds?.forEach(clearInterval);
-        player.ws.close();
-      });
-  
-  
-      clearTimeout(room.matchmaketimeout)
-      clearTimeout(room.maxopentimeout)
-      clearInterval(room.xcleaninterval)
-  
-      rooms.delete(roomId);
-      removeRoomFromIndex(room);
+  const room = rooms.get(roomId);
+  if (!room) return;
 
+  room.timeoutIds?.forEach(clearTimeout);
+  room.intervalIds?.forEach(clearInterval);
 
-    }
-  }
+  room.players.forEach(player => {
+    player.timeoutIds?.forEach(clearTimeout);
+    player.intervalIds?.forEach(clearInterval);
+    try { player.ws.close(); } catch {}
+    player.bullets?.clear();
+    player.nearbyids?.clear();
+    player.nearbyplayers = [];
+  });
+
+  clearTimeout(room.matchmaketimeout);
+  clearTimeout(room.maxopentimeout);
+  clearInterval(room.xcleaninterval);
+
+  removeRoomFromIndex(room);
+  room.players.clear();
+  rooms.delete(roomId);
+}
 
   module.exports = {
     closeRoom,
