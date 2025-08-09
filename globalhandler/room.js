@@ -478,7 +478,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
       can_bullets_bounce: false,
       bullets: new Map(),
       nearbyids: new Set(),
-      nearbyplayers: new Set(),
+      nearbyplayers: [],
 
       // movement
       moving: false,
@@ -795,7 +795,7 @@ function prepareRoomMessages(room) {
 
     roomdata === room.rdlast ? roomdata = undefined : room.rdlast = roomdata;
 
-    const finalroomdata = roomdata === undefined ? {}: roomdata;
+    const finalroomdata = roomdata === undefined ? {} : roomdata;
 
 
     for (const player of players) {
@@ -815,22 +815,23 @@ function prepareRoomMessages(room) {
   }
 
 
-  const playercountroom = players.reduce((count, player) => count + (!player.eliminated ? 1 : 0), 0);
 
-  
+
+
 
   // after this is game running state
 
+  const playercountroom = players.reduce((count, player) => count + (!player.eliminated ? 1 : 0), 0);
+
   handlePlayerMoveIntervalAll(room);
 
-    if (room.dummies && GameRunningState) {
-        const dummiesfiltered = transformData(room.dummies);
-        const hash = deepHash(dummiesfiltered);
-        
-        room.dummiesfiltered = hash !== room.previousdummies ? dummiesfiltered : undefined;
-        room.previousdummies = hash;
-    }
+  if (room.dummies && GameRunningState) {
+    const dummiesfiltered = transformData(room.dummies);
+    const hash = deepHash(dummiesfiltered);
 
+    room.dummiesfiltered = hash !== room.previousdummies ? dummiesfiltered : undefined;
+    room.previousdummies = hash;
+  }
 
   // Room data hash
   let roomdata = [
@@ -844,9 +845,6 @@ function prepareRoomMessages(room) {
   ].join(':');
 
   roomdata === room.rdlast ? roomdata = undefined : room.rdlast = roomdata;
-
-
-
 
   const playerData = {};
   for (const player of players) {
@@ -882,7 +880,6 @@ function prepareRoomMessages(room) {
     }
   }
 
-
   for (const player of players) {
     const nearbyfinalids = player.nearbyfinalids ? Array.from(player.nearbyfinalids) : [];
     const hitmarkers = player.hitmarkers ? Array.from(player.hitmarkers) : [];
@@ -913,39 +910,32 @@ function prepareRoomMessages(room) {
     };
 
     const lastSelfData = player.selflastmsg || {};
-const selfPlayerData = {};
-for (const key in selfdata) {
-  if (selfdata[key] !== lastSelfData[key]) {
-    selfPlayerData[key] = selfdata[key];
-  }
-}
+    const selfPlayerData = {};
+    for (const key in selfdata) {
+      if (selfdata[key] !== lastSelfData[key]) {
+        selfPlayerData[key] = selfdata[key];
+      }
+    }
 
-if (Object.keys(selfPlayerData).length > 0) {
-  player.selflastmsg = { ...lastSelfData, ...selfPlayerData };
-}
+    if (Object.keys(selfPlayerData).length > 0) {
+      player.selflastmsg = { ...lastSelfData, ...selfPlayerData };
+    }
 
-const finalselfdata = Object.keys(selfPlayerData).length > 0 ? selfPlayerData : undefined;
+    const finalselfdata = Object.keys(selfPlayerData).length > 0 ? selfPlayerData : undefined;
 
-        if (!player.nearbyids) {
+    if (!player.nearbyids) {
       player.nearbyids = new Set();
     }
-    
-    // Clear the Set before populating it with new IDs.
-    // This is the efficient alternative to `new Set()`.
+
     player.nearbyids.clear();
-
-
-
     let filteredplayers = {};
- //   player.nearbyids = new Set();
-
 
     const playersInRange = player.nearbyplayers;
     const previousHashes = player.pdHashes || {};
     const currentHashes = {};
 
     for (const [id, data] of Object.entries(playerData)) {
-      if (!playersInRange.has(+id)) continue;
+       if (!playersInRange.includes(+id)) continue;
 
       const hash = generateHash(data);
       if (previousHashes[id] !== hash) {
@@ -959,41 +949,34 @@ const finalselfdata = Object.keys(selfPlayerData).length > 0 ? selfPlayerData : 
     player.pd = filteredplayers;
     player.pdHashes = currentHashes;
 
-
-
     // Message packaging
     const baseMsg = {
       rd: roomdata,
       dm: GameRunningState ? room.dummiesfiltered : undefined,
     };
 
-
     let playerSpecificMessage;
-   
-    
 
+    const entries = [
+      ['rd', baseMsg.rd],
+      ['dm', baseMsg.dm],
+      ['kf', room.newkillfeed],
+      ['sb', room.scoreboard],
+      ['sd', finalselfdata],
+      ['WLD', room.destroyedWalls],
+      ['cl', player.nearbycircles],
+      ['an', player.nearbyanimations],
+      ['b', player.finalbullets],
+      ['pd', player.pd],
+    ];
 
-      const entries = [
-        ['rd', baseMsg.rd],
-        ['dm', baseMsg.dm],
-        ['kf', room.newkillfeed],
-        ['sb', room.scoreboard],
-        ['sd', finalselfdata],
-        ['WLD', room.destroyedWalls],
-        ['cl', player.nearbycircles],
-        ['an', player.nearbyanimations],
-        ['b', player.finalbullets],
-        ['pd', player.pd],
-      ];
-
-      playerSpecificMessage = Object.fromEntries(
-        entries.filter(([_, value]) => {
-          if (!value || (Array.isArray(value) && value.length === 0)) return false;
-          if (typeof value === 'object' && Object.keys(value).length === 0) return false;
-          return true;
-        })
-      );
-    
+    playerSpecificMessage = Object.fromEntries(
+      entries.filter(([_, value]) => {
+        if (!value || (Array.isArray(value) && value.length === 0)) return false;
+        if (typeof value === 'object' && Object.keys(value).length === 0) return false;
+        return true;
+      })
+    );
 
     // Hash and compress message
     const currentMessageHash = generateHash(playerSpecificMessage);
@@ -1033,6 +1016,8 @@ function sendRoomMessages(room) {
 
 }
 
+
+
 const validDirections = [-90, 0, 180, -180, 90, 45, 135, -135, -45];
 
 const isValidDirection = (direction) => {
@@ -1044,7 +1029,7 @@ const isValidDirection = (direction) => {
 function handleRequest(result, message) {
   const player = result.room.players.get(result.playerId);
 
-  if (message.length > 100) {
+  if (message.length > 10) {
     player.ws.close(4000, "ahhh whyyyyy");
     return;
   }
@@ -1080,7 +1065,6 @@ function handleRequest(result, message) {
       handleGadget(player);
       break;
   }
-  //handleMovingState(data.moving, player);
 
   if (type === "2") {
     player.moving = false;

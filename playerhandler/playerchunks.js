@@ -39,13 +39,8 @@ player.nearbyanimations = animations;
 }
 
 
-function getPlayersInRange(variable, players, centerX, centerY, xThreshold, yThreshold, excludePlayerId) {
-   if (!variable) {
-      variable = new Set();
-    }
-
-    variable.clear();
-//  const playersInRange = new Set();
+function getPlayersInRange(players, centerX, centerY, xThreshold, yThreshold, excludePlayerId) {
+  const playersInRange = [];
 
   players.forEach(player => {
     if (player.nmb !== excludePlayerId) {
@@ -53,18 +48,18 @@ function getPlayersInRange(variable, players, centerX, centerY, xThreshold, yThr
       const isNearY = Math.abs(player.y - centerY) <= yThreshold;
 
       if (isNearX && isNearY) {
-     //   playersInRange.add(player.nmb);
-     variable.add(player.nmb)
-
+        playersInRange.push(player.nmb);
       }
     }
   });
+
+  return playersInRange;
 }
 
 
 function UpdatePlayerChunks(room, player) {
 
-  getPlayersInRange(player.nearbyplayers, Array.from(room.players.values()).filter(p => p.visible), player.x, player.y, 400, 270, player.nmb);
+  player.nearbyplayers = getPlayersInRange(Array.from(room.players.values()).filter(p => p.visible), player.x, player.y, 400, 270, player.nmb);
 
 }
 
@@ -103,7 +98,4 @@ function playerchunkrenderer(room) {
 module.exports = {
     playerchunkrenderer
   };
-
   
-
-
