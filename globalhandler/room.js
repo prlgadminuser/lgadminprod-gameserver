@@ -105,20 +105,20 @@ function deepCopy(obj) {
   //return clone;
 //}
 
-function cloneSpatialGrid(originalGrid) {
-  const clone = new SpatialGrid(originalGrid.cellSize);
+ function cloneSpatialGrid(original) {
+  
+  const clone = new SpatialGrid(original.cellSize);
 
-  // Iterate over each cell in the original grid
-  for (const [key, originalCellMap] of originalGrid.grid.entries()) {
-    // Create a NEW Map for each cell in the clone
-    const clonedCellMap = new Map(originalCellMap);
-    
-    // Set the new cell Map in the clone's grid
-    clone.grid.set(key, clonedCellMap);
-  }
-
-  return clone;
+  for (const [key, originalSet] of original.grid.entries()) {
+    const clonedSet = new Set();
+    for (const obj of originalSet) {
+      clonedSet.add({ ...obj });
+    }
+    clone.grid.set(key, clonedSet);
+  }
+  return clone;
 }
+
 
 
 function createRateLimiter() {
