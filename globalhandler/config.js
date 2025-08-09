@@ -41,6 +41,7 @@ class SpatialGrid {
   }
 
 
+  
   _getCellKey(x, y) {
     const cellX = Math.floor(x / this.cellSize);
     const cellY = Math.floor(y / this.cellSize);
@@ -60,7 +61,10 @@ class SpatialGrid {
       this.grid.set(key, cell);
     }
 
+    // Add the object to the cell using its ID as the key for O(1) lookup
     cell.set(obj.id, obj);
+    
+    // Store the cell key on the object for O(1) removal/movement
     obj._gridKey = key;
   }
   
@@ -104,7 +108,6 @@ class SpatialGrid {
     for (const key of keys) {
       const cell = this.grid.get(key);
       if (cell) {
-        // Spread the values from the Map into the result array
         result.push(...cell.values());
       }
     }
@@ -125,115 +128,8 @@ class SpatialGrid {
     }
     return keys;
   }
-
-
-
-
-
-
-  _ensureCell(key) {
-    if (!this.grid.has(key)) {
-      this.grid.set(key, new Set());
-    }
-  }
-
-  _addToCell(obj) {
-    const key = this._getCellKey(obj.x, obj.y);
-    this._ensureCell(key);
-    this.grid.get(key).add(obj);
-  }
-
-  _removeFromCell(obj, compareById = false) {
-    const key = this._getCellKey(obj.x, obj.y);
-    const cell = this.grid.get(key);
-    if (!cell) return;
-
-    if (compareById && obj.obj_id) {
-      for (const item of cell) {
-        if (item.obj_id === obj.obj_id) {
-          cell.delete(item);
-          break;
-        }
-      }
-    } else {
-      cell.delete(obj);
-    }
-
-    if (cell.size === 0) {
-      this.grid.delete(key);
-    }
-  }
-
-
-
-  addWall(wall) {
-    this._addToCell(wall);
-  }
-
-  removeWall(wall) {
-    this._removeFromCell(wall, false);
-  }
-
-  removeWallAt(x, y) {
-    const key = this._getCellKey(x, y);
-    const cell = this.grid.get(key);
-    if (!cell) return;
-
-    for (const obj of cell) {
-      if (obj.x === x && obj.y === y) {
-        cell.delete(obj);
-        break; // Only remove one matching wall
-      }
-    }
-
-    if (cell.size === 0) {
-      this.grid.delete(key);
-    }
-  }
-
-  addWallAt(x, y) {
-    const key = this._getCellKey(x, y);
-    let cell = this.grid.get(key);
-  
-    if (!cell) {
-      cell = new Set();
-      this.grid.set(key, cell);
-    }
-  
-    // Check if a wall at this position already exists
-    for (const obj of cell) {
-      if (obj.x === x && obj.y === y) {
-        return; // Wall already exists, do nothing
-      }
-    }
-  
-    // Add a new wall object
-    cell.add({ x, y });
-  }
-  
-  getObjectsInAreaWithId(xMin, xMax, yMin, yMax, id) {
-    const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
-    const result = [];
-
-    for (const key of keys) {
-      const cell = this.grid.get(key);
-      if (cell) {
-        for (const obj of cell) {
-          if (obj.id === id) result.push(obj);
-        }
-      }
-    }
-
-    return result;
-  }
-
-
-  getWallsInArea(xMin, xMax, yMin, yMax) {
-    // Same logic as getObjectsInArea
-    return this.getObjectsInArea(xMin, xMax, yMin, yMax);
-  }
-
 }
+
 
 // Initialize grids for all maps
 // Adjust as necessary
