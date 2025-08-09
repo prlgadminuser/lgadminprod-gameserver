@@ -36,9 +36,6 @@ function AddAffliction(room, shootingPlayer, target, data) {
 
     }, speed);
 
-
-    
-
     room.intervalIds.push(interval)
 
     room.timeoutIds.push(setTimeout(() => {

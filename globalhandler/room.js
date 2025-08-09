@@ -248,7 +248,13 @@ function RemoveRoomPlayer(room, player) {
 
   if (player.kills > 0 || player.damage > 0) increasePlayerKillsAndDamage(player.playerId, player.kills, player.damage);
 
-  player.ws.close();
+   if (player.ws) {
+    try {
+      player.ws.close();
+    } catch (e) {
+      // ignore errors or log if necessary
+    }
+  }
 
   addKillToKillfeed(room, 5, null, player.nmb, null)
   room.players.delete(player.playerId);
@@ -376,7 +382,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
         }
       });
     }
-  }, 1000);
+  }, 5000);
 
 
   room.matchmaketimeout = setTimeout(() => {
@@ -552,12 +558,15 @@ async function joinRoom(ws, gamemode, playerVerified) {
     }
 
     if (room) {
-      newPlayer.timeout = newPlayer.timeoutIds.push(setTimeout(() => {
-        if (newPlayer.lastPing <= Date.now() - 8000) {
+      const timeout = setTimeout(() => {
+        if (newPlayer.lastPing <= Date.now() - 5000) {
 
           newPlayer.ws.close(4200, "disconnected_inactivity")
         }
-      }, player_idle_timeout));
+      }, player_idle_timeout);
+
+      newPlayer.timeoutIds.push(timeout)
+      newPlayer.timeout = timeout;
 
 
       if (room.state !== 'waiting' || room.players.size >= room.maxplayers) return;

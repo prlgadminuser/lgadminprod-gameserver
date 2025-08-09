@@ -34,6 +34,9 @@ function moveBullet(room, player, bullet) {
   const distanceTraveled = calculateDistance(bullet.startX, bullet.startY, newX, newY);
   const timenow = Date.now();
 
+  bullet.x = newX;
+  bullet.y = newY;
+
   // if (GunHasModifier("Spinning", room, modifiers) && spinning_speed) {  
  //   bullet.direction += spinning_speed
    // } 
@@ -118,8 +121,7 @@ function moveBullet(room, player, bullet) {
   }
 
   // Update bullet position if no collision
-  bullet.x = newX;
-  bullet.y = newY;
+
 }
 
 
