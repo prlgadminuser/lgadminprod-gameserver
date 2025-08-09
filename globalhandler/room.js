@@ -104,12 +104,20 @@ function deepCopy(obj) {
   //return clone;
 //}
 
-function cloneSpatialGrid(original) {
-  const clone = new SpatialGrid(original.cellSize);
+function cloneSpatialGrid(original, CanBeDestroyed) {
 
-  for (const [key, obj] of original.grid.entries()) {
-    // Store a shallow copy so modifications don't affect the original
-    clone.grid.set(key, { ...obj });
+  let clone
+
+  if (!CanBeDestroyed) {
+
+    clone.grid = new Map(original.grid);
+
+  } else {
+
+    const clone = new SpatialGrid(original.cellSize);
+    for (const [key, obj] of original.grid.entries()) {
+      clone.grid.set(key, { ...obj });
+    }
   }
 
   return clone;
@@ -279,7 +287,9 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
   const bulletgrid = new SpatialGrid(50);
 
-  const roomgrid = cloneSpatialGrid(mapdata.grid);
+  const CanBeDestroyed = false
+
+  const roomgrid = cloneSpatialGrid(mapdata.grid, CanBeDestroyed);
 
   
 
