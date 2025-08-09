@@ -103,25 +103,26 @@ function deepCopy(obj) {
 
   //return clone;
 //}
-
 function cloneSpatialGrid(original, CanBeDestroyed) {
 
   let clone
 
   if (!CanBeDestroyed) {
 
-    clone.grid = new Map(original.grid);
+    clone.grid = new Map(original);
 
   } else {
 
     const clone = new SpatialGrid(original.cellSize);
-    for (const [key, obj] of original.grid.entries()) {
+    for (const [key, obj] of original.entries()) {
       clone.grid.set(key, { ...obj });
     }
   }
 
   return clone;
 }
+
+
 
 
 
