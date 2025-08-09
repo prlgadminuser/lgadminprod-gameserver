@@ -21,9 +21,9 @@ const SERVER_INSTANCE_ID = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'.replace(/[xy]/
 
 const USER_SESSION_MAP_KEY = 'user_to_server_map'; // Redis Hash key for user -> server mapping
 const SERVER_HEARTBEAT_PREFIX = 'server_heartbeat:'; // Prefix for server heartbeat keys
-const multiplier = 50
+const multiplier = 20
 const HEARTBEAT_INTERVAL_MS = 10000 * multiplier; // Send heartbeat every 5 seconds
-const HEARTBEAT_TTL_MS = 30000 * multiplier / 1000;   // Heartbeat expires after 15 seconds (should be > interval)
+const HEARTBEAT_TTL_MS = (30000 * multiplier) / 1000;   // Heartbeat expires after 15 seconds (should be > interval)
 const CLEANUP_INTERVAL_MS = 60000 * multiplier;  // Run stale session cleanup every 30 seconds (must be > HEARTBEAT_TTL_SECONDS)
 
 const redisClient = new Redis(rediskey);
@@ -222,7 +222,7 @@ const {
   checkForMaintenance,
 } = require("./globalhandler/dbrequests");
 
-const { game_win_rest_time, maxClients, gamemodeconfig, allowed_gamemodes } = require("./globalhandler/config");
+const { game_win_rest_time, allowed_gamemodes } = require("./globalhandler/config");
 
 const allowedOrigins = [
   "https://slcount.netlify.app",

@@ -197,6 +197,6 @@ const gunsconfig = {
 
 
 module.exports = {
-  gunsconfig: new Map(
-  Object.entries(gunsconfig).map(([k, v]) => [isNaN(k) ? k : Number(k), v]))
+  gunsconfig: new Map(Object.entries(gunsconfig)),
+  gunskeys: Object.keys(gunsconfig)
 };

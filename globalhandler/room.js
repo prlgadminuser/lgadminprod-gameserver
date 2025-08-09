@@ -1186,7 +1186,7 @@ function handleShoot(data, player, room) {
 function handleSwitchGun(data, player) {
   const GunID = data[1];
   if (
-    GunID !== player.gun && !player.shooting && GunID >= 1 && GunID <= 3 && gunsconfig.has(GunID)) {
+    GunID !== player.gun && !player.shooting && GunID >= 1 && GunID <= 3 && gunsconfig.has(GunID.toString())) {
 
     player.gun = player.loadout[GunID];
 
@@ -1195,7 +1195,6 @@ function handleSwitchGun(data, player) {
   }
 
 }
-
 
 function handleEmote(data, player) {
   const emoteid = data[1]
