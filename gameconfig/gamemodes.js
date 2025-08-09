@@ -90,6 +90,7 @@ const gamemodeconfig = {
     modifiers: new Set([
     //  "UseZone",
       // AutoHealthRestore,
+      "HealingCircles"
     ]),
 
     weapons_modifiers_override: new Set([

@@ -7,11 +7,13 @@ function findNearestEvents(player, room) {
   const grid = room.itemgrid; // Assume room.grid is your SpatialGrid
 
   // Define the search area around the player (radius search area)
-  const searchRadius = 400 // Search area in pixels around the player
-  const xMin = player.x - searchRadius;
-  const xMax = player.x + searchRadius;
-  const yMin = player.y - searchRadius;
-  const yMax = player.y + searchRadius;
+const searchRadiusX = 400;   // width radius
+const searchRadiusY = 220;   // height radius (smaller)
+
+const xMin = player.x - searchRadiusX;
+const xMax = player.x + searchRadiusX;
+const yMin = player.y - searchRadiusY;
+const yMax = player.y + searchRadiusY;
 
 
   const objectsInArea = grid.getObjectsInArea(xMin, xMax, yMin, yMax);

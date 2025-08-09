@@ -805,19 +805,26 @@ function prepareRoomMessages(room) {
   // WAITING STATE
   if (!GameRunning) {
     const roomdata = [state_map[room.state], room.maxplayers, players.length].join(':');
+
+    for (const p of players) {
+      p.tick_send_allow = false;
+    } 
+
     if (roomdata !== room.rdlast) {
       room.rdlast = roomdata;
+
+      console.log(room.rdlast)
       const compressed = compressMessage(roomdata);
       for (const p of players) {
         if (!p.ws) continue;
         p.lastcompressedmessage = compressed;
-          p.tick_send_allow = true;
-         p.lastMessageHash = generateHash(roomdata);
+        p.tick_send_allow = true;
+        p.lastMessageHash = generateHash(roomdata);
       }
     }
     return;
   }
-
+console.log("tf")
   // PLAYING STATE
   const aliveCount = players.reduce((c, p) => c + !p.eliminated, 0);
   handlePlayerMoveIntervalAll(room);
