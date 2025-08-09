@@ -106,7 +106,7 @@ function deepCopy(obj) {
 //}
 
  function cloneSpatialGrid(original) {
-  
+
   const clone = new SpatialGrid(original.cellSize);
 
   for (const [key, originalSet] of original.grid.entries()) {
@@ -265,8 +265,8 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     const prefix = "";
 
     // Get all keys of the object, excluding the one you don't want and those that don't start with the prefix
-    const filteredKeys = Object.keys(mapsconfig)
-      .filter(key => key !== keyToExclude && key.startsWith(prefix));
+    const filteredKeys = [...mapsconfig.keys()]
+  .filter(key => key !== keyToExclude && key.startsWith(prefix));
 
     // Check if there are any valid keys left
     if (filteredKeys.length > 0) {
@@ -276,12 +276,15 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     }
   }
 
+  const mapdata = mapsconfig.get(mapid)
+
   const itemgrid = new SpatialGrid(gridcellsize); // grid system for items
 
   const bulletgrid = new SpatialGrid(50);
 
-  const roomgrid = cloneSpatialGrid(mapsconfig[mapid].grid)
+  const roomgrid = cloneSpatialGrid(mapdata.grid);
 
+  
 
   const room = {
     // Game State
@@ -317,23 +320,22 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     // Map Configuration
     grid: roomgrid,
     map: mapid,
-    mapHeight: mapsconfig[mapid].height,
-    mapWidth: mapsconfig[mapid].width,
-    spawns: mapsconfig[mapid].spawns,
-    walls: mapsconfig[mapid].walls, // Could be mapped differently if needed
-    zoneStartX: -mapsconfig[mapid].width,
-    zoneStartY: -mapsconfig[mapid].height,
-    zoneEndX: mapsconfig[mapid].width,
-    zoneEndY: mapsconfig[mapid].height,
-
+    mapHeight: mapdata.height,
+    mapWidth: mapdata.width,
+    spawns: mapdata.spawns,
+    walls: mapdata.walls, // Could be mapped differently if needed
+    zoneStartX: -mapdata.width,
+    zoneStartY: -mapdata.height,
+    zoneEndX: mapdata.width,
+    zoneEndY: mapdata.height,
     // Metadata
     roomId: roomId,
   };
 
 
 
-  if (gmconfig.can_hit_dummies && mapsconfig[mapid].dummies) {
-    room.dummies = deepCopy(mapsconfig[mapid].dummies) //dummy crash fix
+  if (gmconfig.can_hit_dummies && mapdata.dummies) {
+    room.dummies = deepCopy(mapdata.dummies) //dummy crash fix
   }
 
   const roomConfig = {

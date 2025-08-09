@@ -41,36 +41,93 @@ class SpatialGrid {
   }
 
 
-    // A more robust way to generate a cell key
   _getCellKey(x, y) {
     const cellX = Math.floor(x / this.cellSize);
     const cellY = Math.floor(y / this.cellSize);
-    // Use an array joined by a non-numeric character for clarity
-    return `${cellX}_${cellY}`; 
+    return `${cellX}_${cellY}`;
   }
 
+  addObject(obj) {
+    if (typeof obj.x !== 'number' || typeof obj.y !== 'number' || !obj.id) {
+      throw new Error("Object must have numeric 'x', 'y' and a unique 'id' property.");
+    }
 
-   updateObject(obj, newX, newY) {
+    const key = this._getCellKey(obj.x, obj.y);
+
+    let cell = this.grid.get(key);
+    if (!cell) {
+      cell = new Map(); // Use a Map for fast O(1) lookups
+      this.grid.set(key, cell);
+    }
+
+    cell.set(obj.id, obj);
+    obj._gridKey = key;
+  }
+  
+  removeObject(obj) {
+    if (!obj || !obj._gridKey) {
+      return;
+    }
+    
+    const cell = this.grid.get(obj._gridKey);
+    if (cell) {
+      cell.delete(obj.id);
+
+      if (cell.size === 0) {
+        this.grid.delete(obj._gridKey);
+      }
+    }
+    
+    delete obj._gridKey;
+  }
+
+  updateObject(obj, newX, newY) {
     const oldKey = obj._gridKey;
     const newKey = this._getCellKey(newX, newY);
 
     if (oldKey === newKey) {
-      // No cell change, just update the position
       obj.x = newX;
       obj.y = newY;
       return;
     }
 
-    // Remove from the old cell
     this.removeObject(obj);
-
-    // Update the object's position
     obj.x = newX;
     obj.y = newY;
-    
-    // Add to the new cell
     this.addObject(obj);
   }
+
+  getObjectsInArea(xMin, xMax, yMin, yMax) {
+    const result = [];
+    const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
+
+    for (const key of keys) {
+      const cell = this.grid.get(key);
+      if (cell) {
+        // Spread the values from the Map into the result array
+        result.push(...cell.values());
+      }
+    }
+    return result;
+  }
+
+  _getKeysInArea(xMin, xMax, yMin, yMax) {
+    const keys = [];
+    const startX = Math.floor(xMin / this.cellSize);
+    const endX = Math.floor(xMax / this.cellSize);
+    const startY = Math.floor(yMin / this.cellSize);
+    const endY = Math.floor(yMax / this.cellSize);
+
+    for (let x = startX; x <= endX; x++) {
+      for (let y = startY; y <= endY; y++) {
+        keys.push(`${x}_${y}`);
+      }
+    }
+    return keys;
+  }
+
+
+
 
 
 
@@ -107,47 +164,6 @@ class SpatialGrid {
     }
   }
 
-   // Adds an object to the grid. 
-  // Object must have x, y, and a unique id.
-  addObject(obj) {
-    if (typeof obj.x !== 'number' || typeof obj.y !== 'number' || !obj.id) {
-      throw new Error("Object must have numeric 'x', 'y' and a unique 'id' property.");
-    }
-
-    const key = this._getCellKey(obj.x, obj.y);
-
-    // Get the cell, or create it if it doesn't exist
-    let cell = this.grid.get(key);
-    if (!cell) {
-      cell = new Map(); // Use a Map for fast lookups
-      this.grid.set(key, cell);
-    }
-
-    // Add the object to the cell using its ID as the key for O(1) lookup
-    cell.set(obj.id, obj);
-    
-    // Store the cell key on the object itself for O(1) removal/movement
-    obj._gridKey = key;
-  }
-
-   removeObject(obj) {
-    if (!obj._gridKey) {
-      // If the object doesn't have a grid key, it's not in the grid
-      return;
-    }
-    
-    const cell = this.grid.get(obj._gridKey);
-    if (cell) {
-      cell.delete(obj.id);
-
-      if (cell.size === 0) {
-        this.grid.delete(obj._gridKey);
-      }
-    }
-
-    // Clean up the object's reference to the grid
-    delete obj._gridKey;
-  }
 
 
   addWall(wall) {
@@ -195,22 +211,6 @@ class SpatialGrid {
     cell.add({ x, y });
   }
   
-
-    _getKeysInArea(xMin, xMax, yMin, yMax) {
-    const keys = [];
-    const startX = Math.floor(xMin / this.cellSize);
-    const endX = Math.floor(xMax / this.cellSize);
-    const startY = Math.floor(yMin / this.cellSize);
-    const endY = Math.floor(yMax / this.cellSize);
-
-    for (let x = startX; x <= endX; x++) {
-      for (let y = startY; y <= endY; y++) {
-        keys.push(`${x}_${y}`);
-      }
-    }
-    return keys;
-  }
-
   getObjectsInAreaWithId(xMin, xMax, yMin, yMax, id) {
     const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
     const result = [];
@@ -227,20 +227,6 @@ class SpatialGrid {
     return result;
   }
 
-    getObjectsInArea(xMin, xMax, yMin, yMax) {
-    const result = [];
-    const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
-
-    for (const key of keys) {
-      const cell = this.grid.get(key);
-      if (cell) {
-        // Spread the values from the Map into the result array
-        result.push(...cell.values());
-      }
-    }
-
-    return result;
-  }
 
   getWallsInArea(xMin, xMax, yMin, yMax) {
     // Same logic as getObjectsInArea
@@ -251,8 +237,7 @@ class SpatialGrid {
 
 // Initialize grids for all maps
 // Adjust as necessary
-Object.keys(mapsconfig).forEach(mapKey => {
-  const map = mapsconfig[mapKey];
+mapsconfig.forEach((map, mapKey) => {
   const grid = new SpatialGrid(gridcellsize);
 
   map.walls.forEach((wall, index) => {
@@ -263,7 +248,6 @@ Object.keys(mapsconfig).forEach(mapKey => {
   
   map.grid = grid;
 });
-
 
 module.exports = {
   server_tick_rate,
