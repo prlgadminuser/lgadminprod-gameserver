@@ -268,7 +268,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
   let mapid
   if (gmconfig.custom_map) {
-    mapid = gmconfig.custom_map.toString()
+   mapid = `${gmconfig.custom_map}`;
   } else {
 
     const keyToExclude = "training";
@@ -435,13 +435,18 @@ async function joinRoom(ws, gamemode, playerVerified) {
     const { playerId, nickname, hat, top, player_color, hat_color, top_color, gadget, skillpoints, loadout } = playerVerified;
 
     //const fallbackloadout = { 1: "1", 2: "5", 3: "DEVLOCKED" }
-    const fallbackloadout = { 1: "1", 2: "2", 3: "3" }
-    const gadgetselected = gadget || 1;
-    const finalskillpoints = skillpoints || 0;
+     if (playerVerified.length > 200) {
+
+     return ws.close(4004);
+    }
+
     const max_length = 16
     const min_length = 4
+    const gadgetselected = gadget || 1;
+    const fallbackloadout = { 1: "1", 2: "2", 3: "3" }
+    const finalskillpoints = skillpoints || 0;
 
-    if (nickname.length < min_length || nickname.length > max_length) {
+     if (nickname.length < min_length || nickname.length > max_length || !gadgetconfig.has(`${gadgetselected}`)) {
 
      return ws.close(4004);
     }
@@ -452,7 +457,6 @@ async function joinRoom(ws, gamemode, playerVerified) {
     const roomjoiningvalue = matchmakingsp(finalskillpoints);
 
     let roomId, room;
-
 
     // Check if there's an existing room with available slots
     const availableRoom = getAvailableRoom(gamemode, roomjoiningvalue)
@@ -469,6 +473,8 @@ async function joinRoom(ws, gamemode, playerVerified) {
 
 
     const playerRateLimiter = createRateLimiter();
+
+    const gadgetdata = gadgetconfig.get(`${gadgetselected}`);
 
     const newPlayer = {
       // player cosmetics appearance
@@ -494,8 +500,8 @@ async function joinRoom(ws, gamemode, playerVerified) {
       finalrewards_awarded: false,
       respawns: room.respawns,
       emote: 0,
-
       // combat shooting
+
       lastShootTime: 0,
       shooting: false,
       shoot_direction: 90,
@@ -518,9 +524,9 @@ async function joinRoom(ws, gamemode, playerVerified) {
       gadgetid: gadgetselected,
       canusegadget: true,
       gadgetactive: false,
-      gadgetcooldown: gadgetconfig[gadgetselected].cooldown,
-      gadgetuselimit: gadgetconfig[gadgetselected].use_limit,
-      gadgetchangevars: gadgetconfig[gadgetselected].changevariables,
+      gadgetcooldown: gadgetdata.cooldown,
+      gadgetuselimit: gadgetdata.use_limit,
+      gadgetchangevars: gadgetdata.changevariables,
 
       // network
       ws: ws,
@@ -539,7 +545,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
         const player = room.players.get(playerId);
 
         if (player && room.state === 'playing' && player.visible) {
-          gadgetconfig[gadgetselected].gadget(player, room);
+          gadgetdata.gadget(player, room);
         } else {
           console.error('Player not found or cannot use gadget');
         }
@@ -547,10 +553,8 @@ async function joinRoom(ws, gamemode, playerVerified) {
     };
 
     newPlayer.gun = newPlayer.loadout[1];
-
     //newPlayer.loadout[3] = 5
     
-
     if (newPlayer.gadgetchangevars) {
       for (const [variable, change] of Object.entries(newPlayer.gadgetchangevars)) {
         newPlayer[variable] += Math.round(newPlayer[variable] * change);
@@ -1091,7 +1095,7 @@ function handleShoot(data, player, room) {
 function handleSwitchGun(data, player) {
   const GunID = data[1];
   if (
-    GunID !== player.gun && !player.shooting && GunID >= 1 && GunID <= 3 && gunsconfig.has(GunID.toString())) {
+    GunID !== player.gun && !player.shooting && GunID >= 1 && GunID <= 3 && gunsconfig.has(`${GunID}`)) {
 
     player.gun = player.loadout[GunID];
 

@@ -64,5 +64,5 @@ const gadgetconfig = {
 };
 
 module.exports = {
-    gadgetconfig
+   gadgetconfig: new Map(Object.entries(gadgetconfig)) 
 };
