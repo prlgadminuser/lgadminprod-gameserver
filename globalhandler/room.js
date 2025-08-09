@@ -920,20 +920,24 @@ function prepareRoomMessages(room) {
     }
     if (Object.keys(changes).length) p.selflastmsg = { ...lastSelf, ...changes };
 
-    // Nearby player data diff
-    const prevHashes = p.pdHashes || {};
-    const currHashes = {};
-    const filtered = {};
-    const inRange = p.nearbyplayers || [];
+       const playersInRange = p.nearbyplayers;
+    const previousHashes = p.pdHashes || {};
+    const currentHashes = {};
+
     for (const [id, data] of Object.entries(playerData)) {
-      if (!inRange.includes(+id)) continue;
+       if (!playersInRange.includes(+id)) continue;
+
       const hash = generateHash(data);
-      if (prevHashes[id] !== hash) filtered[id] = data;
-      currHashes[id] = hash;
+      if (previousHashes[id] !== hash) {
+        filteredplayers[id] = data;
+      }
+      currentHashes[id] = hash;
+      p.nearbyids.add(id);
     }
-    p.pdHashes = currHashes;
-    p.pd = filtered;
-    p.nearbyfinalids = new Set(Object.keys(filtered));
+
+    p.nearbyfinalids = p.nearbyids;
+    p.pd = filteredplayers;
+    p.pdHashes = currentHashes;
 
     // Message assembly
     const msg = {
