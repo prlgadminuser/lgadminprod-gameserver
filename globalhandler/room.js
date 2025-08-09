@@ -958,7 +958,7 @@ function prepareRoomMessages(room) {
       cl: p.nearbycircles,
       an: p.nearbyanimations,
       b: p.finalbullets,
-      pd: filtered
+      pd: p.pd
     };
 
     // Remove empty keys
