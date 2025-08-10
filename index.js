@@ -29,7 +29,7 @@ const USER_KEY_PREFIX = 'user:';         // user:<username> => serverId
 const SERVER_USERS_PREFIX = 'users:';    // users:<serverId> => hash of username -> sessionInfo
 const SERVER_HEARTBEAT_PREFIX = 'server_heartbeat:'; // Prefix for server heartbeat keys
 
-const multiplier = 20
+const multiplier = 40
 const HEARTBEAT_INTERVAL_MS = 10000 * multiplier; // Send heartbeat periodically
 const HEARTBEAT_TTL_SECONDS = (30000 * multiplier) / 1000;   // Heartbeat expires (seconds) - SETEX uses seconds
 const CLEANUP_INTERVAL_MS = 60000 * multiplier;  // Run stale session cleanup periodically

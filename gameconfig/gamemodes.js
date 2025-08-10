@@ -4,7 +4,13 @@
 
 const allowed_gamemodes = new Set([
   
- // "fightdown",
+// "devtest", // only enable in local dev server !!!!
+
+
+
+
+
+
   "1v1",
  // "deathmatch",
   //"breakthrough",
@@ -14,6 +20,40 @@ const allowed_gamemodes = new Set([
 ])
 
 const gamemodeconfig = {
+
+    devtest: {
+    can_hit_dummies: false,
+    can_hit_players: true,
+
+    maxplayers: 1,
+    teamsize: 1,
+    respawns_allowed: Infinity,
+
+    playerhealth: 77,
+    playerspeed: 5.5,   
+
+    modifiers: new Set([
+    ]),
+
+    weapons_modifiers_override: new Set([
+    ]),
+
+    placereward_next: {
+      1: { skillpoints: 13, coins: 25 },
+      2: { points: 60, coins: 30 },
+      3: { points: 20, coins: 10 }
+    },
+
+    placereward: [10, 8, 6, -1, -5],
+    seasoncoinsreward: [25, 17, 12, 10, 7],
+
+    show_timer: true,
+    custom_map: "prism_party",
+  },
+
+
+
+
   fightdown: {
     can_hit_dummies: false,
     can_hit_players: true,
@@ -46,7 +86,7 @@ const gamemodeconfig = {
     seasoncoinsreward: [25, 17, 12, 10, 7],
 
     show_timer: false,
-    custom_map: 4,
+    custom_map: "prism_party",
   },
 
   "1v1": {

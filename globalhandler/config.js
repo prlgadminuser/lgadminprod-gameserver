@@ -1,7 +1,7 @@
 "use strict";
 
 const { gamemodeconfig, allowed_gamemodes } = require('./../gameconfig/gamemodes');
-const { mapsconfig } = require('./../gameconfig/maps');
+const { mapsconfig, random_mapkeys } = require('./../gameconfig/maps');
 const { gunsconfig } = require('./../gameconfig/guns');
 const { matchmakingsp } = require('./../gameconfig/matchmaking');
 
@@ -96,6 +96,7 @@ class SpatialGrid {
 
 // Initialize maps with one-wall-per-cell
 mapsconfig.forEach((map, mapKey) => {
+
   const grid = new SpatialGrid(gridcellsize);
   map.walls.forEach((wall, index) => {
     const wallWithId = { ...wall, id: `wall_${index}` };
@@ -116,6 +117,7 @@ module.exports = {
   playerHitboxHeight,
   gunsconfig,
   mapsconfig,
+  random_mapkeys,
   matchmakingsp,
   gamemodeconfig,
   allowed_gamemodes,

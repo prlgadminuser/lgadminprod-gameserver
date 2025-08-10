@@ -1,6 +1,6 @@
 
 const { Limiter, compressMessage } = require('./..//index.js');
-const { matchmaking_timeout, server_tick_rate, game_start_time, mapsconfig, gunsconfig, gamemodeconfig, matchmakingsp, player_idle_timeout, room_max_open_time } = require('./config.js');
+const { matchmaking_timeout, server_tick_rate, game_start_time, mapsconfig, random_mapkeys, gunsconfig, gamemodeconfig, matchmakingsp, player_idle_timeout, room_max_open_time } = require('./config.js');
 const { handleBulletFired } = require('./bullets.js');
 const { handleMovement } = require('./player.js');
 const { startRegeneratingHealth, startDecreasingHealth } = require('./match-modifiers');
@@ -262,6 +262,7 @@ function RemoveRoomPlayer(room, player) {
 }
 
 
+  
 
 function createRoom(roomId, gamemode, gmconfig, splevel) {
 
@@ -269,32 +270,22 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
   let mapid
   if (gmconfig.custom_map) {
    mapid = `${gmconfig.custom_map}`;
+
   } else {
-
-    const keyToExclude = "training";
-    const prefix = "";
-
-    // Get all keys of the object, excluding the one you don't want and those that don't start with the prefix
-    const filteredKeys = [...mapsconfig.keys()]
-  .filter(key => key !== keyToExclude && key.startsWith(prefix));
-
-    // Check if there are any valid keys left
-    if (filteredKeys.length > 0) {
-      // Select a random index from the filtered keys
-      const randomIndex = Math.floor(Math.random() * filteredKeys.length);
-      mapid = filteredKeys[randomIndex];
-    }
+    
+      const randomIndex = Math.floor(Math.random() * random_mapkeys.length);
+      mapid = random_mapkeys[randomIndex];
   }
+
 
   const mapdata = mapsconfig.get(mapid)
 
-  const itemgrid = new SpatialGrid(gridcellsize); // grid system for items
+  if (!mapdata) console.error("map does not exist")
 
+  const itemgrid = new SpatialGrid(gridcellsize); // grid system for items
   const bulletgrid = new SpatialGrid(50);
 
   const roomgrid = cloneSpatialGrid(mapdata.grid);
-
-  
 
   const room = {
     // Game State

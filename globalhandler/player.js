@@ -12,10 +12,10 @@ const { playerhitbox } = require('./config.js')
 
 function handleMovement(player, room) { // all hitbox should be more then the other function in collsision
 
-  const xMin = player.x - (playerhitbox.xMin + 2);
-  const xMax = player.x + (playerhitbox.xMax + 2);
-  const yMin = player.y - (playerhitbox.yMin + 2);
-  const yMax = player.y + (playerhitbox.yMax + 2)
+  const xMin = player.x - (playerhitbox.xMin + 7);
+  const xMax = player.x + (playerhitbox.xMax + 7);
+  const yMin = player.y - (playerhitbox.yMin + 7);
+  const yMax = player.y + (playerhitbox.yMax + 7)
 
   player.nearbywalls = room.grid.getObjectsInArea(xMin, xMax, yMin, yMax);
   // Calculate radians for final direction
