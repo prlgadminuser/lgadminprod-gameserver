@@ -175,7 +175,6 @@ function findCollidedWall(grid, x, y, height, width) {
 }
 
 function adjustBulletDirection(bullet, wall, previousPosition) {
-  const halfBlockSize = 16; // or your block size
 
   const wallLeft = wall.x - halfBlockSize;
   const wallRight = wall.x + halfBlockSize;
