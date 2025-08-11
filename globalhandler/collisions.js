@@ -1,6 +1,5 @@
 "use strict";
 
-const { isHalfWidth } = require('validator');
 const {
   playerHitboxHeight,
   playerHitboxWidth,
@@ -176,7 +175,8 @@ function findCollidedWall(grid, x, y, height, width) {
 }
 
 function adjustBulletDirection(bullet, wall, previousPosition) {
-  // wall bounds
+  const halfBlockSize = 16; // or your block size
+
   const wallLeft = wall.x - halfBlockSize;
   const wallRight = wall.x + halfBlockSize;
   const wallTop = wall.y - halfBlockSize;
@@ -188,46 +188,44 @@ function adjustBulletDirection(bullet, wall, previousPosition) {
   const prevX = previousPosition.x;
   const prevY = previousPosition.y;
 
-  // Check from which side the bullet came:
   let reflectHorizontally = false;
   let reflectVertically = false;
 
-  // If bullet was to the left of the wall and now overlaps, it hit left side
+  // Check collision side as before
   if (prevX + bullet.width < wallLeft && bulletX + bullet.width >= wallLeft) {
     reflectHorizontally = true;
-  }
-  // If bullet was to the right and now overlaps, hit right side
-  else if (prevX - bullet.width > wallRight && bulletX - bullet.width <= wallRight) {
+  } else if (prevX - bullet.width > wallRight && bulletX - bullet.width <= wallRight) {
     reflectHorizontally = true;
   }
 
-  // If bullet was above and now overlaps, hit top
   if (prevY + bullet.height < wallTop && bulletY + bullet.height >= wallTop) {
     reflectVertically = true;
-  }
-  // If bullet was below and now overlaps, hit bottom
-  else if (prevY - bullet.height > wallBottom && bulletY - bullet.height <= wallBottom) {
+  } else if (prevY - bullet.height > wallBottom && bulletY - bullet.height <= wallBottom) {
     reflectVertically = true;
   }
 
-  // If both horizontal and vertical, it's a corner — invert both components
+  // Convert stored bullet.direction to movement vector angle (subtract 90)
+  let moveAngle = (bullet.direction - 90 + 360) % 360;
+
   if (reflectHorizontally && reflectVertically) {
-    bullet.direction = (bullet.direction + 180) % 360;
+    // Corner: invert direction
+    moveAngle = (moveAngle + 180) % 360;
   } else if (reflectHorizontally) {
-    // Reflect horizontally: flip the horizontal component of direction
-    bullet.direction = (540 - bullet.direction) % 360; // equivalent to 180 - angle + 360, mod 360
+    // Reflect horizontally: flip horizontal component of movement vector angle
+    moveAngle = (540 - moveAngle) % 360; // 180 - angle + 360 mod 360
   } else if (reflectVertically) {
-    // Reflect vertically: flip the vertical component of direction
-    bullet.direction = (360 - bullet.direction) % 360;
+    // Reflect vertically: flip vertical component of movement vector angle
+    moveAngle = (360 - moveAngle) % 360;
   } else {
-    // fallback if no side detected, just invert direction
-    bullet.direction = (bullet.direction + 180) % 360;
+    // fallback invert angle
+    moveAngle = (moveAngle + 180) % 360;
   }
 
-  // Normalize direction to positive degrees
-  if (bullet.direction < 0) {
-    bullet.direction += 360;
-  }
+  // Convert back to stored bullet.direction by adding 90
+  bullet.direction = (moveAngle + 90) % 360;
+
+  // Normalize to positive angle
+  if (bullet.direction < 0) bullet.direction += 360;
 }
 
 
