@@ -10,44 +10,63 @@ const { updateTeamScore } = require('./../teamfighthandler/changescore')
 const { playerhitbox } = require('./config.js')
 
 
-function handleMovement(player, room) { // all hitbox should be more then the other function in collsision
+function handleMovement(player, room) {
+  // Skip if player is not moving
+  //if (!player.moving && player.speed === 0) return;
 
-  const xMin = player.x - (playerhitbox.xMin + 7);
-  const xMax = player.x + (playerhitbox.xMax + 7);
-  const yMin = player.y - (playerhitbox.yMin + 7);
-  const yMax = player.y + (playerhitbox.yMax + 7)
+  const hitboxXMin = playerhitbox.xMin + 2;
+  const hitboxXMax = playerhitbox.xMax + 2;
+  const hitboxYMin = playerhitbox.yMin + 2;
+  const hitboxYMax = playerhitbox.yMax + 2;
 
-  player.nearbywalls = room.grid.getObjectsInArea(xMin, xMax, yMin, yMax);
-  // Calculate radians for final direction
-  const finalDirection = player.moving ? player.direction - 90 : player.direction;
+  const xMin = player.x - hitboxXMin;
+  const xMax = player.x + hitboxXMax;
+  const yMin = player.y - hitboxYMin;
+  const yMax = player.y + hitboxYMax;
 
-  const radians = (finalDirection * Math.PI) / 180;
-  // Calculate movement deltas
-  const xDelta = player.speed * Math.cos(radians);
-  const yDelta = player.speed * Math.sin(radians);
-  // Update position with precise values
-  let newX = player.x + xDelta;
-  let newY = player.y + yDelta;
-  // Perform collision checks
-  if (isCollisionWithCachedWalls(player.nearbywalls, newX, newY)) {
-    const canMoveX = !isCollisionWithCachedWalls(player.nearbywalls, newX, player.y);
-    const canMoveY = !isCollisionWithCachedWalls(player.nearbywalls, player.x, newY);
+  // Only get nearby walls once
+  const nearbyWalls = room.grid.getObjectsInArea(xMin, xMax, yMin, yMax);
+  player.nearbywalls = nearbyWalls;
 
-    // Resolve collision by moving along one axis
-    if (canMoveX) newY = player.y;
-    else if (canMoveY) newX = player.x;
-    else {
+  // Calculate movement direction in radians
+  const DEG2RAD = Math.PI / 180;
+  const finalDirection = (player.moving ? player.direction - 90 : player.direction) * DEG2RAD;
+  const cos = Math.cos(finalDirection);
+  const sin = Math.sin(finalDirection);
+
+  // Movement deltas
+  const speed = player.speed;
+  let newX = player.x + speed * cos;
+  let newY = player.y + speed * sin;
+
+  // Collision checks only once per axis
+  if (isCollisionWithCachedWalls(nearbyWalls, newX, newY)) {
+    const canMoveX = !isCollisionWithCachedWalls(nearbyWalls, newX, player.y);
+    const canMoveY = !isCollisionWithCachedWalls(nearbyWalls, player.x, newY);
+
+    if (canMoveX) {
+      newY = player.y;
+    } else if (canMoveY) {
+      newX = player.x;
+    } else {
       newX = player.x;
       newY = player.y;
     }
   }
-  // Constrain new position within map bounds
-  newX = Math.min(Math.max(newX, -room.mapWidth), room.mapWidth);
-  newY = Math.min(Math.max(newY, -room.mapHeight), room.mapHeight);
-  // Apply new position and store last processed position
-  player.x = parseFloat(newX.toFixed(4)); // Store precise position
-  player.y = parseFloat(newY.toFixed(4));
+
+  // Clamp within bounds
+  const mapWidth = room.mapWidth;
+  const mapHeight = room.mapHeight;
+  if (newX < -mapWidth) newX = -mapWidth;
+  else if (newX > mapWidth) newX = mapWidth;
+  if (newY < -mapHeight) newY = -mapHeight;
+  else if (newY > mapHeight) newY = mapHeight;
+
+  // Store new position (avoid parseFloat — toFixed is slower than necessary)
+  player.x = Math.round(newX * 10000) / 10000;
+  player.y = Math.round(newY * 10000) / 10000;
 }
+
 
 
 
