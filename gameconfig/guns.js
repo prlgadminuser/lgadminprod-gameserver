@@ -115,7 +115,7 @@ const gunsconfig = {
   5: {  // ARCADE BLASTER
     modifiers: new Set([
      // "Spinning"
-     "CanBounce",
+    // "CanBounce",
       // "DestroyWalls"
     ]),
   //  spinning_speed: 5,

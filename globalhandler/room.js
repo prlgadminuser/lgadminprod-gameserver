@@ -566,7 +566,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
     };
 
     newPlayer.gun = newPlayer.loadout[1];
-    //newPlayer.loadout[3] = 5
+   // newPlayer.loadout[3] = 5
 
     if (newPlayer.gadgetchangevars) {
       for (const [variable, change] of Object.entries(
@@ -681,7 +681,7 @@ async function startMatch(room, roomId) {
   }
 }
 
-setInterval(() => console.log(rooms), 5000);
+//setInterval(() => console.log(rooms), 5000);
 
 
 function cleanupRoom(roomId) {

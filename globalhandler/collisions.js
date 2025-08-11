@@ -151,6 +151,7 @@ function isCollisionWithBullet(grid, x, y, height, width, direction) {
   return false;
 }
 
+
 function findCollidedWall(grid, x, y, height, width) {
   const xMin = x - width;
   const xMax = x + width;
@@ -174,36 +175,61 @@ function findCollidedWall(grid, x, y, height, width) {
   });
 }
 
-function adjustBulletDirection(bullet, wall) {
-  const wallLeft = wall.x;
+function adjustBulletDirection(bullet, wall, previousPosition) {
+  // wall bounds
+  const wallLeft = wall.x - halfBlockSize;
   const wallRight = wall.x + halfBlockSize;
-  const wallTop = wall.y;
+  const wallTop = wall.y - halfBlockSize;
   const wallBottom = wall.y + halfBlockSize;
 
-  const bulletX = bullet.x;
-  const bulletY = bullet.y;
+  const bulletX = bullet.position.x;
+  const bulletY = bullet.position.y;
 
-  const distLeft = Math.abs(bulletX - wallLeft);
-  const distRight = Math.abs(bulletX - wallRight);
-  const distTop = Math.abs(bulletY - wallTop);
-  const distBottom = Math.abs(bulletY - wallBottom);
+  const prevX = previousPosition.x;
+  const prevY = previousPosition.y;
 
-  const minDist = Math.min(distLeft, distRight, distTop, distBottom);
+  // Check from which side the bullet came:
+  let reflectHorizontally = false;
+  let reflectVertically = false;
 
-  // Reflect based on which side was hit
-  if (minDist === distLeft || minDist === distRight) {
-    // Reflect horizontally
-    bullet.direction = (540 - bullet.direction) % 360;
-  } else {
-    // Reflect vertically
-    bullet.direction = (360 - bullet.direction) % 360;
+  // If bullet was to the left of the wall and now overlaps, it hit left side
+  if (prevX + bullet.width < wallLeft && bulletX + bullet.width >= wallLeft) {
+    reflectHorizontally = true;
+  }
+  // If bullet was to the right and now overlaps, hit right side
+  else if (prevX - bullet.width > wallRight && bulletX - bullet.width <= wallRight) {
+    reflectHorizontally = true;
   }
 
-  // Normalize direction to be positive
+  // If bullet was above and now overlaps, hit top
+  if (prevY + bullet.height < wallTop && bulletY + bullet.height >= wallTop) {
+    reflectVertically = true;
+  }
+  // If bullet was below and now overlaps, hit bottom
+  else if (prevY - bullet.height > wallBottom && bulletY - bullet.height <= wallBottom) {
+    reflectVertically = true;
+  }
+
+  // If both horizontal and vertical, it's a corner — invert both components
+  if (reflectHorizontally && reflectVertically) {
+    bullet.direction = (bullet.direction + 180) % 360;
+  } else if (reflectHorizontally) {
+    // Reflect horizontally: flip the horizontal component of direction
+    bullet.direction = (540 - bullet.direction) % 360; // equivalent to 180 - angle + 360, mod 360
+  } else if (reflectVertically) {
+    // Reflect vertically: flip the vertical component of direction
+    bullet.direction = (360 - bullet.direction) % 360;
+  } else {
+    // fallback if no side detected, just invert direction
+    bullet.direction = (bullet.direction + 180) % 360;
+  }
+
+  // Normalize direction to positive degrees
   if (bullet.direction < 0) {
     bullet.direction += 360;
   }
 }
+
 
 
 

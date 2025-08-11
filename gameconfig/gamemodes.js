@@ -22,7 +22,7 @@ const allowed_gamemodes = new Set([
 const gamemodeconfig = {
 
     devtest: {
-     can_hit_dummies: true,
+    can_hit_dummies: true,
     can_hit_players: false,
 
     maxplayers: 1,
@@ -48,7 +48,7 @@ const gamemodeconfig = {
     seasoncoinsreward: [25, 17, 12, 10, 7],
 
     show_timer: true,
-    custom_map: "training",
+    custom_map: "prism_party",
   },
 
 
