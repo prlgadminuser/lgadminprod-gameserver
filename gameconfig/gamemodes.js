@@ -22,8 +22,8 @@ const allowed_gamemodes = new Set([
 const gamemodeconfig = {
 
     devtest: {
-    can_hit_dummies: false,
-    can_hit_players: true,
+     can_hit_dummies: true,
+    can_hit_players: false,
 
     maxplayers: 1,
     teamsize: 1,
@@ -48,8 +48,11 @@ const gamemodeconfig = {
     seasoncoinsreward: [25, 17, 12, 10, 7],
 
     show_timer: true,
-    custom_map: "prism_party",
+    custom_map: "training",
   },
+
+
+
 
 
 
@@ -63,7 +66,7 @@ const gamemodeconfig = {
     respawns_allowed: 0,
 
     playerhealth: 77,
-    playerspeed: 1.5,   
+    playerspeed: 1.6,   
 
     modifiers: new Set([
       "UseZone",
@@ -98,7 +101,7 @@ const gamemodeconfig = {
     respawns_allowed: 0,
 
     playerhealth: 150,
-    playerspeed: 1.5,
+    playerspeed: 1.6,
 
     modifiers: new Set([
       "UseZone",
@@ -125,7 +128,7 @@ const gamemodeconfig = {
     respawns_allowed: 1,
 
     playerhealth: 50,
-    playerspeed: 1.5,
+    playerspeed: 1.6,
 
     modifiers: new Set([
     //  "UseZone",
@@ -153,7 +156,7 @@ const gamemodeconfig = {
     respawns_allowed: Infinity,
 
     playerhealth: 100,
-    playerspeed: 1.5,
+    playerspeed: 1.6,
 
     placereward: [7, -2],
     seasoncoinsreward: [17, 10],

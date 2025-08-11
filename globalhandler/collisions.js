@@ -108,6 +108,7 @@ function getBulletCorners(bullet, width, height, angleDeg) {
 }
 
 function isCollisionWithPlayer(bullet, player, bulletHeight, bulletWidth, bulletAngle) {
+  
   const bulletCorners = getBulletCorners(bullet, bulletWidth, bulletHeight, bulletAngle);
   
   // Define the player's rectangle as 4 points (clockwise)

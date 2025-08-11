@@ -31,12 +31,12 @@ const { playerhitbox } = require('./config.js')
 
   // Calculate movement direction in radians
   const DEG2RAD = Math.PI / 180;
-  const finalDirection = (player.direction - 90) * DEG2RAD;
+  const finalDirection = (player.moving ? player.direction - 90 : player.direction) * DEG2RAD;
   const cos = Math.cos(finalDirection);
   const sin = Math.sin(finalDirection);
 
   // Movement deltas
-  const speed = player.speed + 0.2;
+  const speed = player.speed;
   let newX = player.x + speed * cos;
   let newY = player.y + speed * sin;
 
@@ -152,6 +152,7 @@ function handleDummyCollision(room, shootingPlayer, dummyKey, damage) {
       }
     }, 4000));
   }
+ 
 }
 
 

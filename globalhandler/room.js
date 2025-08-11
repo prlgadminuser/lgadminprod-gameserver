@@ -340,8 +340,6 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     roomId: roomId,
   };
 
-  room.bulletManager = new BulletManager(room);
-
   if (gmconfig.can_hit_dummies && mapdata.dummies) {
     room.dummies = deepCopy(mapdata.dummies); //dummy crash fix
   }
@@ -352,6 +350,8 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
   };
 
   room.config = roomConfig;
+
+  room.bulletManager = new BulletManager(room);
 
   addRoomToIndex(room);
   rooms.set(roomId, room);
@@ -681,6 +681,9 @@ async function startMatch(room, roomId) {
   }
 }
 
+setInterval(() => console.log(rooms), 5000);
+
+
 function cleanupRoom(roomId) {
   const room = rooms.get(roomId);
   if (!room) {
@@ -894,7 +897,7 @@ function prepareRoomMessages(room) {
   // PLAYER POSITIONAL DATA (once)
   const playerData = {};
 
-  
+
   for (const p of players) {
   if (!p.visible) continue;
 

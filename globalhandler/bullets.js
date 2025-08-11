@@ -185,11 +185,11 @@ class BulletManager {
       }
 
       // Collision with players
-      if (this.room.config.canCollideWithPlayers && this.room.winner === -1) {
+      if (this.room.config && this.room.winner === -1) {
         let hitSomething = false;
         for (const otherPlayer of this.room.players.values()) {
           if (otherPlayer.playerId !== bullet.ownerId && otherPlayer.visible && !this.isAlly(bullet.ownerId, otherPlayer)) {
-            if (isCollisionWithPlayer(bullet, otherPlayer, bullet.height, bullet.width, bullet.direction - 90)) {
+            if (isCollisionWithPlayer({x: bullet.position.x, y: bullet.position.y }, otherPlayer, bullet.height, bullet.width, bullet.direction - 90)) {
               const distTraveled = bullet.position.distanceTo(bullet.startPosition);
               const finalDamage = calculateFinalDamage(distTraveled, bullet.maxDistance, bullet.damage, bullet.damageConfig);
               handlePlayerCollision(this.room, this.room.players.get(bullet.ownerId), otherPlayer, finalDamage, bullet.gunId);
@@ -212,11 +212,11 @@ class BulletManager {
       }
 
       // Collision with dummies
-      if (this.room.config.canCollideWithDummies) {
+      if (this.room.config.canCollideWithDummies && this.room.winner === -1) {
         let hitDummy = false;
         for (const dummyKey in this.room.dummies) {
           const dummy = this.room.dummies[dummyKey];
-          if (isCollisionWithPlayer(bullet, dummy, bullet.height, bullet.width, bullet.direction - 90)) {
+          if (isCollisionWithPlayer({x: bullet.position.x, y: bullet.position.y }, dummy, bullet.height, bullet.width, bullet.direction - 90)) {
             const distTraveled = bullet.position.distanceTo(bullet.startPosition);
             const finalDamage = calculateFinalDamage(distTraveled, bullet.maxDistance, bullet.damage, bullet.damageConfig);
             handleDummyCollision(this.room, this.room.players.get(bullet.ownerId), dummyKey, finalDamage);
@@ -235,13 +235,9 @@ class BulletManager {
             break;
           }
         }
-        if (hitDummy) continue;
+       if (hitDummy) continue;
       }
 
-      // Move bullet forward if still alive
-      if (bullet.alive) {
-       
-      }
     }
   }
 
