@@ -10,14 +10,15 @@ const { updateTeamScore } = require('./../teamfighthandler/changescore')
 const { playerhitbox } = require('./config.js')
 
 
-function handleMovement(player, room) {
+  const added_hitbox = 2;
+  const hitboxXMin = playerhitbox.xMin + added_hitbox;
+  const hitboxXMax = playerhitbox.xMax + added_hitbox;
+  const hitboxYMin = playerhitbox.yMin + added_hitbox;
+  const hitboxYMax = playerhitbox.yMax + added_hitbox;
+
+ function handleMovement(player, room) {
   // Skip if player is not moving
   //if (!player.moving && player.speed === 0) return;
-
-  const hitboxXMin = playerhitbox.xMin + 2;
-  const hitboxXMax = playerhitbox.xMax + 2;
-  const hitboxYMin = playerhitbox.yMin + 2;
-  const hitboxYMax = playerhitbox.yMax + 2;
 
   const xMin = player.x - hitboxXMin;
   const xMax = player.x + hitboxXMax;
@@ -30,12 +31,12 @@ function handleMovement(player, room) {
 
   // Calculate movement direction in radians
   const DEG2RAD = Math.PI / 180;
-  const finalDirection = (player.moving ? player.direction - 90 : player.direction) * DEG2RAD;
+  const finalDirection = (player.direction - 90) * DEG2RAD;
   const cos = Math.cos(finalDirection);
   const sin = Math.sin(finalDirection);
 
   // Movement deltas
-  const speed = player.speed;
+  const speed = player.speed + 0.2;
   let newX = player.x + speed * cos;
   let newY = player.y + speed * sin;
 
@@ -69,9 +70,6 @@ function handleMovement(player, room) {
 
 
 
-
-
-
 function handlePlayerCollision(room, shootingPlayer, targetPlayer, damage, gunid) {
   // Ensure damage doesn't exceed the target player's remaining health
   const GUN_BULLET_DAMAGE = Math.min(damage, targetPlayer.health);
@@ -87,6 +85,8 @@ function handlePlayerCollision(room, shootingPlayer, targetPlayer, damage, gunid
 
   // Get the number of active players in the target player's team
   const teamActivePlayers = TeamPlayersActive(room, targetPlayer);
+
+  const player_alive = !targetPlayer.health <= 0
 
   if (targetPlayer.health <= 0 && targetPlayer.respawns <= 0 && teamActivePlayers <= 1) {
 

@@ -1,28 +1,50 @@
-
-const { Limiter, compressMessage } = require('./..//index.js');
-const { matchmaking_timeout, server_tick_rate, game_start_time, mapsconfig, random_mapkeys, gunsconfig, gamemodeconfig, matchmakingsp, player_idle_timeout, room_max_open_time } = require('./config.js');
-const { handleBulletFired } = require('./bullets.js');
-const { handleMovement } = require('./player.js');
-const { startRegeneratingHealth, startDecreasingHealth } = require('./match-modifiers');
-const { gadgetconfig } = require('./gadgets.js')
-const { StartremoveOldKillfeedEntries, addKillToKillfeed } = require('./killfeed.js')
-const { UseZone } = require('./zone')
-const { initializeHealingCircles } = require('./../gameObjectEvents/healingcircle')
-const { initializeAnimations } = require('./../gameObjectEvents/deathrespawn')
-const { playerchunkrenderer } = require('./../playerhandler/playerchunks')
-const { SpatialGrid, gridcellsize } = require('./config.js');
-const { increasePlayerKillsAndDamage } = require('./dbrequests');
-const { roomIndex, rooms, closeRoom, addRoomToIndex, getAvailableRoom } = require('./../roomhandler/manager');
-
+const { Limiter, compressMessage } = require("./..//index.js");
+const {
+  matchmaking_timeout,
+  server_tick_rate,
+  game_start_time,
+  mapsconfig,
+  random_mapkeys,
+  gunsconfig,
+  gamemodeconfig,
+  matchmakingsp,
+  player_idle_timeout,
+  room_max_open_time,
+} = require("./config.js");
+const { handleBulletFired, BulletManager } = require("./bullets.js");
+const { handleMovement } = require("./player.js");
+const {
+  startRegeneratingHealth,
+  startDecreasingHealth,
+} = require("./match-modifiers");
+const { gadgetconfig } = require("./gadgets.js");
+const {
+  StartremoveOldKillfeedEntries,
+  addKillToKillfeed,
+} = require("./killfeed.js");
+const { UseZone } = require("./zone");
+const {
+  initializeHealingCircles,
+} = require("./../gameObjectEvents/healingcircle");
+const { initializeAnimations } = require("./../gameObjectEvents/deathrespawn");
+const { playerchunkrenderer } = require("./../playerhandler/playerchunks");
+const { SpatialGrid, gridcellsize } = require("./config.js");
+const { increasePlayerKillsAndDamage } = require("./dbrequests");
+const {
+  roomIndex,
+  rooms,
+  closeRoom,
+  addRoomToIndex,
+  getAvailableRoom,
+} = require("./../roomhandler/manager");
 
 function generateUUID() {
-  return 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8); // Ensures UUID version 4
+  return "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8; // Ensures UUID version 4
     return v.toString(16);
   });
 }
-
 
 function generateHash(message) {
   let hash = 0;
@@ -35,54 +57,54 @@ function generateHash(message) {
 }
 
 function stringHash(str) {
-    if (typeof str !== 'string') str = String(str);
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        hash = (hash << 5) - hash + str.charCodeAt(i);
-        hash |= 0; // Convert to 32bit integer
-    }
-    return hash;
+  if (typeof str !== "string") str = String(str);
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
 }
 
 // A recursive function to hash objects and arrays directly.
 // This is the core of the optimization that replaces JSON.stringify.
 function deepHash(value, visited = new WeakSet()) {
-    if (value === null || typeof value !== 'object') {
-        // Handle primitives: null, undefined, strings, numbers, booleans
-        return stringHash(value);
-    }
+  if (value === null || typeof value !== "object") {
+    // Handle primitives: null, undefined, strings, numbers, booleans
+    return stringHash(value);
+  }
 
-    if (visited.has(value)) {
-        // Handle circular references to prevent infinite loops
-        return stringHash('[Circular]');
-    }
-    visited.add(value);
+  if (visited.has(value)) {
+    // Handle circular references to prevent infinite loops
+    return stringHash("[Circular]");
+  }
+  visited.add(value);
 
-    let hash = 0;
+  let hash = 0;
 
-    if (Array.isArray(value)) {
-        // Hash arrays by hashing each element
-        for (const item of value) {
-            hash ^= deepHash(item, visited);
-        }
-    } else {
-        // Hash objects by hashing each key and value
-        // CRUCIAL: Sort the keys to ensure a consistent hash regardless of key order
-        const keys = Object.keys(value).sort();
-        for (const key of keys) {
-            hash ^= stringHash(key);
-            hash ^= deepHash(value[key], visited);
-        }
+  if (Array.isArray(value)) {
+    // Hash arrays by hashing each element
+    for (const item of value) {
+      hash ^= deepHash(item, visited);
     }
-    
-    visited.delete(value); // Clean up for the next call
-    
-    return hash;
+  } else {
+    // Hash objects by hashing each key and value
+    // CRUCIAL: Sort the keys to ensure a consistent hash regardless of key order
+    const keys = Object.keys(value).sort();
+    for (const key of keys) {
+      hash ^= stringHash(key);
+      hash ^= deepHash(value[key], visited);
+    }
+  }
+
+  visited.delete(value); // Clean up for the next call
+
+  return hash;
 }
 
 //function generateHash(message) {
- // const str = JSON.stringify(message);
- // return murmurHash3.x86.hash32(str); // Use a standard, tested algorithm
+// const str = JSON.stringify(message);
+// return murmurHash3.x86.hash32(str); // Use a standard, tested algorithm
 //}
 
 function getDistance(x1, y1, x2, y2) {
@@ -96,23 +118,22 @@ function deepCopy(obj) {
 //function cloneSpatialGrid(originalGrid) {
 //  const clone = new SpatialGrid(originalGrid.cellSize);
 
-  // Directly copy the Map. This is a shallow copy of the grid structure.
-  // The Maps for each cell and the objects within them are shared references.
-  // This is safe because walls are static.
-  //clone.grid = new Map(originalGrid.grid);
+// Directly copy the Map. This is a shallow copy of the grid structure.
+// The Maps for each cell and the objects within them are shared references.
+// This is safe because walls are static.
+//clone.grid = new Map(originalGrid.grid);
 
-  //return clone;
+//return clone;
 //}
 
 function cloneSpatialGrid2(original) {
-
-    clone = new SpatialGrid(original.cellSize);
-    clone.grid = new Map(original.grid);
+  clone = new SpatialGrid(original.cellSize);
+  clone.grid = new Map(original.grid);
 
   return clone;
 }
 
- function cloneSpatialGrid(original) {
+function cloneSpatialGrid(original) {
   const clone = new SpatialGrid(original.cellSize);
 
   for (const [key, obj] of original.grid.entries()) {
@@ -123,8 +144,6 @@ function cloneSpatialGrid2(original) {
   return clone;
 }
 
-
-
 function createRateLimiter() {
   const rate = 40; // Allow one request every 50 milliseconds
   return new Limiter({
@@ -133,9 +152,7 @@ function createRateLimiter() {
   });
 }
 
-
 async function setupRoomPlayers(room) {
-
   let playerNumberID = 0; // Start with player number 0
 
   // Iterate over each player in the room's players collection
@@ -146,14 +163,13 @@ async function setupRoomPlayers(room) {
     const spawnPositions = room.spawns;
     const spawnIndex = playerNumberID % spawnPositions.length; // Distribute players across spawn positions
 
-    player.x = spawnPositions[spawnIndex].x,
-      player.y = spawnPositions[spawnIndex].y,
-
+    (player.x = spawnPositions[spawnIndex].x),
+      (player.y = spawnPositions[spawnIndex].y),
       // Assign the spawn position to the player
-      player.startspawn = {
+      (player.startspawn = {
         x: spawnPositions[spawnIndex].x,
-        y: spawnPositions[spawnIndex].y
-      };
+        y: spawnPositions[spawnIndex].y,
+      });
 
     // Increment the player number for the next player
     playerNumberID++;
@@ -164,9 +180,18 @@ async function CreateTeams(room) {
   if (!room.players || room.players.size === 0) return;
 
   // Define team IDs
-  const teamIDs = ["Red", "Blue", "Green", "Yellow", "Orange", "Purple", "Pink", "Cyan"];
+  const teamIDs = [
+    "Red",
+    "Blue",
+    "Green",
+    "Yellow",
+    "Orange",
+    "Purple",
+    "Pink",
+    "Cyan",
+  ];
 
-  let numTeams
+  let numTeams;
   if (room.teamsize === 1) {
     numTeams = room.players.size;
   } else {
@@ -205,14 +230,13 @@ async function CreateTeams(room) {
 
     player.teamdata = {
       id: playerIds, // Complete team member IDs
-      tid: team.id,  // Team ID
+      tid: team.id, // Team ID
     };
   });
 }
 
-
 function clearAndRemoveInactiveTimers(timerArray, clearFn) {
-  return timerArray.filter(timer => {
+  return timerArray.filter((timer) => {
     if (timer._destroyed || timer._idleTimeout === -1) {
       // Timer is already destroyed or no longer active
       clearFn(timer); // Clear the timeout or interval
@@ -222,33 +246,25 @@ function clearAndRemoveInactiveTimers(timerArray, clearFn) {
   });
 }
 
-
 function clearAndRemoveCompletedTimeouts(timeoutArray, clearFn) {
-  return timeoutArray.filter(timeout => {
+  return timeoutArray.filter((timeout) => {
     if (timeout._destroyed || timeout._idleTimeout === -1 || timeout._called) {
       // _called indicates that the timeout has already been executed (Node.js)
-      clearFn(timeout)
+      clearFn(timeout);
       return false; // Remove from the array as it's completed or inactive
     }
     return true; // Keep active timeouts
   });
 }
 
-
-
-
-
-
 function RemoveRoomPlayer(room, player) {
-
-
   player.timeoutIds?.forEach(clearTimeout);
   player.intervalIds?.forEach(clearInterval);
 
+  if (player.kills > 0 || player.damage > 0)
+    increasePlayerKillsAndDamage(player.playerId, player.kills, player.damage);
 
-  if (player.kills > 0 || player.damage > 0) increasePlayerKillsAndDamage(player.playerId, player.kills, player.damage);
-
-   if (player.ws) {
+  if (player.ws) {
     try {
       player.ws.close();
     } catch (e) {
@@ -256,31 +272,22 @@ function RemoveRoomPlayer(room, player) {
     }
   }
 
-  addKillToKillfeed(room, 5, null, player.nmb, null)
+  addKillToKillfeed(room, 5, null, player.nmb, null);
   room.players.delete(player.playerId);
-
 }
 
-
-  
-
 function createRoom(roomId, gamemode, gmconfig, splevel) {
-
-
-  let mapid
+  let mapid;
   if (gmconfig.custom_map) {
-   mapid = `${gmconfig.custom_map}`;
-
+    mapid = `${gmconfig.custom_map}`;
   } else {
-    
-      const randomIndex = Math.floor(Math.random() * random_mapkeys.length);
-      mapid = random_mapkeys[randomIndex];
+    const randomIndex = Math.floor(Math.random() * random_mapkeys.length);
+    mapid = random_mapkeys[randomIndex];
   }
 
+  const mapdata = mapsconfig.get(mapid);
 
-  const mapdata = mapsconfig.get(mapid)
-
-  if (!mapdata) console.error("map does not exist")
+  if (!mapdata) console.error("map does not exist");
 
   const itemgrid = new SpatialGrid(gridcellsize); // grid system for items
   const bulletgrid = new SpatialGrid(50);
@@ -333,126 +340,143 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     roomId: roomId,
   };
 
-
+  room.bulletManager = new BulletManager(room);
 
   if (gmconfig.can_hit_dummies && mapdata.dummies) {
-    room.dummies = deepCopy(mapdata.dummies) //dummy crash fix
+    room.dummies = deepCopy(mapdata.dummies); //dummy crash fix
   }
 
   const roomConfig = {
     canCollideWithDummies: gmconfig.can_hit_dummies, // Disable collision with dummies
-    canCollideWithPlayers: gmconfig.can_hit_players,// Enable collision with players
+    canCollideWithPlayers: gmconfig.can_hit_players, // Enable collision with players
   };
 
-  room.config = roomConfig
+  room.config = roomConfig;
 
-
-  addRoomToIndex(room)
+  addRoomToIndex(room);
   rooms.set(roomId, room);
-
-
 
   room.xcleaninterval = setInterval(() => {
     if (room) {
       // Clear room's timeout and interval arrays
       if (room.timeoutIds) {
-        room.timeoutIds = clearAndRemoveCompletedTimeouts(room.timeoutIds, clearTimeout);
+        room.timeoutIds = clearAndRemoveCompletedTimeouts(
+          room.timeoutIds,
+          clearTimeout
+        );
       }
       if (room.intervalIds) {
-
-        room.intervalIds = clearAndRemoveInactiveTimers(room.intervalIds, clearInterval);
+        room.intervalIds = clearAndRemoveInactiveTimers(
+          room.intervalIds,
+          clearInterval
+        );
       }
 
       // Clear player-specific timeouts and intervals
-      room.players.forEach(player => {
+      room.players.forEach((player) => {
         if (player.timeoutIds) {
-          player.timeoutIds = clearAndRemoveCompletedTimeouts(player.timeoutIds, clearTimeout);
+          player.timeoutIds = clearAndRemoveCompletedTimeouts(
+            player.timeoutIds,
+            clearTimeout
+          );
         }
         if (player.intervalIds) {
-          player.intervalIds = clearAndRemoveInactiveTimers(player.intervalIds, clearInterval);
+          player.intervalIds = clearAndRemoveInactiveTimers(
+            player.intervalIds,
+            clearInterval
+          );
         }
       });
     }
   }, 5000);
 
-
   room.matchmaketimeout = setTimeout(() => {
-
-    room.players.forEach(player => {
-    player.ws.send("matchmaking_timeout")
-    })
+    room.players.forEach((player) => {
+      player.ws.send("matchmaking_timeout");
+    });
 
     closeRoom(roomId);
-
   }, matchmaking_timeout);
-
 
   // Start sending batched messages at regular intervals
   // in ms
-  room.intervalIds.push(setInterval(() => { // this could take some time...
-    prepareRoomMessages(room);
+  room.intervalIds.push(
+    setInterval(() => {
 
-    setTimeout(() => {
-      sendRoomMessages(room);
-    }, 3);
+         room.bulletManager.update();
+      // this could take some time...
+      prepareRoomMessages(room);
 
-  }, server_tick_rate));
-
-
+      setTimeout(() => {
+        sendRoomMessages(room);
+      }, 3);
+    }, server_tick_rate)
+  );
 
   // room.intervalId = intervalId;
-  room.timeoutIds.push(setTimeout(() => {
-
-
-    room.intervalIds.push(setInterval(() => {
-
-      if (room) {
-        cleanupRoom(room);
-      }
-    }, 1000));
-  }, 10000));
-
+  room.timeoutIds.push(
+    setTimeout(() => {
+      room.intervalIds.push(
+        setInterval(() => {
+          if (room) {
+            cleanupRoom(room);
+          }
+        }, 1000)
+      );
+    }, 10000)
+  );
 
   // Countdown timer update every second
-
 
   // console.log("Room", room.roomId, "created")
   return room;
 }
 
-
 async function joinRoom(ws, gamemode, playerVerified) {
   try {
-    const { playerId, nickname, hat, top, player_color, hat_color, top_color, gadget, skillpoints, loadout } = playerVerified;
+    const {
+      playerId,
+      nickname,
+      hat,
+      top,
+      player_color,
+      hat_color,
+      top_color,
+      gadget,
+      skillpoints,
+      loadout,
+    } = playerVerified;
 
     //const fallbackloadout = { 1: "1", 2: "5", 3: "DEVLOCKED" }
-     if (playerVerified.length > 200) {
-
-     return ws.close(4004);
+    if (playerVerified.length > 200) {
+      return ws.close(4004);
     }
 
-    const max_length = 16
-    const min_length = 4
+    const max_length = 16;
+    const min_length = 4;
     const gadgetselected = gadget || 1;
-    const fallbackloadout = { 1: "1", 2: "2", 3: "3" }
+    const fallbackloadout = { 1: "1", 2: "2", 3: "3" };
     const finalskillpoints = skillpoints || 0;
 
-     if (nickname.length < min_length || nickname.length > max_length || !gadgetconfig.has(`${gadgetselected}`)) {
-
-     return ws.close(4004);
+    if (
+      nickname.length < min_length ||
+      nickname.length > max_length ||
+      !gadgetconfig.has(`${gadgetselected}`)
+    ) {
+      return ws.close(4004);
     }
 
     const NICKNAME_SANITIZE = /[:$]/g;
-    const finalnickname = nickname.replace(NICKNAME_SANITIZE, '');
+    const finalnickname = nickname.replace(NICKNAME_SANITIZE, "");
 
     const roomjoiningvalue = matchmakingsp(finalskillpoints);
 
     let roomId, room;
 
     // Check if there's an existing room with available slots
-    const availableRoom = getAvailableRoom(gamemode, roomjoiningvalue)
+    const availableRoom = getAvailableRoom(gamemode, roomjoiningvalue);
 
-    const gamemodeSettings = gamemodeconfig.get(gamemode)
+    const gamemodeSettings = gamemodeconfig.get(gamemode);
 
     if (availableRoom) {
       roomId = availableRoom.roomId;
@@ -461,7 +485,6 @@ async function joinRoom(ws, gamemode, playerVerified) {
       roomId = generateUUID();
       room = createRoom(roomId, gamemode, gamemodeSettings, roomjoiningvalue);
     }
-
 
     const playerRateLimiter = createRateLimiter();
 
@@ -511,7 +534,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
 
       //loadout and gadgets
       loadout: loadout || fallbackloadout,
-      loadout_formatted: [loadout[1], loadout[2], loadout[3]].join('$'),
+      loadout_formatted: [loadout[1], loadout[2], loadout[3]].join("$"),
       gadgetid: gadgetselected,
       canusegadget: true,
       gadgetactive: false,
@@ -532,22 +555,23 @@ async function joinRoom(ws, gamemode, playerVerified) {
       spectatingTarget: null,
       spectatingplayerid: null,
 
-      usegadget() {
-        const player = room.players.get(playerId);
+      usegadget(player) {
 
-        if (player && room.state === 'playing' && player.visible) {
+        if (player && room.state === "playing" && player.visible) {
           gadgetdata.gadget(player, room);
         } else {
-          console.error('Player not found or cannot use gadget');
+          console.error("Player not found or cannot use gadget");
         }
       },
     };
 
     newPlayer.gun = newPlayer.loadout[1];
     //newPlayer.loadout[3] = 5
-    
+
     if (newPlayer.gadgetchangevars) {
-      for (const [variable, change] of Object.entries(newPlayer.gadgetchangevars)) {
+      for (const [variable, change] of Object.entries(
+        newPlayer.gadgetchangevars
+      )) {
         newPlayer[variable] += Math.round(newPlayer[variable] * change);
       }
     }
@@ -555,19 +579,16 @@ async function joinRoom(ws, gamemode, playerVerified) {
     if (room) {
       const timeout = setTimeout(() => {
         if (newPlayer.lastPing <= Date.now() - 5000) {
-
-          newPlayer.ws.close(4200, "disconnected_inactivity")
+          newPlayer.ws.close(4200, "disconnected_inactivity");
         }
       }, player_idle_timeout);
 
-      newPlayer.timeoutIds.push(timeout)
+      newPlayer.timeoutIds.push(timeout);
       newPlayer.timeout = timeout;
 
-
-      if (room.state !== 'waiting' || room.players.size >= room.maxplayers) return;
-     room.players.set(playerId, newPlayer);
-
-
+      if (room.state !== "waiting" || room.players.size >= room.maxplayers)
+        return;
+      room.players.set(playerId, newPlayer);
 
       if (ws.readyState === ws.CLOSED) {
         RemoveRoomPlayer(room, newPlayer);
@@ -575,21 +596,17 @@ async function joinRoom(ws, gamemode, playerVerified) {
       }
     }
 
-
     if (room.state === "waiting" && room.players.size >= room.maxplayers) {
-       await startMatch(room, roomId);
+      await startMatch(room, roomId);
     }
-   
 
     return { roomId, playerId, room };
-
   } catch (error) {
     console.error("Error joining room:", error);
     ws.close(4000, "Error joining room");
     throw error;
   }
 }
-
 
 async function startMatch(room, roomId) {
   clearTimeout(room.matchmaketimeout);
@@ -606,59 +623,63 @@ async function startMatch(room, roomId) {
   SendPreStartMessage(room);
 
   try {
-    room.intervalIds.push(setTimeout(() => {
-      if (room.matchtype === "td") {
-        const t1 = room.teams[0];
-        const t2 = room.teams[1];
-        room.scoreboard = [t1.id, t1.score].join('$');
-      }
-
-      room.state = "countdown";
-
-      room.timeoutIds.push(setTimeout(() => {
-        if (!rooms.has(roomId)) return;
-
-        room.state = "playing";
-
-        if (room.showtimer === true) {
-          const countdownDuration = room_max_open_time;
-          const countdownStartTime = Date.now();
-
-          room.countdownInterval = setInterval(() => {
-            const elapsedTime = Date.now() - countdownStartTime;
-            const remainingTime = countdownDuration - elapsedTime;
-
-            if (remainingTime <= 0) {
-              clearInterval(room.countdownInterval);
-              room.countdown = "0-00";
-            } else {
-              const minutes = Math.floor(remainingTime / 1000 / 60);
-              const seconds = Math.floor((remainingTime / 1000) % 60);
-              room.countdown = `${minutes}-${seconds.toString().padStart(2, '0')}`;
-            }
-          }, 1000);
-
-          room.intervalIds.push(room.countdownInterval);
+    room.intervalIds.push(
+      setTimeout(() => {
+        if (room.matchtype === "td") {
+          const t1 = room.teams[0];
+          const t2 = room.teams[1];
+          room.scoreboard = [t1.id, t1.score].join("$");
         }
 
-        StartremoveOldKillfeedEntries(room);
-        initializeAnimations(room);
+        room.state = "countdown";
 
-        if (room.modifiers.has("HealingCircles")) initializeHealingCircles(room);
-        if (room.modifiers.has("UseZone")) UseZone(room);
-        if (room.modifiers.has("AutoHealthRestore")) startRegeneratingHealth(room, 1);
-        if (room.modifiers.has("AutoHealthDamage")) startDecreasingHealth(room, 1);
+        room.timeoutIds.push(
+          setTimeout(() => {
+            if (!rooms.has(roomId)) return;
 
-      }, game_start_time));
+            room.state = "playing";
 
-    }, 1000));
+            if (room.showtimer === true) {
+              const countdownDuration = room_max_open_time;
+              const countdownStartTime = Date.now();
+
+              room.countdownInterval = setInterval(() => {
+                const elapsedTime = Date.now() - countdownStartTime;
+                const remainingTime = countdownDuration - elapsedTime;
+
+                if (remainingTime <= 0) {
+                  clearInterval(room.countdownInterval);
+                  room.countdown = "0-00";
+                } else {
+                  const minutes = Math.floor(remainingTime / 1000 / 60);
+                  const seconds = Math.floor((remainingTime / 1000) % 60);
+                  room.countdown = `${minutes}-${seconds
+                    .toString()
+                    .padStart(2, "0")}`;
+                }
+              }, 1000);
+
+              room.intervalIds.push(room.countdownInterval);
+            }
+
+            StartremoveOldKillfeedEntries(room);
+            initializeAnimations(room);
+
+            if (room.modifiers.has("HealingCircles"))
+              initializeHealingCircles(room);
+            if (room.modifiers.has("UseZone")) UseZone(room);
+            if (room.modifiers.has("AutoHealthRestore"))
+              startRegeneratingHealth(room, 1);
+            if (room.modifiers.has("AutoHealthDamage"))
+              startDecreasingHealth(room, 1);
+          }, game_start_time)
+        );
+      }, 1000)
+    );
   } catch (err) {
     console.error(`Error starting match in room ${roomId}:`, err);
   }
 }
-
-
-
 
 function cleanupRoom(roomId) {
   const room = rooms.get(roomId);
@@ -671,29 +692,32 @@ function cleanupRoom(roomId) {
     clearInterval(room.cleanupinterval);
   }
 
-  const playersWithOpenConnections = room.players.filter(player => player.ws && player.ws.readyState === WebSocket.OPEN);
+  const playersWithOpenConnections = room.players.filter(
+    (player) => player.ws && player.ws.readyState === WebSocket.OPEN
+  );
 
   //console.log(playersWithOpenConnections);
   // Close the room if it has no players
-  if (room.players.size < 1 || playersWithOpenConnections.length < 1 || !room.players || room.players.size === 0) {
+  if (
+    room.players.size < 1 ||
+    playersWithOpenConnections.length < 1 ||
+    !room.players ||
+    room.players.size === 0
+  ) {
     closeRoom(roomId);
   }
 }
 
-
 function getDistance(x1, y1, x2, y2) {
-  return Math.sqrt(
-    Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2),
-  );
-
+  return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
 }
 
 const state_map = {
-  "waiting": 1,
-  "await": 2,
-  "countdown": 3,
-  "playing": 4
-}
+  waiting: 1,
+  await: 2,
+  countdown: 3,
+  playing: 4,
+};
 
 const getAllKeys = (data) => {
   const allKeys = [];
@@ -704,20 +728,20 @@ const getAllKeys = (data) => {
   return allKeys;
 };
 
-
-
-  const transformData = (data) => {
-    const transformed = {};
-    for (const [key, value] of Object.entries(data)) {
-      transformed[key] = `${value.x}:${value.y}:${value.health}:${value.starthealth}:${value.type}`;
-    }
-    return transformed;
-  };
+const transformData = (data) => {
+  const transformed = {};
+  for (const [key, value] of Object.entries(data)) {
+    transformed[
+      key
+    ] = `${value.x}:${value.y}:${value.health}:${value.starthealth}:${value.type}`;
+  }
+  return transformed;
+};
 
 function SendPreStartMessage(room) {
   // Prebuild AllPlayerData
 
-    const players = Array.from(room.players.values())
+  const players = Array.from(room.players.values());
 
   const AllPlayerData = {};
   for (const p of players) {
@@ -728,13 +752,13 @@ function SendPreStartMessage(room) {
       hat_color: p.hat_color,
       top_color: p.top_color,
       nickname: p.nickname,
-      starthealth: p.starthealth
+      starthealth: p.starthealth,
     };
   }
 
-  const dummiesFiltered = room.dummies ? transformData(room.dummies) : undefined;
-
-
+  const dummiesFiltered = room.dummies
+    ? transformData(room.dummies)
+    : undefined;
 
   for (const player of players) {
     const self_info = {
@@ -746,7 +770,9 @@ function SendPreStartMessage(room) {
       g: player.gun,
       kil: player.kills,
       dmg: player.damage,
-      rwds: [player.place, player.skillpoints_inc, player.seasoncoins_inc].join('$'),
+      rwds: [player.place, player.skillpoints_inc, player.seasoncoins_inc].join(
+        "$"
+      ),
       killer: player.eliminator,
       cg: +player.canusegadget,
       lg: player.gadgetuselimit,
@@ -757,7 +783,7 @@ function SendPreStartMessage(room) {
       em: player.emote,
       spc: player.spectateid,
       guns: player.loadout_formatted,
-      np: player.npfix
+      np: player.npfix,
     };
 
     const MessageToSend = {
@@ -767,13 +793,13 @@ function SendPreStartMessage(room) {
         pid: player.nmb,
         self_info,
         dummies: dummiesFiltered,
-        gadget: player.gadgetid
+        gadget: player.gadgetid,
       },
       RoomData: {
         mapid: room.map,
         type: room.matchtype,
-        sb: room.scoreboard
-      }
+        sb: room.scoreboard,
+      },
     };
 
     player.ws.send(compressMessage(MessageToSend), { binary: true });
@@ -781,34 +807,42 @@ function SendPreStartMessage(room) {
 }
 
 function formatBullets(bullets) {
- if ( bullets.size === 0) return undefined;
-  
-       const formattedBullets = {};
-       bullets.forEach(bullet => {
-        const bullet_id = bullet.bullet_id;
-        const x = bullet.x.toFixed(1)
-        const y = bullet.y.toFixed(1)
-        const direction = Math.round(bullet.direction);
-        const gunid = bullet.gunid;
-        formattedBullets[bullet_id] = `${bullet_id}=${x},${y},${direction},${gunid}`;
-      });
+  if (bullets.size === 0) return undefined;
 
-      const finalBullets = Object.keys(formattedBullets).length > 0
-        ? "$b" + Object.values(formattedBullets).join("")
-        : undefined;
+  const formattedBullets = {};
+  bullets.forEach((bullet) => {
+    const bullet_id = bullet.bullet_id;
+    const x = bullet.x.toFixed(1);
+    const y = bullet.y.toFixed(1);
+    const direction = Math.round(bullet.direction);
+    const gunid = bullet.gunid;
+    formattedBullets[
+      bullet_id
+    ] = `${bullet_id}=${x},${y},${direction},${gunid}`;
+  });
 
-        return finalBullets
+  const finalBullets =
+    Object.keys(formattedBullets).length > 0
+      ? "$b" + Object.values(formattedBullets).join("")
+      : undefined;
+
+  return finalBullets;
 }
 
-
-
 function prepareRoomMessages(room) {
+  
+//  console.time('prepareRoomMessages');
+
   const players = Array.from(room.players.values());
   const GameRunning = room.state === "playing" || room.state === "countdown";
 
   // WAITING STATE
   if (!GameRunning) {
-    const roomdata = [state_map[room.state], room.maxplayers, players.length].join(':');
+    const roomdata = [
+      state_map[room.state],
+      room.maxplayers,
+      players.length,
+    ].join(":");
 
     for (const p of players) {
       p.tick_send_allow = false;
@@ -852,40 +886,42 @@ function prepareRoomMessages(room) {
     aliveCount,
     "",
     room.countdown,
-    room.winner
-  ].join(':');
+    room.winner,
+  ].join(":");
   if (roomdata === room.rdlast) roomdata = undefined;
   else room.rdlast = roomdata;
 
   // PLAYER POSITIONAL DATA (once)
   const playerData = {};
+
+  
   for (const p of players) {
-    if (!p.visible) continue;
-    
-       if (p.visible !== false) {
-      const formattedBullets = {};
-      p.bullets.forEach(bullet => {
-        const bullet_id = bullet.bullet_id;
-        formattedBullets[bullet_id] = `${bullet.bullet_id}=${bullet.x.toFixed(1)},${bullet.y.toFixed(1)},${Math.round(bullet.direction)},${bullet.gunid};`
-      });
+  if (!p.visible) continue;
 
-          const finalBullets = Object.keys(formattedBullets).length > 0
-        ? "$b" + Object.values(formattedBullets).join("")
-        : undefined;
+  const formattedBullets = {};
+  const playerBullets = room.bulletManager.bullets.get(p.playerId);
 
-      p.finalbullets = finalBullets
-
-    playerData[p.nmb] = [
-      p.x,
-      p.y,
-      p.direction2,
-      p.health,
-      p.gun,
-      p.emote,
-      finalBullets
-    ].join(':');
+  if (playerBullets) {
+    for (const bullet of playerBullets.values()) {
+      formattedBullets[bullet.id] = `${bullet.id}=${bullet.position.x.toFixed(1)},${bullet.position.y.toFixed(1)},${Math.round(bullet.direction)},${bullet.gunId};`;
+    }
   }
+
+  const finalBullets = Object.keys(formattedBullets).length > 0 ? "$b" + Object.values(formattedBullets).join("") : undefined;
+
+  p.finalbullets = finalBullets;
+
+  playerData[p.nmb] = [
+    p.x,
+    p.y,
+    p.direction2,
+    p.health,
+    p.gun,
+    p.emote,
+    finalBullets,
+  ].join(":");
 }
+
 
   // ONE PASS: Build, hash, compress, send
   for (const p of players) {
@@ -902,7 +938,7 @@ function prepareRoomMessages(room) {
       g: p.gun,
       kil: p.kills,
       dmg: p.damage,
-      rwds: [p.place, p.skillpoints_inc, p.seasoncoins_inc].join('$'),
+      rwds: [p.place, p.skillpoints_inc, p.seasoncoins_inc].join("$"),
       killer: p.eliminator,
       cg: +p.canusegadget,
       lg: p.gadgetuselimit,
@@ -914,7 +950,7 @@ function prepareRoomMessages(room) {
       spc: p.spectateid,
       guns: p.loadout_formatted,
       np: JSON.stringify(nearbyIds),
-      ht: JSON.stringify(p.hitmarkers || [])
+      ht: JSON.stringify(p.hitmarkers || []),
     };
 
     const changes = {};
@@ -922,22 +958,22 @@ function prepareRoomMessages(room) {
     for (const k in selfdata) {
       if (selfdata[k] !== lastSelf[k]) changes[k] = selfdata[k];
     }
-    if (Object.keys(changes).length) p.selflastmsg = { ...lastSelf, ...changes };
+    if (Object.keys(changes).length)
+      p.selflastmsg = { ...lastSelf, ...changes };
 
-
-       if (!p.nearbyids) {
+    if (!p.nearbyids) {
       p.nearbyids = new Set();
     }
 
     p.nearbyids.clear();
     let filteredplayers = {};
 
-       const playersInRange = p.nearbyplayers;
+    const playersInRange = p.nearbyplayers;
     const previousHashes = p.pdHashes || {};
     const currentHashes = {};
 
     for (const [id, data] of Object.entries(playerData)) {
-       if (!playersInRange.includes(+id)) continue;
+      if (!playersInRange.includes(+id)) continue;
 
       const hash = generateHash(data);
       if (previousHashes[id] !== hash) {
@@ -962,12 +998,16 @@ function prepareRoomMessages(room) {
       cl: p.nearbycircles,
       an: p.nearbyanimations,
       b: p.finalbullets,
-      pd: p.pd
+      pd: p.pd,
     };
 
     // Remove empty keys
     for (const key in msg) {
-      if (!msg[key] || (Array.isArray(msg[key]) && !msg[key].length) || (typeof msg[key] === 'object' && !Object.keys(msg[key]).length)) {
+      if (
+        !msg[key] ||
+        (Array.isArray(msg[key]) && !msg[key].length) ||
+        (typeof msg[key] === "object" && !Object.keys(msg[key]).length)
+      ) {
         delete msg[key];
       }
     }
@@ -989,27 +1029,16 @@ function prepareRoomMessages(room) {
     p.hitmarkers = [];
     p.eliminations = [];
   }
+   // console.timeEnd('prepareRoomMessages');
 }
-
-
-
-
 
 function sendRoomMessages(room) {
-
-  room.players.forEach(player => {
-
+  room.players.forEach((player) => {
     if (player.tick_send_allow) {
-
       player.ws.send(player.lastcompressedmessage, { binary: true });
-
     }
-
-  })
-
+  });
 }
-
-
 
 const validDirections = [-90, 0, 180, -180, 90, 45, 135, -135, -45];
 
@@ -1017,7 +1046,6 @@ const isValidDirection = (direction) => {
   const numericDirection = parseFloat(direction);
   return !isNaN(numericDirection) && validDirections.includes(numericDirection);
 };
-
 
 function handleRequest(result, message) {
   const player = result.room.players.get(result.playerId);
@@ -1035,11 +1063,17 @@ function handleRequest(result, message) {
       break;
   }
 
-  if (result.room.state !== "playing" || player.visible === false || player.eliminated || !result.room.winner === -1) return;
+  if (
+    result.room.state !== "playing" ||
+    player.visible === false ||
+    player.eliminated ||
+    !result.room.winner === -1
+  )
+    return;
 
-  const data = message.split(':');
+  const data = message.split(":");
 
-  const type = data[0]
+  const type = data[0];
 
   switch (type) {
     case "3":
@@ -1062,7 +1096,6 @@ function handleRequest(result, message) {
   if (type === "2") {
     player.moving = false;
   }
-
 }
 
 function handlePong(player) {
@@ -1072,11 +1105,10 @@ function handlePong(player) {
     return;
   }
   player.lastPing = now;
-
 }
 
 function handleShoot(data, player, room) {
-  const shoot_direction = data[1]
+  const shoot_direction = data[1];
   if (shoot_direction > -181 && shoot_direction < 181) {
     player.shoot_direction = parseFloat(shoot_direction);
     handleBulletFired(room, player, player.gun);
@@ -1086,23 +1118,26 @@ function handleShoot(data, player, room) {
 function handleSwitchGun(data, player) {
   const GunID = data[1];
   if (
-    GunID !== player.gun && !player.shooting && GunID >= 1 && GunID <= 3 && gunsconfig.has(`${GunID}`)) {
-
+    GunID !== player.gun &&
+    !player.shooting &&
+    GunID >= 1 &&
+    GunID <= 3 &&
+    gunsconfig.has(`${GunID}`)
+  ) {
     player.gun = player.loadout[GunID];
-
   } else {
-
   }
-
 }
 
 function handleEmote(data, player) {
-  const emoteid = data[1]
+  const emoteid = data[1];
   if (emoteid >= 1 && emoteid <= 4 && player.emote === 0) {
     player.emote = emoteid;
-    player.timeoutIds.push(setTimeout(() => {
-      player.emote = 0;
-    }, 3000));
+    player.timeoutIds.push(
+      setTimeout(() => {
+        player.emote = 0;
+      }, 3000)
+    );
   }
 }
 
@@ -1110,10 +1145,12 @@ function handleGadget(player) {
   if (player.canusegadget && player.gadgetuselimit > 0) {
     player.canusegadget = false;
     player.gadgetuselimit--;
-    player.usegadget();
-    player.timeoutIds.push(setTimeout(() => {
-      player.canusegadget = true;
-    }, player.gadgetcooldown));
+    player.usegadget(player);
+    player.timeoutIds.push(
+      setTimeout(() => {
+        player.canusegadget = true;
+      }, player.gadgetcooldown)
+    );
   }
 }
 
@@ -1133,7 +1170,6 @@ function handleMovementData(data, player) {
 }
 
 function updatePlayerDirection(player, direction) {
-
   player.direction = direction;
 
   if (player.direction == -180 || player.direction == 0) {
@@ -1141,16 +1177,13 @@ function updatePlayerDirection(player, direction) {
     player.direction2 = direction > 90 ? 90 : direction < -90 ? -90 : direction; // Adjust otherwise
 }
 
-
 async function handlePlayerMoveIntervalAll(room) {
-
   room.players.forEach((player) => {
     if (player.moving && player.state === 1) {
       handleMovement(player, room);
-    };
+    }
   });
 }
-
 
 module.exports = {
   // compressMessage,
@@ -1161,5 +1194,4 @@ module.exports = {
   getDistance,
   RemoveRoomPlayer,
   roomIndex,
-
 };

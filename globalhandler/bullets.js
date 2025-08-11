@@ -2,271 +2,366 @@
 
 const { isCollisionWithBullet, adjustBulletDirection, findCollidedWall, isCollisionWithPlayer } = require('./collisions');
 const { handlePlayerCollision, handleDummyCollision } = require('./player');
-const { gunsconfig, server_tick_rate } = require('./config');
-const { compressMessage } = require('./..//index.js');
+const { gunsconfig } = require('./config');
 const { AddAffliction } = require('./bullets-effects')
-const BULLET_MOVE_INTERVAL = server_tick_rate // milliseconds
-
-// Helper functions
-const calculateDistance = (x1, y1, x2, y2) => Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-const toRadians = degrees => degrees * (Math.PI / 180);
 
 
-function GunHasModifier(name, room, modifiers) {
-  if (modifiers.has(name) || room.weapons_modifiers_override.has(name)) {
-    return true
-  } else {
-    return false
+class Vec2 {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+
+  static fromAngle(degrees) {
+    const rad = degrees * (Math.PI / 180);
+    return new Vec2(Math.cos(rad), Math.sin(rad));
+  }
+
+  add(vec) {
+    return new Vec2(this.x + vec.x, this.y + vec.y);
+  }
+
+  scale(scalar) {
+    return new Vec2(this.x * scalar, this.y * scalar);
+  }
+
+  distanceTo(vec) {
+    const dx = this.x - vec.x;
+    const dy = this.y - vec.y;
+    return Math.sqrt(dx * dx + dy * dy);
   }
 }
 
-function moveBullet(room, player, bullet) {
-  if (!bullet || !room) return;
-
-  const { speed, direction, bullet_id, height, width, maxtime, distance, damageconfig, damage, gunid, modifiers, spinning_speed } = bullet;
-
-  const radians = toRadians(direction - 90);
-  const xDelta = speed * Math.cos(radians);
-  const yDelta = speed * Math.sin(radians);
-
-  const newX = parseFloat((bullet.x + xDelta).toFixed(1));
-  const newY = parseFloat((bullet.y + yDelta).toFixed(1));
-  const distanceTraveled = calculateDistance(bullet.startX, bullet.startY, newX, newY);
-  const timenow = Date.now();
-
-  bullet.x = newX;
-  bullet.y = newY;
-
-  // if (GunHasModifier("Spinning", room, modifiers) && spinning_speed) {  
- //   bullet.direction += spinning_speed
-   // } 
-
-  if (distanceTraveled > distance || timenow > maxtime) {
-    DeleteBullet(player, bullet_id, room, bullet)
-    return;
-  }
-
-
-  // Handle collision with the grid first to simplify logic below
-  if (isCollisionWithBullet(room.grid, newX, newY, height, width, direction - 90)) {
-    const collidedWall = findCollidedWall(room.grid, newX, newY, height, width);
-    if (GunHasModifier("DestroyWalls", room, modifiers)) {
-      if (collidedWall) DestroyWall(collidedWall, room);
-    } else if (GunHasModifier("DestroyWalls(DestroyBullet)", room, modifiers)) {
-      if (collidedWall) {
-        DeleteBullet(player, bullet_id, room, bullet)
-        DestroyWall(collidedWall, room);
-        return;
-      }
-    } else if (GunHasModifier("CanBounce", room, modifiers) && collidedWall) {
-      adjustBulletDirection(bullet, collidedWall, 50);
-      return;
-    } else {
-      DeleteBullet(player, bullet_id, room, bullet)
-      return;
-    }
-  }
-
-  // Handle player collision if applicable
-  if (room.config.canCollideWithPlayers && room.winner === -1) {
-    const potentialTargets = Array.from(room.players.values()).filter(otherPlayer =>
-      otherPlayer !== player && otherPlayer.visible && !player.team.players.some(p => p.nmb === otherPlayer.nmb)
-    );
-
-    for (const otherPlayer of potentialTargets) {
-      if (isCollisionWithPlayer(bullet, otherPlayer, height, width, direction - 90)) {
-        const finalDamage = calculateFinalDamage(distanceTraveled, distance, damage, damageconfig);
-        handlePlayerCollision(room, player, otherPlayer, finalDamage, gunid);
-
-        const data = {
-          target_type: "player",
-          damage: 1,
-          speed: 500,
-          duration: 3000,
-          gunid: gunid,
-        }
-
-        AddAffliction(room, player, otherPlayer, data)
-       
-        DeleteBullet(player, bullet_id, room, bullet)
-        return;
-      }
-    }
-  }
-
-  // Handle dummy collision if applicable
-  if (room.config.canCollideWithDummies) {
-    for (const key in room.dummies) {
-      const dummy = room.dummies[key];
-      if (isCollisionWithPlayer(bullet, dummy, height, width, direction - 90)) {
-        const finalDamage = calculateFinalDamage(distanceTraveled, distance, damage, damageconfig);
-
-        handleDummyCollision(room, player, key, finalDamage);
-
-         const data = {
-          target_type: "dummy",
-          damage: 1,
-          speed: 500,
-          duration: 3000,
-          gunid: gunid,
-          dummykey: key,
-        }
-
-        AddAffliction(room, player, dummy, data)
-       
-        DeleteBullet(player, bullet_id, room, bullet)
-        return;  
-      }
-    }
-  }
-
-  // Update bullet position if no collision
-
-}
-
-
-function DestroyWall(wall, room) {
-
-  room.grid.removeObject(wall);
-
-  const Message = `${wall.x}:${wall.y}`
-
-  room.destroyedWalls.push(Message)
-
-
-}
-
-function DeleteBullet(player, bullet_id, room) {
-
-   
-  player.bullets.delete(bullet_id);
-
-
-
-
-  const Message = `DEL:${bullet_id}`
-  
-  room.bulletsUpdates.push(Message)
-
-}
-
-
-
-
-// Bullet Shooting with Delay
-function shootBulletsWithDelay(room, player, bulletdata) {
-  return new Promise(resolve => {
-    player.timeoutIds.push(setTimeout(async () => {
-      await shootBullet(room, player, bulletdata);
-      resolve();
-    }, bulletdata.delay));
-  });
-}
-
-// Shoot Bullet
-async function shootBullet(room, player, bulletdata) {
-  const { angle, offset, damage, speed, height, width, maxtime, distance, damageconfig, gunid, modifiers, spinning_speed } = bulletdata;
-  const radians = toRadians(angle);
-  const radians1 = toRadians(angle - 90);
-  const xOffset = offset * Math.cos(radians);
-  const yOffset = offset * Math.sin(radians);
-  const bullet_id = Math.random().toString(36).substring(2, 7);
-
-  const x1 = parseFloat((30 * Math.cos(radians1)).toFixed(1)); // Offset along the x-axis
-  const y1 = parseFloat((30 * Math.sin(radians1)).toFixed(1)); // Offset along the y-axis
-
-  const bullet = {
-    x: player.x + xOffset + x1,
-    y: player.y + yOffset + y1,
-    startX: player.x + xOffset + x1,
-    startY: player.y + yOffset + y1,
-    direction: angle,
-    owner: player.playerId,
-    bullet_id: bullet_id,
-    damage,
+// ---------- Bullet Class ----------
+class Bullet {
+  constructor({
+    id,
+    position,
+    direction, // degrees
     speed,
     height,
-    width, // Initialize with the number of bounces allowed
-    maxtime,
-    distance,
-    damageconfig,
-    gunid,
+    width,
+    maxTime,
+    maxDistance,
+    damage,
+    damageConfig,
+    gunId,
     modifiers,
-    spinning_speed,
-  };
+    ownerId,
+  }) {
+    this.id = id;
+    this.position = position; // Vec2
+    this.direction = direction;
+    this.speed = speed;
+    this.height = height;
+    this.width = width;
+    this.maxTime = maxTime;
+    this.maxDistance = maxDistance;
+    this.damage = damage;
+    this.damageConfig = damageConfig;
+    this.gunId = gunId;
+    this.modifiers = modifiers;
+    this.ownerId = ownerId;
+    this.startPosition = position;
+    this.spawnTime = Date.now();
+    this.alive = true;
+  }
 
+  nextPosition() {
+    // Move bullet along direction by speed units per tick
+    const dirVec = Vec2.fromAngle(this.direction - 90);
+    return this.position.add(dirVec.scale(this.speed));
+  }
 
-  const pos = { x: parseFloat(bullet.x.toFixed(4)), y: parseFloat(bullet.y.toFixed(4))}
+  isExpired() {
+    if (!this.alive) return true;
+    if (Date.now() > this.maxTime) return true;
+    if (this.position.distanceTo(this.startPosition) > this.maxDistance) return true;
+    return false;
+  }
 
-  player.bullets.set(bullet_id, bullet);
-  const Message = `${bullet_id}:${pos.x}:${pos.y}:${bullet.direction}:${bullet.speed}:${bullet.gunid}`
-  room.bulletsUpdates.push(Message)
-
-  while (player.bullets.has(bullet_id)) {
-    moveBullet(room, player, bullet);
-    if (!player.bullets.has(bullet_id)) break;
-    await new Promise(resolve => player.timeoutIds.push(setTimeout(resolve, BULLET_MOVE_INTERVAL)));
+  kill() {
+    this.alive = false;
   }
 }
 
-// Handle Bullet Fired
-async function handleBulletFired(room, player, gunType) {
+// ---------- Bullet Manager ----------
+class BulletManager {
+  constructor(room) {
+    this.room = room;
+    this.bullets = new Map(); // id => Bullet
+    this.scheduledBullets = [];
+  }
+
+  generateBulletId() {
+    return Math.random().toString(36).substring(2, 7);
+  }
+
+    spawnBullet(player, bulletData) {
+    const id = this.generateBulletId();
+    const angle = bulletData.angle;
+    const offset = bulletData.offset;
+
+    const baseDirVec = Vec2.fromAngle(angle);
+    const perpDirVec = Vec2.fromAngle(angle - 90);
+
+    const initialPosition = new Vec2(player.x, player.y)
+      .add(baseDirVec.scale(offset))
+      .add(perpDirVec.scale(30));
+
+    const bullet = new Bullet({
+      id,
+      position: initialPosition,
+      direction: angle,
+      speed: bulletData.speed / 2,
+      height: bulletData.height,
+      width: bulletData.width,
+      maxTime: bulletData.maxtime,
+      maxDistance: bulletData.distance,
+      damage: bulletData.damage,
+      damageConfig: bulletData.damageconfig || [],
+      gunId: bulletData.gunid,
+      modifiers: bulletData.modifiers,
+      ownerId: player.playerId,
+    });
+
+    if (!this.bullets.has(player.playerId)) {
+      this.bullets.set(player.playerId, new Map());
+    }
+
+      this.bullets.get(player.playerId).set(id, bullet);
+   // this.room.bulletsUpdates.push(this.formatBulletSpawnMsg(bullet));
+
+    return bullet;
+  }
+
+  formatBulletSpawnMsg(bullet) {
+    return `${bullet.id}:${bullet.position.x.toFixed(4)}:${bullet.position.y.toFixed(4)}:${bullet.direction}:${bullet.speed}:${bullet.gunId}`;
+  }
+
+  update() {
+  // collect deletions to avoid mutating the Map while iterating
+   this.processScheduledBullets();
+  const toRemove = []; // array of [playerId, bulletId]
+
+  for (const [playerId, playerBullets] of this.bullets.entries()) {
+    // if playerBullets is not a Map (defensive), skip
+    if (!(playerBullets instanceof Map)) continue;
+
+    for (const [id, bullet] of playerBullets.entries()) {
+      // skip if bullet was already killed earlier
+      if (!bullet || !bullet.alive) {
+        toRemove.push([playerId, id]);
+        continue;
+      }
+
+      if (bullet.isExpired()) {
+        toRemove.push([playerId, id]);
+        continue;
+      }
+
+      const nextPos = bullet.nextPosition();
+       bullet.position = nextPos;
+
+      // Collision with walls
+      if (isCollisionWithBullet(this.room.grid, nextPos.x, nextPos.y, bullet.height, bullet.width, bullet.direction - 90)) {
+        const collidedWall = findCollidedWall(this.room.grid, nextPos.x, nextPos.y, bullet.height, bullet.width);
+        if (collidedWall) {
+          if (GunHasModifier("DestroyWalls", this.room, bullet.modifiers)) {
+            DestroyWall(collidedWall, this.room);
+          }
+          if (GunHasModifier("DestroyWalls(DestroyBullet)", this.room, bullet.modifiers)) {
+            toRemove.push([playerId, id]);
+            DestroyWall(collidedWall, this.room);
+            continue;
+          }
+          if (GunHasModifier("CanBounce", this.room, bullet.modifiers)) {
+            adjustBulletDirection(bullet, collidedWall, 50);
+            continue; // Don't move bullet position this tick
+          }
+          toRemove.push([playerId, id]);
+          continue;
+        }
+      }
+
+      // Collision with players
+      if (this.room.config.canCollideWithPlayers && this.room.winner === -1) {
+        let hitSomething = false;
+        for (const otherPlayer of this.room.players.values()) {
+          if (otherPlayer.playerId !== bullet.ownerId && otherPlayer.visible && !this.isAlly(bullet.ownerId, otherPlayer)) {
+            if (isCollisionWithPlayer(bullet, otherPlayer, bullet.height, bullet.width, bullet.direction - 90)) {
+              const distTraveled = bullet.position.distanceTo(bullet.startPosition);
+              const finalDamage = calculateFinalDamage(distTraveled, bullet.maxDistance, bullet.damage, bullet.damageConfig);
+              handlePlayerCollision(this.room, this.room.players.get(bullet.ownerId), otherPlayer, finalDamage, bullet.gunId);
+
+              AddAffliction(this.room, this.room.players.get(bullet.ownerId), otherPlayer, {
+                target_type: "player",
+                damage: 1,
+                speed: 500,
+                duration: 3000,
+                gunid: bullet.gunId,
+              });
+
+              toRemove.push([playerId, id]);
+              hitSomething = true;
+              break;
+            }
+          }
+        }
+        if (hitSomething) continue;
+      }
+
+      // Collision with dummies
+      if (this.room.config.canCollideWithDummies) {
+        let hitDummy = false;
+        for (const dummyKey in this.room.dummies) {
+          const dummy = this.room.dummies[dummyKey];
+          if (isCollisionWithPlayer(bullet, dummy, bullet.height, bullet.width, bullet.direction - 90)) {
+            const distTraveled = bullet.position.distanceTo(bullet.startPosition);
+            const finalDamage = calculateFinalDamage(distTraveled, bullet.maxDistance, bullet.damage, bullet.damageConfig);
+            handleDummyCollision(this.room, this.room.players.get(bullet.ownerId), dummyKey, finalDamage);
+
+            AddAffliction(this.room, this.room.players.get(bullet.ownerId), dummy, {
+              target_type: "dummy",
+              damage: 1,
+              speed: 500,
+              duration: 3000,
+              gunid: bullet.gunId,
+              dummykey: dummyKey,
+            });
+
+            toRemove.push([playerId, id]);
+            hitDummy = true;
+            break;
+          }
+        }
+        if (hitDummy) continue;
+      }
+
+      // Move bullet forward if still alive
+      if (bullet.alive) {
+       
+      }
+    }
+  }
+
+  // perform deletions AFTER iterating
+  for (const [playerId, bulletId] of toRemove) {
+    this.killBullet(playerId, bulletId);
+  }
+}
+
+  killBullet(playerId, bulletId) {
+  const playerBullets = this.bullets.get(playerId);
+  if (!playerBullets) return;
+
+  const bullet = playerBullets.get(bulletId);
+  if (!bullet) return;
+
+  bullet.kill();
+  playerBullets.delete(bulletId);
+  this.room.bulletsUpdates.push(`DEL:${bulletId}`);
+
+  // If no bullets left for player, clean up empty map (FIXED reference)
+  if (playerBullets.size === 0) {
+    this.bullets.delete(playerId); // <-- was this.player.bullets.delete(playerId) (bug)
+  }
+}
+
+  isAlly(ownerId, otherPlayer) {
+    const owner = this.room.players.get(ownerId);
+    if (!owner) return false;
+    return owner.team.players.some(p => p.nmb === otherPlayer.nmb);
+  }
+
+  processScheduledBullets() {
+  const now = Date.now();
+
+  for (let i = this.scheduledBullets.length - 1; i >= 0; i--) {
+    const scheduled = this.scheduledBullets[i];
+    if (now >= scheduled.spawnTime) {
+      const player = this.room.players.get(scheduled.playerId);
+      if (player) {
+        this.spawnBullet(player, scheduled.bulletData);
+      }
+      this.scheduledBullets.splice(i, 1);
+    }
+  }
+}
+
+
+  scheduleBullet(player, bulletData, delayMs) {
+  const spawnTime = Date.now() + delayMs;
+  this.scheduledBullets.push({ spawnTime, playerId: player.playerId, bulletData });
+}
+
+// In your main update loop (BulletManager.update or Room.update)
+  }
+
+// ---------- Helper Functions (stub these with your existing implementations) ----------
+
+function GunHasModifier(name, room, modifiers) {
+  return modifiers.has(name) || room.weapons_modifiers_override.has(name);
+}
+
+function DestroyWall(wall, room) {
+  room.grid.removeObject(wall);
+  room.destroyedWalls.push(`${wall.x}:${wall.y}`);
+}
+
+function calculateFinalDamage(distanceUsed, bulletMaxDistance, normalDamage, layers) {
+  if (!Array.isArray(layers) || layers.length === 0) return normalDamage;
+  for (const layer of layers) {
+    const thresholdDistance = (layer.threshold / 100) * bulletMaxDistance;
+    if (distanceUsed <= thresholdDistance) return Math.ceil(normalDamage * layer.damageMultiplier);
+  }
+  return 0;
+}
+
+function handleBulletFired(room, player, gunType) {
   const gun = gunsconfig.get(gunType);
   const currentTime = Date.now();
-  const lastShootTime = player.lastShootTime || 0;
-  const shootCooldown = gun.cooldown;
 
-  if (player.shooting || (currentTime - lastShootTime < shootCooldown)) {
+  // Prevent shooting if player is already shooting or cooldown not passed
+  if (player.shooting || (currentTime - (player.lastShootTime || 0) < gun.cooldown)) {
     return;
   }
 
   player.shooting = true;
   player.lastShootTime = currentTime;
 
-  const definedAngle = gun.useplayerangle ? player.shoot_direction : 0;
+  // Base angle
+  const baseAngle = gun.useplayerangle ? player.shoot_direction : 0;
 
-  for (const bullet of gun.bullets) {
+  // For each bullet config, fire respecting its own delay
 
-    const bulletdata = {
-      speed: bullet.speed / 2,
-      delay: bullet.delay,
-      offset: bullet.offset,
-      damage: gun.damage,
-      angle: gun.useplayerangle ? bullet.angle + definedAngle : bullet.angle,
-      height: gun.height / 2.5,
-      width: gun.width / 2.5,
-      maxtime: Date.now() + gun.maxexistingtime + bullet.delay,
-      distance: gun.distance,
-      damageconfig: gun.damageconfig || {},
-      gunid: gunType,
-      modifiers: gun.modifiers,
-      spinning_speed: gun.spinning_speed || undefined
-    };
 
-    shootBulletsWithDelay(room, player, bulletdata);
-  }
+   for (const bulletConfig of gun.bullets) {
+  room.bulletManager.scheduleBullet(player, {
+    speed: bulletConfig.speed,
+    offset: bulletConfig.offset,
+    damage: gun.damage,
+    angle: gun.useplayerangle ? bulletConfig.angle + baseAngle : bulletConfig.angle,
+    height: gun.height / 2.5,
+    width: gun.width / 2.5,
+    maxtime: Date.now() + gun.maxexistingtime + bulletConfig.delay,
+    distance: gun.distance,
+    damageconfig: gun.damageconfig || [],
+    gunid: gunType,
+    modifiers: gun.modifiers,
+    spinning_speed: gun.spinning_speed || undefined,
+  }, bulletConfig.delay);
+}
 
-  player.timeoutIds.push(setTimeout(() => {
+  // Reset shooting state after cooldown
+  room.timeoutIds.push(setTimeout(() => {
     player.shooting = false;
-  }, shootCooldown));
+  }, gun.cooldown));
 }
 
-function calculateFinalDamage(distanceUsed, bulletMaxDistance, normalDamage, layers) {
-
-  if (!Array.isArray(layers) || layers.length === 0) {
-    return normalDamage;
-  }
-
-  for (const layer of layers) {
-    const thresholdDistance = (layer.threshold / 100) * bulletMaxDistance;
-    if (distanceUsed <= thresholdDistance) {
-      return Math.ceil(normalDamage * layer.damageMultiplier);
-    }
-  }
-  return 0; // No damage if no condition is met
-}
 
 
 module.exports = {
-  handleBulletFired,
+  BulletManager,
+  handleBulletFired
 };

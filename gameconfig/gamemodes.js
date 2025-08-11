@@ -4,7 +4,7 @@
 
 const allowed_gamemodes = new Set([
   
-// "devtest", // only enable in local dev server !!!!
+ "devtest", // only enable in local dev server !!!!
 
 
 
