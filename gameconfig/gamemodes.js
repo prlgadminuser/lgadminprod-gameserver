@@ -36,6 +36,7 @@ const gamemodeconfig = {
     ]),
 
     weapons_modifiers_override: new Set([
+     // "CanBounce"
     ]),
 
     placereward_next: {

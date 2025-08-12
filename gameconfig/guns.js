@@ -89,7 +89,7 @@ const gunsconfig = {
 
   4: {  // XNITRO SMG
     modifiers: new Set([
-      "CanBounce",
+     // "CanBounce",
       //  "DestroyWalls"
     ]),
     cooldown: 300,

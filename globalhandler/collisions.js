@@ -175,57 +175,74 @@ function findCollidedWall(grid, x, y, height, width) {
 }
 
 function adjustBulletDirection(bullet, wall, previousPosition) {
+  const halfBlockSize = 20; // Make sure this matches your block size!
 
+
+  
+  // Calculate wall boundaries
   const wallLeft = wall.x - halfBlockSize;
   const wallRight = wall.x + halfBlockSize;
   const wallTop = wall.y - halfBlockSize;
   const wallBottom = wall.y + halfBlockSize;
+  // Current bullet edges
+  const bulletLeft = bullet.position.x - bullet.width / 2;
+  const bulletRight = bullet.position.x + bullet.width / 2;
+  const bulletTop = bullet.position.y - bullet.height / 2;
+  const bulletBottom = bullet.position.y + bullet.height / 2;
 
-  const bulletX = bullet.position.x;
-  const bulletY = bullet.position.y;
+  // Previous bullet edges
+  const prevLeft = previousPosition.x - bullet.width / 2;
+  const prevRight = previousPosition.x + bullet.width / 2;
+  const prevTop = previousPosition.y - bullet.height / 2;
+  const prevBottom = previousPosition.y + bullet.height / 2;
 
-  const prevX = previousPosition.x;
-  const prevY = previousPosition.y;
+console.log(wall)
 
+
+  
+
+  // Detect if bullet crossed the wall boundary between previous and current position
   let reflectHorizontally = false;
   let reflectVertically = false;
 
-  // Check collision side as before
-  if (prevX + bullet.width < wallLeft && bulletX + bullet.width >= wallLeft) {
-    reflectHorizontally = true;
-  } else if (prevX - bullet.width > wallRight && bulletX - bullet.width <= wallRight) {
+  // Check horizontal crossing
+  if ((prevRight < wallLeft && bulletRight >= wallLeft) || 
+      (prevLeft > wallRight && bulletLeft <= wallRight)) {
     reflectHorizontally = true;
   }
 
-  if (prevY + bullet.height < wallTop && bulletY + bullet.height >= wallTop) {
-    reflectVertically = true;
-  } else if (prevY - bullet.height > wallBottom && bulletY - bullet.height <= wallBottom) {
+  // Check vertical crossing
+  if ((prevBottom < wallTop && bulletBottom >= wallTop) || 
+      (prevTop > wallBottom && bulletTop <= wallBottom)) {
     reflectVertically = true;
   }
 
-  // Convert stored bullet.direction to movement vector angle (subtract 90)
-  let moveAngle = (bullet.direction - 90 + 360) % 360;
+
+
+  // Calculate bullet movement angle normalized between 0-359
+  let moveAngle = (bullet.direction + 360) % 360;
 
   if (reflectHorizontally && reflectVertically) {
-    // Corner: invert direction
+    // Corner collision: invert direction
     moveAngle = (moveAngle + 180) % 360;
   } else if (reflectHorizontally) {
-    // Reflect horizontally: flip horizontal component of movement vector angle
-    moveAngle = (540 - moveAngle) % 360; // 180 - angle + 360 mod 360
+    // Reflect horizontally (flip horizontal component)
+    moveAngle = (540 - moveAngle) % 360; // equivalent to 180 - angle + 360 mod 360
   } else if (reflectVertically) {
-    // Reflect vertically: flip vertical component of movement vector angle
+    // Reflect vertically (flip vertical component)
     moveAngle = (360 - moveAngle) % 360;
   } else {
-    // fallback invert angle
-    moveAngle = (moveAngle + 180) % 360;
+    // No reflection, keep angle
+    // (optional: you can keep original or invert to bounce back)
   }
 
-  // Convert back to stored bullet.direction by adding 90
-  bullet.direction = (moveAngle + 90) % 360;
+  // Store updated bullet direction, adding 180 to align with your coordinate system
+  bullet.direction = (moveAngle + 180) % 360;
 
-  // Normalize to positive angle
+  // Normalize direction angle to positive
   if (bullet.direction < 0) bullet.direction += 360;
 }
+
 
 
 
