@@ -180,30 +180,34 @@ function findCollidedWall(grid, x, y, height, width) {
 }
 
 function adjustBulletDirection(bullet, wall) {
-  const wallhitbox = 80;
-  const bulletWidth = bullet.width;
-  const bulletHeight = bullet.height;
+  const wallhitbox = 40;
+  const bw = bullet.width * 0.5;
+  const bh = bullet.height * 0.5;
 
-  const bulletCenterX = bullet.position.x + bulletWidth / 2;
-  const bulletCenterY = bullet.position.y + bulletHeight / 2;
+  const bulletCenterX = bullet.position.x + bw;
+  const bulletCenterY = bullet.position.y + bh;
 
   const deltaX = bulletCenterX - wall.x;
   const deltaY = bulletCenterY - wall.y;
 
-  // Fixed property access here
-  const overlapX = wallhitbox + bulletWidth / 2 - Math.abs(deltaX);
-  const overlapY = wallhitbox + bulletHeight / 2 - Math.abs(deltaY);
+  const absDeltaX = Math.abs(deltaX);
+  const absDeltaY = Math.abs(deltaY);
+
+  const overlapX = wallhitbox + bw - absDeltaX;
+  const overlapY = wallhitbox + bh - absDeltaY;
+
+  const toRad = angle => (angle * Math.PI) / 180;
+  const incomingAngleRad = toRad(bullet.direction);
+  const sinDir = Math.sin(incomingAngleRad);
+  const cosDir = Math.cos(incomingAngleRad);
 
   let normalAngle;
   let side;
-
   const tolerance = 1;
+
   if (Math.abs(overlapX - overlapY) < tolerance) {
-    // Treat as corner: pick side based on bullet’s incoming direction
-    if (
-      Math.abs(Math.sin(toRadians(bullet.direction))) >
-      Math.abs(Math.cos(toRadians(bullet.direction)))
-    ) {
+    // Corner case
+    if (Math.abs(sinDir) > Math.abs(cosDir)) {
       normalAngle = deltaY < 0 ? 90 : 270;
       side = deltaY < 0 ? "top" : "bottom";
     } else {
@@ -218,38 +222,33 @@ function adjustBulletDirection(bullet, wall) {
     side = deltaY < 0 ? "top" : "bottom";
   }
 
-  // Convert to radians
-  const incomingAngle = toRadians(bullet.direction);
-  const normalAngleRadians = toRadians(normalAngle);
+  const normalAngleRad = toRad(normalAngle);
 
-  // Reflect angle
-  const reflectionAngleRadians = 2 * normalAngleRadians - incomingAngle;
+  let reflectionAngleRad = 2 * normalAngleRad - incomingAngleRad;
+  if (reflectionAngleRad < 0) reflectionAngleRad += 2 * Math.PI;
 
-  // Convert back to degrees and normalize
-  let reflectionAngleDegrees = (reflectionAngleRadians * 180) / Math.PI;
-  reflectionAngleDegrees = (reflectionAngleDegrees + 360) % 360;
+  let reflectionAngleDeg = (reflectionAngleRad * 180) / Math.PI;
+  reflectionAngleDeg %= 360;
 
-  // Check bounce data and prevent stuck bullets
   if (bullet.bouncedata) {
-    const bouncedata = bullet.bouncedata;
+    const bd = bullet.bouncedata;
     const posSame =
-      Math.abs(bullet.position.x - bouncedata.pos.x) < 1 &&
-      Math.abs(bullet.position.y - bouncedata.pos.y) < 1;
+      Math.abs(bullet.position.x - bd.pos.x) < 1 &&
+      Math.abs(bullet.position.y - bd.pos.y) < 1;
 
-    if (side === bouncedata.side && posSame) {
-      bullet.alive = false; // or handle stuck bullet however you want
-      console.log("Bullet stuck and killed");
-      return; // early exit
+    if (side === bd.side && posSame) {
+      bullet.alive = false;
+     // console.log("Bullet stuck and killed");
+      return;
     }
   }
 
-  // Store current bounce info
   bullet.bouncedata = {
-    side: side,
+    side,
     pos: { x: bullet.position.x, y: bullet.position.y },
   };
 
-  bullet.direction = reflectionAngleDegrees;
+  bullet.direction = reflectionAngleDeg;
 }
 
 
