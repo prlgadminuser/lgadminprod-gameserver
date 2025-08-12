@@ -1,4 +1,4 @@
-/*
+
 
 "use strict";
 
@@ -152,7 +152,7 @@ const {
   checkForMaintenance,
 } = require("./globalhandler/dbrequests");
 
-const { game_win_rest_time, maxClients, gamemodeconfig, allowed_gamemodes } = require("./globalhandler/config");
+const { game_win_rest_time, maxClients, allowed_gamemodes } = require("./globalhandler/config");
 
 const allowedOrigins = [
   "https://slcount.netlify.app",
@@ -406,4 +406,3 @@ server.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}`);
 });
 
-*/

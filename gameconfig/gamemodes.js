@@ -4,16 +4,60 @@
 
 const allowed_gamemodes = new Set([
   
-  "fightdown",
+// "devtest", // only enable in local dev server !!!!
+
+
+
+
+
+
   "1v1",
  // "deathmatch",
-  "breakthrough",
+  //"breakthrough",
   "training",
 
 
 ])
 
 const gamemodeconfig = {
+
+    devtest: {
+    can_hit_dummies: true,
+    can_hit_players: false,
+
+    maxplayers: 1,
+    teamsize: 1,
+    respawns_allowed: Infinity,
+
+    playerhealth: 77,
+    playerspeed: 5.5,   
+
+    modifiers: new Set([
+    ]),
+
+    weapons_modifiers_override: new Set([
+   
+    ]),
+
+    placereward_next: {
+      1: { skillpoints: 13, coins: 25 },
+      2: { points: 60, coins: 30 },
+      3: { points: 20, coins: 10 }
+    },
+
+    placereward: [10, 8, 6, -1, -5],
+    seasoncoinsreward: [25, 17, 12, 10, 7],
+
+    show_timer: true,
+    custom_map: "prism_party",
+  },
+
+
+
+
+
+
+
   fightdown: {
     can_hit_dummies: false,
     can_hit_players: true,
@@ -23,24 +67,30 @@ const gamemodeconfig = {
     respawns_allowed: 0,
 
     playerhealth: 77,
-    playerspeed: 1.5,   
+    playerspeed: 1.7,   
 
     modifiers: new Set([
       "UseZone",
       "AutoHealthRestore",
     ]),
 
+    weapons_modifiers_override: new Set([
+      "UseZone",
+      "AutoHealthRestore",
+    ]),
+
+
     placereward_next: {
-      '1': { skillpoints: 13, coins: 25 },
-      '2': { points: 60, coins: 30 },
-      '3': { points: 20, coins: 10 }
+      1: { skillpoints: 13, coins: 25 },
+      2: { points: 60, coins: 30 },
+      3: { points: 20, coins: 10 }
     },
 
     placereward: [10, 8, 6, -1, -5],
     seasoncoinsreward: [25, 17, 12, 10, 7],
 
     show_timer: false,
-    custom_map: 4,
+    custom_map: "prism_party",
   },
 
   "1v1": {
@@ -52,11 +102,15 @@ const gamemodeconfig = {
     respawns_allowed: 0,
 
     playerhealth: 150,
-    playerspeed: 1.5,
+    playerspeed: 1.7,
 
     modifiers: new Set([
       "UseZone",
       "AutoHealthRestore",
+    ]),
+
+    weapons_modifiers_override: new Set([
+
     ]),
 
     placereward: [16, -8],
@@ -75,11 +129,16 @@ const gamemodeconfig = {
     respawns_allowed: 1,
 
     playerhealth: 50,
-    playerspeed: 1.5,
+    playerspeed: 1.7,
 
     modifiers: new Set([
-      // UseZone,
+    //  "UseZone",
       // AutoHealthRestore,
+     "HealingCircles"
+    ]),
+
+    weapons_modifiers_override: new Set([
+        "CanBounce"
     ]),
 
     placereward: [0],
@@ -98,13 +157,16 @@ const gamemodeconfig = {
     respawns_allowed: Infinity,
 
     playerhealth: 100,
-    playerspeed: 1.5,
+    playerspeed: 1.7,
 
     placereward: [7, -2],
     seasoncoinsreward: [17, 10],
     show_timer: true,
 
     modifiers: new Set([]),
+
+    weapons_modifiers_override: new Set([
+    ]),
 
     custom_map: 5,
     matchtype: "td",
@@ -119,19 +181,19 @@ const gamemodeconfig = {
     respawns_allowed: 0,
 
     playerhealth: 200,
-    playerspeed: 1.2,
+    playerspeed: 1.7,
 
     placereward: [10, 8, 6, 4, -1, -2, -5],
     seasoncoinsreward: [25, 17, 12, 10, 7, 5, 4],
    // show_timer: true,
 
     modifiers: new Set([
-      "UseZone",
-      "AutoHealthRestore",
-      "HealingCircles",
+         "UseZone"
     ]),
 
- 
+    weapons_modifiers_override: new Set([
+        "DestroyWalls"
+    ]),
 
     custom_map: "breakthrough",
     //matchtype: "td"
@@ -139,6 +201,6 @@ const gamemodeconfig = {
 };
 
 module.exports = {
-  gamemodeconfig,
+  gamemodeconfig: new Map(Object.entries(gamemodeconfig)),
   allowed_gamemodes
 }

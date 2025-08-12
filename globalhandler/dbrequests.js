@@ -3,7 +3,9 @@
 const { shopcollection, userCollection, battlePassCollection, jwt } = require('./..//index.js');
 const { tokenkey } = require('./..//idbconfig.js');
 
-const maintenanceId = "maintenance"; 
+const maintenanceId = "maintenance";
+
+
 
 async function verifyPlayer(token) {
   if (!token) {
@@ -12,12 +14,6 @@ async function verifyPlayer(token) {
 
   try {
 
-     const tokenExists = await userCollection.findOne({ "account.token": token });
-
-    if (!tokenExists) {
-      throw new Error("Invalid token");
-    }
-    
     const decodedToken = jwt.verify(token, tokenkey);
     const username = decodedToken.username;
 
@@ -25,10 +21,12 @@ async function verifyPlayer(token) {
       throw new Error("Invalid token");
     }
 
-    const user = await userCollection.findOne(
-      { "account.username": username },
+     const user = await userCollection.findOne(
+      { "account.token": token },
       {
         projection: {
+          "account.username": 1,
+          "account.nickname": 1,
           "equipped.hat": 1,
           "equipped.top": 1,
           "equipped.color": 1,
@@ -36,18 +34,22 @@ async function verifyPlayer(token) {
           "equipped.top_color": 1,
           "stats.sp": 1,
           "equipped.gadget": 1,
-          "account.nickname": 1,
           "inventory.loadout": 1,
         },
       }
     );
+
+    if (!user || user.account.username !== username) {
+      throw new Error("Invalid token or user not found");
+    }
 
     if (!user) {
       throw new Error("User not found");
     }
 
     return {
-      playerId: user.account.nickname,
+      playerId: username,
+      nickname: user.account.nickname,
       hat: user.equipped.hat,
       top: user.equipped.top,
       player_color: user.equipped.color,
@@ -55,100 +57,59 @@ async function verifyPlayer(token) {
       top_color: user.equipped.top_color,
       skillpoints: user.stats.sp,
       gadget: user.equipped.gadget,
-      nickname: user.account.nickname,
       loadout: user.inventory.loadout,
     };
 
-   
   } catch (error) {
     console.error('Error handling request:', error);
     return false;
   }
 }
 
-async function increasePlayerDamage(playerId, damage) {
+
+
+
+async function increasePlayerKillsAndDamage(playerId, kills, damage) {
   const username = playerId;
-  const damagecount = +damage; 
-  
-    if (isNaN(damagecount)) {
-      return res.status(400).json({ error: "Invalid damage count provided" });
-    }
-  
-    try {
-   
-      const incrementResult = await userCollection.updateOne(
-        { "account.username": username },
-        {
-          $inc: { "stats.damage": damagecount },
-        }
-      );
-  
-  
-          await battlePassCollection.updateOne(
-        { username },
-        {
-          $inc: {
-            bonusitem_damage: damagecount,
-          },
-        },
-        {
-          upsert: true,
-        },
-      );
+  const killcount = +kills;
+  const damagecount = +damage;
 
-      if (incrementResult.matchedCount === 0) {
-        const upsertResult = await userCollection.updateOne(
-          { "account.username": username },
-          {
-            $setOnInsert: {
-              "stats.damage": damagecount,
-            },
-          },
-          { upsert: true }
-        );
-  
-        if (upsertResult.matchedCount === 0 && upsertResult.upsertedCount === 0) {
-          return res.status(404).json({ error: "User not found" });
-        }
-      }
-  
-  } catch (error) {
-    console.error("Error updating damage in the database:", error);
+  if (isNaN(killcount) || isNaN(damagecount)) {
+    return { error: "Invalid count provided" };
   }
-}
 
-async function increasePlayerKills(playerId, kills) {
-  const username = playerId;
-  const killcount = +kills; 
-
-  if (isNaN(killcount)) {
-    return { error: "Invalid kill count provided" }; // Assuming we return an object instead of using res
-  }
+  const updateObject = {
+    $inc: {
+      ...(killcount > 0 && { "stats.kills": killcount }),
+      ...(damagecount > 0 && { "stats.damage": damagecount }),
+    },
+  };
 
   try {
-    // Attempt to increment the player's kill count or insert a new player document if not found
-    const incrementResult = await userCollection.updateOne(
-      { "account.username": username },
-      {
-        $inc: { "stats.kills": killcount },
-      },
-      { upsert: true }
-    );
+    if (Object.keys(updateObject.$inc).length > 0) {
 
-    if (incrementResult.modifiedCount > 0 || incrementResult.upsertedCount > 0) {
-      // If player's kill count was updated or a new player document was inserted
-      const eventKillUpdate = await shopcollection.updateOne(
-        { _id: "eventKillsCounter" },
-        { $inc: { eventKills: killcount } } // Increment the eventKills by the number of kills
+      const incrementResult = await userCollection.updateOne(
+        { "account.username": username },
+        updateObject
+
       );
 
-      if (eventKillUpdate.modifiedCount === 0) {
-        return { error: "Failed to update event kill counter" };
-      }
+      if (incrementResult.modifiedCount > 0 || incrementResult.upsertedCount > 0) {
+        // If player's kill count was updated or a new player document was inserted
+        const eventKillUpdate = await shopcollection.updateOne(
+          { _id: "eventKillsCounter" },
+          { $inc: { eventKills: killcount } } // Increment the eventKills by the number of kills
+        );
 
-      return { success: true, message: "Player kills and event counter updated successfully" };
-    } else {
-      return { error: "User not found or kill count not updated" };
+
+        if (eventKillUpdate.modifiedCount === 0) {
+          return { error: "Failed to update event kill counter" };
+        }
+
+        return { success: true, message: "Player kills and event counter updated successfully" };
+      } else {
+        return { error: "User not found or kill count not updated" };
+      }
     }
   } catch (error) {
     console.error("Error updating kills in the database:", error);
@@ -158,10 +119,10 @@ async function increasePlayerKills(playerId, kills) {
 
 async function increasePlayerWins(playerId, wins2) {
   const username = playerId;
-  const wins = +wins2; 
+  const wins = +wins2;
 
   if (isNaN(wins)) {
-    return res.status(400).json({ error: "Invalid damage count provided" });
+    return { error: "Invalid damage count provided" };
   }
 
   try {
@@ -173,21 +134,6 @@ async function increasePlayerWins(playerId, wins2) {
       }
     );
 
-    if (incrementResult.matchedCount === 0) {
-      const upsertResult = await userCollection.updateOne(
-        { "account.username": username },
-        {
-          $setOnInsert: {
-            "stats.wins": wins,
-          },
-        },
-        { upsert: true }
-      );
-
-      if (upsertResult.matchedCount === 0 && upsertResult.upsertedCount === 0) {
-        return res.status(404).json({ error: "User not found" });
-      }
-    }
   } catch (error) {
     console.error("Error updating damage in the database:", error);
   }
@@ -195,13 +141,13 @@ async function increasePlayerWins(playerId, wins2) {
 
 async function increasePlayerPlace(playerId, place2, room) {
   const username = playerId;
-  const place = +place2; 
+  const place = +place2;
   const player = room.players.get(playerId)
 
   if (isNaN(place) || place < 1 || place > 5 || player.finalrewards_awarded) {
     return;
   }
-  
+
   player.finalrewards_awarded = true
 
   try {
@@ -209,7 +155,8 @@ async function increasePlayerPlace(playerId, place2, room) {
     const season_coins = room.ss_counts[place - 1];
     player.skillpoints_inc = skillpoints
     player.seasoncoins_inc = season_coins
-    
+
+
 
     const updateResult = await userCollection.updateOne(
       { "account.username": username },
@@ -217,25 +164,16 @@ async function increasePlayerPlace(playerId, place2, room) {
         {
           $set: {
             "stats.sp": {
-              $add: [
-                { $ifNull: ["$stats.sp", 0] },
-                skillpoints
-              ]
-            }
-          }
-        },
-        {
-          $set: {
-            "stats.sp": {
-              $max: [ "$stats.sp", 0 ] 
+              $max: [0, { $add: ["$stats.sp", skillpoints] }] // Ensure it doesn't go below 0
             }
           }
         }
       ]
     );
 
+
     await battlePassCollection.updateOne(
-      { "account.username": username },
+      { username },
       {
         $inc: {
           season_coins: season_coins,
@@ -246,25 +184,8 @@ async function increasePlayerPlace(playerId, place2, room) {
       },
     );
 
-   
-    if (updateResult.matchedCount === 0 && updateResult.modifiedCount === 0) {
-    
-      const upsertResult = await userCollection.updateOne(
-        { "account.username": username },
-        {
-          $setOnInsert: {
-            "stats.sp": { $max: [ skillpoints, 0 ] } 
-          },
-        },
-        { upsert: true }
-      );
-
-      if (upsertResult.matchedCount === 0 && upsertResult.upsertedCount === 0) {
-        return res.status(404).json({ error: "User not found" });
-      }
-    }
   } catch (error) {
-    console.error("Error updating damage in the database:", error);
+    console.error("Error updating damage in the database:", JSON.stringify(error));
   }
 }
 
@@ -274,12 +195,12 @@ async function checkForMaintenance() {
   try {
     // Find the maintenanceStatus directly from the document
     const result = await shopcollection.findOne(
-      { _id: maintenanceId },
+      { _id: "maintenance" },
       { projection: { status: 1 } } // Only retrieve the maintenanceStatus field
     );
 
-    if (result.status === "await" || result.status === "true" ) {
-maintenanceMode = true;
+    if (result.status === "await" || result.status === "true") {
+      maintenanceMode = true;
     } else {
       maintenanceMode = false;
     }
@@ -294,8 +215,7 @@ maintenanceMode = true;
 
 
 module.exports = {
-  increasePlayerDamage,
-  increasePlayerKills,
+  increasePlayerKillsAndDamage,
   increasePlayerPlace,
   increasePlayerWins,
   verifyPlayer,

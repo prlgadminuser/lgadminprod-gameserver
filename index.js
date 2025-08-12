@@ -9,19 +9,36 @@ const LZString = require("lz-string")
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const jwt = require("jsonwebtoken");
 const { RateLimiterMemory } = require("rate-limiter-flexible");
-const { uri } = require("./idbconfig");
+const { uri, rediskey } = require("./idbconfig");
 const msgpack = require("msgpack-lite");
-const { rooms } = require('./roomhandler/manager')
+const Redis = require('ioredis');
 
+const SERVER_INSTANCE_ID = 'xxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8); // Ensures UUID version 4
+    return v.toString(16);
+  });
+
+// ------------------------------------------------------------
+// Removed monolithic USER_SESSION_MAP_KEY
+// Use per-user key + per-server hash:
+//   user:<username> => serverId
+//   users:<serverId> => HSET username -> sessionData (stringified or simple timestamp)
+// ------------------------------------------------------------
+const USER_KEY_PREFIX = 'user:';         // user:<username> => serverId
+const SERVER_USERS_PREFIX = 'users:';    // users:<serverId> => hash of username -> sessionInfo
+const SERVER_HEARTBEAT_PREFIX = 'server_heartbeat:'; // Prefix for server heartbeat keys
+
+const multiplier = 40
+const HEARTBEAT_INTERVAL_MS = 10000 * multiplier; // Send heartbeat periodically
+const HEARTBEAT_TTL_SECONDS = (30000 * multiplier) / 1000;   // Heartbeat expires (seconds) - SETEX uses seconds
+const CLEANUP_INTERVAL_MS = 60000 * multiplier;  // Run stale session cleanup periodically
+
+const redisClient = new Redis(rediskey);
 
 function compressMessage(msg) {
-  //const encoded = msgpack.encode(FinalPreMessage)
-  //const encoded = LZString.compressToUint8Array(FinalPreMessage)
-  const encoded = msgpack.encode(msg)
-  return encoded
+  return msgpack.encode(msg);
 }
-
-
 
 const ConnectionOptionsRateLimit = {
   points: 1, // Number of points
@@ -29,7 +46,152 @@ const ConnectionOptionsRateLimit = {
 };
 
 let connectedClientsCount = 0;
-let connectedUsernames = new Set();
+const wsToUsername = new Map();
+
+redisClient.on('connect', () => {
+    console.log('Redis command client connected.');
+    // Start sending heartbeats once connected to Redis
+    startHeartbeat();
+    // Start periodic stale session cleanup
+    setInterval(cleanStaleSessions, CLEANUP_INTERVAL_MS);
+    console.log(`Stale session cleanup scheduled every ${CLEANUP_INTERVAL_MS / 1000} seconds.`);
+});
+
+redisClient.on('error', (err) => console.error('Redis command client error:', err));
+
+function startHeartbeat() {
+    setInterval(async () => {
+        try {
+            const heartbeatKey = `${SERVER_HEARTBEAT_PREFIX}${SERVER_INSTANCE_ID}`;
+            // SETEX key seconds value
+            await redisClient.setex(heartbeatKey, HEARTBEAT_TTL_SECONDS, Date.now().toString());
+        } catch (error) {
+            console.error('Error sending heartbeat to Redis:', error);
+        }
+    }, HEARTBEAT_INTERVAL_MS);
+}
+
+// -------------------- Redis session helpers --------------------
+// Sets both: user:<username> = serverId  AND HSET users:<serverId> username -> sessionInfo
+async function addSession(username, serverId, sessionInfo = {}) {
+    const userKey = `${USER_KEY_PREFIX}${username}`;
+    const serverKey = `${SERVER_USERS_PREFIX}${serverId}`;
+    const sessionValue = typeof sessionInfo === 'string' ? sessionInfo : JSON.stringify(sessionInfo);
+
+    const pipeline = redisClient.multi();
+    pipeline.set(userKey, serverId);
+    pipeline.hset(serverKey, username, sessionValue);
+    await pipeline.exec();
+}
+
+// Removes a single user's session — deletes user:<username> and removes from users:<serverId>
+async function removeSession(username) {
+    const userKey = `${USER_KEY_PREFIX}${username}`;
+    const serverId = await redisClient.get(userKey);
+    if (!serverId) {
+        // nothing to remove
+        await redisClient.del(userKey).catch(()=>{});
+        return;
+    }
+    const serverKey = `${SERVER_USERS_PREFIX}${serverId}`;
+
+    const pipeline = redisClient.multi();
+    pipeline.del(userKey);
+    pipeline.hdel(serverKey, username);
+    // optionally: if the server hash is now empty we can del it — we'll handle in cleanup or explicitly
+    await pipeline.exec();
+}
+
+// Deletes all sessions belonging to a serverId quickly:
+// 1) HKEYS users:<serverId> to get usernames
+// 2) DEL users:<serverId> and DEL user:<username> for each member (pipelined)
+async function removeSessionsByServerId(targetServerId) {
+    try {
+        const serverKey = `${SERVER_USERS_PREFIX}${targetServerId}`;
+
+        // Get usernames on this server
+        const usernames = await redisClient.hkeys(serverKey);
+
+        if (!usernames || usernames.length === 0) {
+            // There may still be a key with no fields; just DEL the serverKey to be safe
+            const deleted = await redisClient.del(serverKey);
+            if (deleted) {
+                console.log(`Removed empty server key for ${targetServerId}.`);
+            } else {
+                console.log(`No sessions found for serverId ${targetServerId}.`);
+            }
+            return;
+        }
+
+        const pipeline = redisClient.multi();
+        // Remove per-user keys and the server hash
+        usernames.forEach(username => {
+            pipeline.del(`${USER_KEY_PREFIX}${username}`);
+        });
+        pipeline.del(serverKey);
+        await pipeline.exec();
+
+        console.log(`Removed ${usernames.length} sessions for serverId ${targetServerId}.`);
+    } catch (error) {
+        console.error(`Error removing sessions for serverId ${targetServerId}:`, error);
+    }
+}
+
+// cleanStaleSessions: iterate over server user hashes (users:*), check heartbeat for each serverId.
+// If heartbeat missing => server is down => delete users:<serverId> and each user:<username>
+async function cleanStaleSessions() {
+    try {
+        // Use scanStream to avoid blocking Redis (production-friendly)
+        const pattern = `${SERVER_USERS_PREFIX}*`;
+        const stream = redisClient.scanStream({ match: pattern, count: 100 });
+
+        let totalCleaned = 0;
+        const promises = [];
+
+        stream.on('data', async (resultKeys) => {
+            // resultKeys is an array of keys matching `users:*`
+            for (const serverKey of resultKeys) {
+                const serverId = serverKey.slice(SERVER_USERS_PREFIX.length); // strip prefix
+                const heartbeatKey = `${SERVER_HEARTBEAT_PREFIX}${serverId}`;
+                const isAlive = await redisClient.exists(heartbeatKey);
+                if (!isAlive) {
+                    // server dead -> remove all sessions of that server
+                    promises.push((async () => {
+                        const usernames = await redisClient.hkeys(serverKey);
+                        if (usernames.length > 0) {
+                            const pipeline = redisClient.multi();
+                            usernames.forEach(u => pipeline.del(`${USER_KEY_PREFIX}${u}`));
+                            pipeline.del(serverKey);
+                            await pipeline.exec();
+                            totalCleaned += usernames.length;
+                        } else {
+                            // just delete the empty hash
+                            const delCount = await redisClient.del(serverKey);
+                            if (delCount) {
+                                // treated as cleaned (zero usernames)
+                            }
+                        }
+                    })());
+                }
+            }
+        });
+
+        await new Promise((resolve, reject) => {
+            stream.on('end', resolve);
+            stream.on('error', reject);
+        });
+
+        // wait for all deletions to finish
+        await Promise.all(promises);
+
+        if (totalCleaned > 0) {
+            console.log(`Completed periodic cleanup. Cleaned ${totalCleaned} stale sessions.`);
+        }
+    } catch (error) {
+        console.error('Error during periodic stale session cleanup:', error);
+    }
+}
+// -------------------- end Redis session helpers --------------------
 
 const rateLimiterConnection = new RateLimiterMemory(ConnectionOptionsRateLimit);
 
@@ -60,28 +222,10 @@ const wss = new WebSocket.Server({
   noServer: true,
   clientTracking: false,
   perMessageDeflate: false,
-  /* perMessageDeflate: {
-     zlibDeflateOptions: {
-       chunkSize: 1024,
-       memLevel: 7,
-       level: 3,
-     },
-     zlibInflateOptions: {
-       chunkSize: 10 * 1024,
-     },
-     serverMaxWindowBits: 10,
-     concurrencyLimit: 10,
-     threshold: 1024,  // Only compress messages larger than 1KB
-   },
- 
- */
-  //proxy: true,
   maxPayload: 10, // 10MB max payload (adjust according to your needs)
 });
 
-
 const Limiter = require("limiter").RateLimiter;
-
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -89,19 +233,13 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-    //   maxConnecting: 2,
-    // maxIdleTimeMS: 300000,
-    // maxPoolSize: 100,
-    //minPoolSize: 0,
   },
 });
 
 async function startServer() {
   try {
-
     await client.connect();
     console.log("Connected to MongoDB");
-
   } catch (err) {
     console.error("Error connecting to MongoDB:", err);
   }
@@ -115,7 +253,6 @@ const db = client.db("Cluster0");
 const userCollection = db.collection("users");
 const battlePassCollection = db.collection("battlepass_users");
 const shopcollection = db.collection("serverconfig");
-
 
 module.exports = {
   axios,
@@ -135,7 +272,6 @@ module.exports = {
   compressMessage,
 };
 
-
 const {
   joinRoom,
   handleRequest,
@@ -147,15 +283,13 @@ const {
 } = require("./roomhandler/manager");
 
 const {
-  increasePlayerDamage,
-  increasePlayerKills,
   increasePlayerPlace,
   increasePlayerWins,
   verifyPlayer,
   checkForMaintenance,
 } = require("./globalhandler/dbrequests");
 
-const { game_win_rest_time, maxClients, gamemodeconfig, allowed_gamemodes } = require("./globalhandler/config");
+const { game_win_rest_time, allowed_gamemodes } = require("./globalhandler/config");
 
 const allowedOrigins = [
   "https://slcount.netlify.app",
@@ -176,195 +310,207 @@ const allowedOrigins = [
 ];
 
 function isValidOrigin(origin) {
-  const trimmedOrigin = origin.trim().replace(/(^,)|(,$)/g, "");
+  const trimmedOrigin = origin ? origin.trim().replace(/(^,)|(,$)/g, "") : "";
   return allowedOrigins.includes(trimmedOrigin);
 }
-
 
 async function handlePlayerVerification(token) {
   const playerVerified = await verifyPlayer(token);
   if (!playerVerified) {
-    return false;  // Optional: To indicate verification failure
+    return false;
   }
-  return playerVerified;  // Optional: To indicate successful verification
+  return playerVerified;
 }
 
-wss.on("connection", (ws, req) => {
-  try {
-    if (connectedClientsCount > maxClients - 1) {
-      ws.close(4034, "code:full");
-      return;
-    }
-    // Check for maintenance mode
-    checkForMaintenance()
-      .then(isMaintenance => {
-        if (isMaintenance) {
-          ws.close(4008, "maintenance");
-          return;
+wss.on("connection", async (ws, req) => { // Made the connection handler async
+    try {
+        let isMaintenance;
+        try {
+            isMaintenance = await checkForMaintenance();
+        } catch (err) {
+            console.error("Error checking for maintenance:", err);
+            ws.close(1011, "Internal server error");
+            return;
         }
+
+        if (isMaintenance) {
+            ws.send("matchmaking_disabled"); // First send a message
+            setTimeout(() => {
+                ws.close(4008, "maintenance"); // Then close after 10ms
+            }, 10);
+            return;
+        }
+
         // Parse URL and headers
         const [_, token, gamemode] = req.url.split('/');
         const origin = req.headers["sec-websocket-origin"] || req.headers.origin;
 
-        
         // Validate request
-        if (gamemode.length > 20 || req.length > 2000 || (origin && origin.length > 50) || !isValidOrigin(origin)) {
-          ws.close(4004, "Unauthorized");
-          return;
+        if (!token || !gamemode || gamemode.length > 20 || req.url.length > 2000 || (origin && origin.length > 50) || !isValidOrigin(origin)) {
+            ws.close(4004, "Unauthorized");
+            return;
         }
 
         if (!(token && token.length < 300 && allowed_gamemodes.has(gamemode))) {
-          ws.close(4094, "Unauthorized");
-          // console.log("Invalid token or gamemode");
-          return;
+            ws.close(4094, "Unauthorized");
+            return;
         }
 
-        // Verify player token
-        handlePlayerVerification(token).then(playerVerified => {
-          if (!playerVerified) {
+        let playerVerified;
+        try {
+            playerVerified = await handlePlayerVerification(token);
+        } catch (err) {
+            console.error("Error verifying player:", err);
+            ws.close(1011, "Internal server error");
+            return;
+        }
+
+        if (!playerVerified) {
             ws.close(4001, "Invalid token");
             return;
-          }
+        }
 
-          if (connectedUsernames.has(playerVerified.playerId)) {
-            ws.close(4006, "code:double");
-            return;
-          }
+        const username = playerVerified.playerId; // Use playerId as the unique username
 
-          // Join room and handle connection
-          joinRoom(ws, gamemode, playerVerified).then(result => {
-            if (!result) {
-              ws.close(4001, "Invalid token");
-              return;
+        // --- Use per-user key instead of big hash to check duplicates ---
+        const userKey = `${USER_KEY_PREFIX}${username}`;
+        const existingServerId = await redisClient.get(userKey);
+
+        if (existingServerId) {
+            const heartbeatKey = `${SERVER_HEARTBEAT_PREFIX}${existingServerId}`;
+            const isExistingServerAlive = await redisClient.exists(heartbeatKey);
+
+            if (isExistingServerAlive) {
+                // User is connected to an active server, reject new connection
+                ws.send(JSON.stringify({ type: 'error', message: `User "${username}" is already connected.` })); // Send error to client
+                ws.close(4006, "code:double"); // Custom code for double login
+                return;
+            } else {
+                // The existing server is NOT alive (heartbeat expired), so it crashed.
+                // Clean up the stale session and allow this new connection.
+                // Remove both user key and server hash entry if exist
+                await removeSession(username);
             }
+        }
 
+        // If we reach here, either the user was not connected, or their previous session was stale.
+        wsToUsername.set(ws, username); // Map WebSocket instance to username
 
-            const player = result.room.players.get(result.playerId);
-            connectedClientsCount++;
-            connectedUsernames.add(playerVerified.playerId);
-            //  console.log(connectedUsernames);
+        // Add user to per-server hash and per-user key
+        await addSession(username, SERVER_INSTANCE_ID, { connectedAt: Date.now() });
 
-            ws.on("message", (message) => {
+        let joinResult;
+        try {
+            joinResult = await joinRoom(ws, gamemode, playerVerified);
+        } catch (err) {
+            console.error("Error joining room:", err);
+            // Clean up Redis session in case of join failure
+            await removeSession(username);
+            ws.close(1011, "Internal server error");
+            return;
+        }
 
-              if (!player.rateLimiter.tryRemoveTokens(1) || message.length > 10) return;
+        if (!joinResult) {
+            // Clean up Redis session in case of join failure
+            await removeSession(username);
+            ws.close(4001, "Invalid token");
+            return;
+        }
 
-              const compressedBinary = message.toString("utf-8"); // Convert Buffer to string
+        const player = joinResult.room.players.get(joinResult.playerId);
 
-              try {
+        ws.on("message", (message) => {
+            if (!player || !player.rateLimiter) return;
+            if (!player.rateLimiter.tryRemoveTokens(1) || message.length > 10) return;
+
+            const compressedBinary = message.toString("utf-8"); // Convert Buffer to string
+
+            try {
                 const parsedMessage = compressedBinary;
 
-
                 if (player) {
-                  handleRequest(result, parsedMessage);
+                    handleRequest(joinResult, parsedMessage);
                 }
-              } catch (error) {
+            } catch (error) {
                 console.error('Error handling request:', error);
-              }
+            }
+        });
 
-            });
+        ws.on('close', async () => { // Marked async for Redis operations
+            const currentUser = wsToUsername.get(ws); // Get username from local map
+            if (currentUser) {
+                wsToUsername.delete(ws); // Remove from local WebSocket map
 
-            ws.on('close', () => {
-              const player = result.room.players.get(result.playerId);
-              if (player) {
-                RemoveRoomPlayer(result.room, player)
+                // Remove user from per-user key and per-server hash
+                await removeSession(currentUser);
+            }
 
-                connectedClientsCount--;
-                connectedUsernames.delete(player.playerId);
+            // --- Original game logic for room cleanup on close ---
+            const player = joinResult.room.players.get(joinResult.playerId);
+            if (player) {
+                RemoveRoomPlayer(joinResult.room, player)
 
-               // console.log(room.players.size)
-
-
-               if (result.room.players.size < 1) {
-                closeRoom(result.roomId);
-                return; 
-              }
-
-              if (result.room.state === "playing" && result.room.winner === -1) {
-                // Get all remaining teams that have at least one active player
-                let remainingTeams = result.room.teams.filter(team =>
-                  team.players.some(playerId => {
-                    const player1 = result.room.players.get(playerId.playerId);
-                    return player1 && !player.eliminated;
-                  })
-                );
-             
-                  // If only one team remains
-                  if (remainingTeams.length === 1) {
-
-              
-
-                    const winningTeam = remainingTeams[0];
-
-                    // Filter active players in the winning team (those who are not eliminated)
-                    const activePlayers = winningTeam.players.filter(player => {
-                      const roomPlayer = result.room.players.get(player.playerId);
-                      return roomPlayer && (roomPlayer.eliminated === false || roomPlayer.eliminated == null);
-                    });
-
-
-                    // If only one active player is left in the winning team
-                    if (activePlayers.length === 1) {
-                      const winner = result.room.players.get(activePlayers[0].playerId); // Get the player object
-                      result.room.winner = [winner.nmb].join('$'); // Set the winner's ID
-                    } else {
-                      result.room.winner = winningTeam.id; // Set winner by team ID
-                    }
-
-                    // Awarding victory to all players in the winning team
-                    winningTeam.players.forEach(player => {
-                      const teamplayer = result.room.players.get(player.playerId); // Access the player data using playerId
-
-                      if (teamplayer) {
-                        teamplayer.place = 1
-                        increasePlayerWins(teamplayer.playerId, 1); // Increase wins for the player
-                        increasePlayerPlace(teamplayer.playerId, 1, result.room);
-                      } // Increase place for the player
-                    });
-
-                  //  result.room.timeoutIds.push(setTimeout(() => closeRoom(result.roomId), game_win_rest_time));
-
-                    // Add the winning team to eliminated teams with place 1
-                    result.room.eliminatedTeams.push({
-                      teamId: winningTeam.id,
-                      place: 1
-                    });
-
-                    result.room.timeoutIds.push(setTimeout(() => {
-                      closeRoom(result.roomId); // End the game after a short delay
-                  }, game_win_rest_time));
-
-                    // End the game after a short delay
-                  //  console.log("closing room")
-                  }
+                if (joinResult.room.players.size < 1) {
+                    closeRoom(joinResult.roomId);
+                    return;
                 }
 
+                if (joinResult.room.state === "playing" && joinResult.room.winner === -1) {
+                    let remainingTeams = joinResult.room.teams.filter(team =>
+                        team.players.some(playerId => {
+                            const player1 = joinResult.room.players.get(playerId.playerId);
+                            return player1 && !player.eliminated;
+                        })
+                    );
 
-              }
+                    if (remainingTeams.length === 1) {
+                        const winningTeam = remainingTeams[0];
 
+                        const activePlayers = winningTeam.players.filter(player => {
+                            const roomPlayer = joinResult.room.players.get(player.playerId);
+                            return roomPlayer && (roomPlayer.eliminated === false || roomPlayer.eliminated == null);
+                        });
 
-            })
-          });
-        }).catch(err => {
-          console.error("Error joining room:", err);
-          ws.close(1011, "Internal server error");
-        });
-      }).catch(err => {
-        console.error("Error verifying player:", err);
-        ws.close(1011, "Internal server error");
-      });
-  } catch (error) {
-    console.error("Error during WebSocket connection handling:", error);
-    ws.close(1011, "Internal server error");
-  }
+                        if (activePlayers.length === 1) {
+                            const winner = joinResult.room.players.get(activePlayers[0].playerId);
+                            joinResult.room.winner = [winner.nmb].join('$');
+                        } else {
+                            joinResult.room.winner = winningTeam.id;
+                        }
+
+                        winningTeam.players.forEach(player => {
+                            const teamplayer = joinResult.room.players.get(player.playerId);
+                            if (teamplayer) {
+                                teamplayer.place = 1
+                                increasePlayerWins(teamplayer.playerId, 1);
+                                increasePlayerPlace(teamplayer.playerId, 1, joinResult.room);
+                            }
+                        });
+
+                        joinResult.room.eliminatedTeams.push({
+                            teamId: winningTeam.id,
+                            place: 1
+                        });
+
+                        joinResult.room.timeoutIds.push(setTimeout(() => {
+                            closeRoom(joinResult.roomId);
+                        }, game_win_rest_time));
+                    }
+                }
+            }
+        })
+    } catch (error) {
+        console.error("Error during WebSocket connection handling:", error);
+        try { ws.close(1011, "Internal server error"); } catch {}
+    }
 });
-
 
 server.on("upgrade", (request, socket, head) => {
   (async () => {
     const ip = request.socket["true-client-ip"] || request.socket["x-forwarded-for"] || request.socket.remoteAddress;
 
     try {
-   //   await rateLimiterConnection.consume(ip);
+      await rateLimiterConnection.consume(ip);
 
       const origin = request.headers["sec-websocket-origin"] || request.headers.origin;
 
@@ -383,19 +529,25 @@ server.on("upgrade", (request, socket, head) => {
   })();
 });
 
-
 process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception:", error);
+   process.exit()
 });
 
 process.on("unhandledRejection", (reason, promise) => {
   console.error("Unhandled Rejection:", reason, promise);
+    process.exit()
 });
 
+process.on('SIGINT', () => {
+    console.log('SIGINT signal received. Closing WebSocket and Redis connection.');
+    wss.close(() => {
+        redisClient.quit();
+        process.exit(0);
+    });
+});
 
 const PORT = process.env.PORT || 8070;
 server.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}`);
 });
-
-

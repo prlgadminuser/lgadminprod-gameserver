@@ -1,4 +1,6 @@
 
+
+
 const { MONGO_URI, TOKEN_KEY, DISCORDWEBHOOK, REDIS_KEY } = require("./ENV")
 
 const lgconnecturi = process.env.MONGO_URI || MONGO_URI

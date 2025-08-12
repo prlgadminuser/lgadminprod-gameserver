@@ -1,49 +1,68 @@
 "use strict";
-// joker / gadget config
 
+// Utility functions
+function enableGadget(player, changes = {}) {
+    player.gadgetBackup = player.gadgetBackup || {};
+    
+    for (const key in changes) {
+        // Backup original value only once
+        if (!(key in player.gadgetBackup)) {
+            player.gadgetBackup[key] = player[key];
+        }
+        player[key] = changes[key];
+    }
+
+    player.gadgetactive = true;
+}
+
+function disableGadget(player) {
+    if (!player.gadgetBackup) return;
+
+    for (const key in player.gadgetBackup) {
+        player[key] = player.gadgetBackup[key];
+    }
+
+    player.gadgetBackup = {}; // Clear backup
+    player.gadgetactive = false;
+}
+
+// Gadget configuration
 const gadgetconfig = {
- 
     1: {  // SYRINGE = restores 20% of player health
         use_limit: 5,
         cooldown: 500,
-       // changevariables: {
-      //  starthealth: -0.2,  // Decrease health by 20%
-      //  health: -0.2,
-     // },
         gadget(player) {
-            player.health = Math.min(player.health + Math.round(player.starthealth / 5), player.starthealth);
+            const healthToAdd = Math.round(player.starthealth / 5);  // 20%
+            player.health = Math.min(player.health + healthToAdd, player.starthealth);
         }
     },
-    
-    2: {  // Highspeeder = increases the player speed by 50 %  for 5 seconds
+
+    2: {  // Highspeeder = increases player speed by 50% for 5 seconds
         use_limit: 3,
         cooldown: 10000,
         gadget(player) {
-            player.speed = player.speed + player.speed / 2;
+            const boostedSpeed = player.speed + player.speed / 2;
+            enableGadget(player, { speed: boostedSpeed });
 
             player.timeoutIds.push(setTimeout(() => {
-            player.speed = player.startspeed
-
-        }, 5000));
-              
+                disableGadget(player);
+            }, 5000));
         }
     },
 
-    3: {  // bouncetech = bullets do now bounce from walls for 20 seconds
+    3: {  // Bouncetech = bullets bounce from walls for 20 seconds
         use_limit: 3,
         cooldown: 30000,
         gadget(player) {
-            player.can_bullets_bounce = true
-            player.timeoutIds.push(setTimeout(() => {
-               player.can_bullets_bounce = false
-    
-            }, 20000));
-                  
-            }
-        },
-    }
+            enableGadget(player, { can_bullets_bounce: true });
 
+            player.timeoutIds.push(setTimeout(() => {
+                disableGadget(player);
+            }, 20000));
+        }
+    },
+};
 
 module.exports = {
-    gadgetconfig
+   gadgetconfig: new Map(Object.entries(gadgetconfig)) 
 };
