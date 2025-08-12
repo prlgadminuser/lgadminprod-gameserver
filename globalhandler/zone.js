@@ -8,8 +8,6 @@ const { TeamPlayersActive } = require('./../teamhandler/aliveteam');
 const PLAYER_WIDTH = 40;
 const PLAYER_HEIGHT = 60;
 
-const RandomZone = false
-
 function isWithinZone(room, playerX, playerY) {
   return playerX - PLAYER_WIDTH >= room.zoneStartX && playerX + PLAYER_WIDTH <= room.zoneEndX &&
     playerY - PLAYER_HEIGHT >= room.zoneStartY && playerY + PLAYER_HEIGHT <= room.zoneEndY;
@@ -122,25 +120,17 @@ function pingPlayers(room) {
   );
 }
 
+const RandomZone = false
 
-function generateRandomTarget(prevZone, targetSize) {
+function generateRandomTarget(mapWidth, mapHeight) {
   if (RandomZone) {
-    const { zoneStartX, zoneStartY, zoneEndX, zoneEndY } = prevZone;
-
-    const maxCenterX = zoneEndX - targetSize / 2;
-    const minCenterX = zoneStartX + targetSize / 2;
-    const maxCenterY = zoneEndY - targetSize / 2;
-    const minCenterY = zoneStartY + targetSize / 2;
-
-    const targetX = Math.random() * (maxCenterX - minCenterX) + minCenterX;
-    const targetY = Math.random() * (maxCenterY - minCenterY) + minCenterY;
-
-    return { targetX, targetY };
+    const randomX = Math.floor(Math.random() * (mapWidth * 2 + 1)) - mapWidth;
+    const randomY = Math.floor(Math.random() * (mapHeight * 2 + 1)) - mapHeight;
+    return { targetX: randomX, targetY: randomY };
   } else {
     return { targetX: 0, targetY: 0 };
   }
 }
-
 
  
 
@@ -150,53 +140,16 @@ function UseZone(room) {
   room.zoneEndX += room.mapWidth / 2;
   room.zoneEndY += room.mapHeight / 2;
 
-  const initialWidth = room.zoneEndX - room.zoneStartX;
-  const initialHeight = room.zoneEndY - room.zoneStartY;
+  const mapWidth = room.mapWidth * 0.7
+  const mapHeight = room.mapHeight * 0.7
 
-  const baseZone = {
-    zoneStartX: room.zoneStartX,
-    zoneStartY: room.zoneStartY,
-    zoneEndX: room.zoneEndX,
-    zoneEndY: room.zoneEndY
-  };
-
-  const phases = [];
-
-  const zones = [
-    { targetSize: room.mapHeight * 2, waitTime: 0, shrinkTime: 24000, damage: 2 },
-    { targetSize: room.mapHeight * 1.3, waitTime: 20000, shrinkTime: 50000, damage: 5 },
-    { targetSize: room.mapHeight * 0.6, waitTime: 20000, shrinkTime: 50000, damage: 8 },
-    { targetSize: 0, waitTime: 20000, shrinkTime: 50000, damage: 10 }
+  room.zonephases = [
+    { waitTime: 0, shrinkTime: 240000, damagePerSecond: 2, zonespeed: 5, ...generateRandomTarget(mapWidth, mapHeight), targetSize: room.mapHeight * 2 },
+    { waitTime: 20000, shrinkTime: 50000, damagePerSecond: 4, zonespeed: 5, ...generateRandomTarget(mapWidth, mapHeight), targetSize: room.mapHeight * 1.3 },
+    { waitTime: 20000, shrinkTime: 50000, damagePerSecond: 8, zonespeed: 5, ...generateRandomTarget(mapWidth, mapHeight), targetSize: room.mapHeight * 0.6 },
+    { waitTime: 20000, shrinkTime: 50000, damagePerSecond: 12, zonespeed: 5, ...generateRandomTarget(mapWidth, mapHeight), targetSize: 0 },
   ];
 
-  let prevZone = baseZone;
-
-  for (let i = 0; i < zones.length; i++) {
-    const { targetSize, waitTime, shrinkTime, damage } = zones[i];
-    const { targetX, targetY } = generateRandomTarget(prevZone, targetSize);
-
-    const phase = {
-      waitTime,
-      shrinkTime,
-      damagePerSecond: damage,
-      zonespeed: 5,
-      targetX,
-      targetY,
-      targetSize,
-    };
-
-    phases.push(phase);
-
-    // Calculate new zone boundaries for the next phase
-    prevZone = {
-      zoneStartX: targetX - targetSize / 2,
-      zoneStartY: targetY - targetSize / 2,
-      zoneEndX: targetX + targetSize / 2,
-      zoneEndY: targetY + targetSize / 2
-    };
-  }
-
-  room.zonephases = phases;
   room.currentPhase = 0;
   room.phaseStartTime = new Date().getTime();
 
@@ -208,7 +161,6 @@ function UseZone(room) {
     setInterval(() => dealDamage(room), 1000)
   );
 }
-
 
 module.exports = {
   UseZone,

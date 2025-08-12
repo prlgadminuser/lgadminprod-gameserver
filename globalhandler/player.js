@@ -10,63 +10,54 @@ const { updateTeamScore } = require('./../teamfighthandler/changescore')
 const { playerhitbox } = require('./config.js')
 
 
-  const added_hitbox = 2;
-  const hitboxXMin = playerhitbox.xMin + added_hitbox;
-  const hitboxXMax = playerhitbox.xMax + added_hitbox;
-  const hitboxYMin = playerhitbox.yMin + added_hitbox;
-  const hitboxYMax = playerhitbox.yMax + added_hitbox;
+function handleMovement(player, room) { // all hitbox should be more then the other function in collsision
 
- function handleMovement(player, room) {
-  // Skip if player is not moving
-  //if (!player.moving && player.speed === 0) return;
+  const deltaTime = 1; // Fixed time step in ms
 
-  const xMin = player.x - hitboxXMin;
-  const xMax = player.x + hitboxXMax;
-  const yMin = player.y - hitboxYMin;
-  const yMax = player.y + hitboxYMax;
+  const xMin = player.x - (playerhitbox.xMin + 2);  
+  const xMax = player.x + (playerhitbox.xMax + 2);
+  const yMin = player.y - (playerhitbox.yMin + 2);
+  const yMax = player.y + (playerhitbox.yMax + 2)
 
-  // Only get nearby walls once
-  const nearbyWalls = room.grid.getObjectsInArea(xMin, xMax, yMin, yMax);
-  player.nearbywalls = nearbyWalls;
+  player.nearbywalls = room.grid.getWallsInArea(xMin, xMax, yMin, yMax);
 
-  // Calculate movement direction in radians
-  const DEG2RAD = Math.PI / 180;
-  const finalDirection = (player.moving ? player.direction - 90 : player.direction) * DEG2RAD;
-  const cos = Math.cos(finalDirection);
-  const sin = Math.sin(finalDirection);
+  // Calculate radians for final direction
+  const finalDirection = player.moving ? player.direction - 90 : player.direction;
 
-  // Movement deltas
-  const speed = player.speed;
-  let newX = player.x + speed * cos;
-  let newY = player.y + speed * sin;
+  const radians = (finalDirection * Math.PI) / 180;
 
-  // Collision checks only once per axis
-  if (isCollisionWithCachedWalls(nearbyWalls, newX, newY)) {
-    const canMoveX = !isCollisionWithCachedWalls(nearbyWalls, newX, player.y);
-    const canMoveY = !isCollisionWithCachedWalls(nearbyWalls, player.x, newY);
+  // Calculate movement deltas
+  const xDelta = player.speed * Math.cos(radians);
+  const yDelta = player.speed * Math.sin(radians);
 
-    if (canMoveX) {
-      newY = player.y;
-    } else if (canMoveY) {
-      newX = player.x;
-    } else {
+  // Update position with precise values
+  let newX = player.x + xDelta;
+  let newY = player.y + yDelta;
+  
+  // Perform collision checks
+  if (isCollisionWithCachedWalls(player.nearbywalls, newX, newY)) {
+    const canMoveX = !isCollisionWithCachedWalls(player.nearbywalls, newX, player.y);
+    const canMoveY = !isCollisionWithCachedWalls(player.nearbywalls, player.x, newY);
+
+    // Resolve collision by moving along one axis
+    if (canMoveX) newY = player.y;
+    else if (canMoveY) newX = player.x;
+    else {
       newX = player.x;
       newY = player.y;
     }
   }
 
-  // Clamp within bounds
-  const mapWidth = room.mapWidth;
-  const mapHeight = room.mapHeight;
-  if (newX < -mapWidth) newX = -mapWidth;
-  else if (newX > mapWidth) newX = mapWidth;
-  if (newY < -mapHeight) newY = -mapHeight;
-  else if (newY > mapHeight) newY = mapHeight;
+  // Constrain new position within map bounds
+  newX = Math.min(Math.max(newX, -room.mapWidth), room.mapWidth);
+  newY = Math.min(Math.max(newY, -room.mapHeight), room.mapHeight);
 
-  // Store new position (avoid parseFloat — toFixed is slower than necessary)
-  player.x = Math.round(newX * 10000) / 10000;
-  player.y = Math.round(newY * 10000) / 10000;
+  // Apply new position and store last processed position
+  player.x = parseFloat(newX.toFixed(4)); // Store precise position
+  player.y = parseFloat(newY.toFixed(4));
 }
+
+
 
 
 
@@ -86,34 +77,40 @@ function handlePlayerCollision(room, shootingPlayer, targetPlayer, damage, gunid
   // Get the number of active players in the target player's team
   const teamActivePlayers = TeamPlayersActive(room, targetPlayer);
 
-  const player_alive = !targetPlayer.health <= 0
-
+  // If the target player is completely eliminated (health <= 0, no respawns left, and no active teammates)
   if (targetPlayer.health <= 0 && targetPlayer.respawns <= 0 && teamActivePlayers <= 1) {
-
     const elimType = 2; // Type 2 for complete elimination
-    const ElimMessage = `${targetPlayer.nmb}:${elimType}`;
-    shootingPlayer.eliminations.push(ElimMessage)
-
-    handleElimination(room, targetPlayer.team.players);
+    handleElimination(room, targetPlayer.team.players); // Eliminate the team (team.players has player objects)
     addKillToKillfeed(room, 1, shootingPlayer.nmb, targetPlayer.nmb, gunid)
-    spawnAnimation(room, targetPlayer, "death");
-    targetPlayer.eliminator = shootingPlayer.nmb;
-    targetPlayer.spectatingTarget = shootingPlayer.playerId;
-    shootingPlayer.kills += 1;
+    spawnAnimation(room, targetPlayer, "death"); // Show death animation
+
+    targetPlayer.eliminator = shootingPlayer.nmb; // Track the player who eliminated
+    targetPlayer.spectatingTarget = shootingPlayer.playerId; // Make the eliminated player spectate the shooter
+    shootingPlayer.elimlast = `${targetPlayer.nmb}$${elimType}`; // Record the elimination details
+    shootingPlayer.kills += 1; // Increase kills for the shooter
+
+    // Delay the reset of last elimination data
+    room.timeoutIds.push(setTimeout(() => {
+      shootingPlayer.elimlast = null;
+    }, 100));
 
   } else if (targetPlayer.health < 1 && targetPlayer.respawns > 0) {
-
+    // If the target player's health is below 1 and they have respawns left
     const elimType = 1; // Type 1 for respawnable elimination
-    const ElimMessage = `${targetPlayer.nmb}:${elimType}`;
-    shootingPlayer.eliminations.push(ElimMessage)
+    shootingPlayer.elimlast = `${targetPlayer.nmb}$${elimType}`; // Record the respawn elimination
 
+    // Delay the reset of last elimination data
+    room.timeoutIds.push(setTimeout(() => {
+      shootingPlayer.elimlast = null;
+    }, 100));
+
+    // Hide the target player and trigger respawn
     targetPlayer.visible = false;
-    respawnplayer(room, targetPlayer);
+
+    respawnplayer(room, targetPlayer); // Respawn the player
     addKillToKillfeed(room, 2, shootingPlayer.nmb, targetPlayer.nmb, gunid)
-
-    if (room.matchtype === "td") {
+    if (room.matchtype === "td"){
       updateTeamScore(room, shootingPlayer, 1)
-
     }
     spawnAnimation(room, targetPlayer, "respawn"); // Show respawn animation
   }
@@ -131,15 +128,15 @@ function handleDummyCollision(room, shootingPlayer, dummyKey, damage) {
   }
 
 
-  const GUN_BULLET_DAMAGE = Math.min(damage, dummy.health);
+  const GUN_BULLET_DAMAGE = Math.min(damage, dummy.h);
 
-  dummy.health -= GUN_BULLET_DAMAGE;
+  dummy.h -= GUN_BULLET_DAMAGE;
 
-  const hit = `${dummy.x}:${dummy.y}:${GUN_BULLET_DAMAGE}`
+   const hit = `${dummy.x}:${dummy.y}:${GUN_BULLET_DAMAGE}`
 
   shootingPlayer.hitmarkers.push(hit);
 
-  if (dummy.health < 1) {
+  if (dummy.h < 1) {
     spawnAnimation(room, dummy, "death")
 
     delete room.dummies[dummyKey];
@@ -152,7 +149,6 @@ function handleDummyCollision(room, shootingPlayer, dummyKey, damage) {
       }
     }, 4000));
   }
- 
 }
 
 
@@ -164,7 +160,7 @@ function respawnDummy(room, dummyKey, dummy, player) {
       ...dummy
     };
 
-    originalDummy.health = dummy.starthealth
+    originalDummy.h = dummy.sh
 
     if (room) {
       room.dummies[dummyKey] = originalDummy;

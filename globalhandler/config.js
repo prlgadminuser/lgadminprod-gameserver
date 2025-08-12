@@ -1,37 +1,43 @@
 "use strict";
 
-const { gamemodeconfig, allowed_gamemodes } = require('./../gameconfig/gamemodes');
-const { mapsconfig, random_mapkeys } = require('./../gameconfig/maps');
-const { gunsconfig } = require('./../gameconfig/guns');
-const { matchmakingsp } = require('./../gameconfig/matchmaking');
+const { gamemodeconfig, allowed_gamemodes } = require('./../gameconfig/gamemodes')
+const { mapsconfig } = require('./../gameconfig/maps')
+const { gunsconfig } = require('./../gameconfig/guns')
+const { matchmakingsp } = require('./../gameconfig/matchmaking')
 
 const gridcellsize = 40;
-const server_tick_rate = 16.5;
-const player_idle_timeout = 10000;
+const server_tick_rate = 16.4  //17
+const player_idle_timeout = 10000
 const maxClients = 100;
 
-const matchmaking_timeout = 1800000;
-const game_start_time = 1000;
-const game_win_rest_time = 10000;
-const room_max_open_time = 600000;
+const matchmaking_timeout = 1800000 // 30 minutes max matchmaking time
+const game_start_time = 5000
+const game_win_rest_time = 10000
+const room_max_open_time = 600000 // if game begins room can be opened for max 10 minutes before being auto closed by interval
+
 
 const playerhitbox = {
   xMin: 14,
   xMax: 14,
-  yMin: 49,
-  yMax: 49,
+  yMin: 49, //59
+  yMax: 49, //49
+}
+
+const playerHitboxWidth = 40;
+const playerHitboxHeight = 120;
+
+const validDirections = [-90, 0, 180, -180, 90, 45, 135, -135, -45];
+
+const isValidDirection = (direction) => {
+  return validDirections.includes(direction);
 };
 
-const playerHitboxWidth = 22;
-const playerHitboxHeight = 47;
-
-const validDirections = new Set([-90, 0, 180, -180, 90, 45, 135, -135, -45]);
-const isValidDirection = (direction) => validDirections.has(direction);
 
 class SpatialGrid {
   constructor(cellSize) {
     this.cellSize = cellSize;
-    this.grid = new Map(); // Key: "cellX,cellY" → object
+
+      this.grid = new Map(); 
   }
 
   _getCellKey(x, y) {
@@ -40,43 +46,73 @@ class SpatialGrid {
     return `${cellX},${cellY}`;
   }
 
-  addObject(obj) {
-    if (typeof obj.x !== 'number' || typeof obj.y !== 'number') {
-      throw new Error("Object must have numeric 'x', 'y' and a unique 'id' property.");
+  _ensureCell(key) {
+    if (!this.grid.has(key)) {
+      this.grid.set(key, new Set());
     }
+  }
+
+  _addToCell(obj) {
     const key = this._getCellKey(obj.x, obj.y);
-    this.grid.set(key, obj);
-    obj._gridKey = key;
+    this._ensureCell(key);
+    this.grid.get(key).add(obj);
+  }
+
+  _removeFromCell(obj, compareById = false) {
+    const key = this._getCellKey(obj.x, obj.y);
+    const cell = this.grid.get(key);
+    if (!cell) return;
+
+    if (compareById && obj.obj_id) {
+      for (const item of cell) {
+        if (item.obj_id === obj.obj_id) {
+          cell.delete(item);
+          break;
+        }
+      }
+    } else {
+      cell.delete(obj);
+    }
+
+    if (cell.size === 0) {
+      this.grid.delete(key);
+    }
+  }
+
+  addObject(obj) {
+    this._addToCell(obj);
   }
 
   removeObject(obj) {
-    if (!obj || !obj._gridKey) return;
-    this.grid.delete(obj._gridKey);
-    delete obj._gridKey;
+    if (!obj.obj_id) {
+      throw new Error("Object must have an 'obj_id' property to be removed.");
+    }
+    this._removeFromCell(obj, true);
   }
 
-  updateObject(obj, newX, newY) {
-    const oldKey = obj._gridKey;
-    const newKey = this._getCellKey(newX, newY);
-    if (oldKey === newKey) {
-      obj.x = newX;
-      obj.y = newY;
-      return;
-    }
-    this.removeObject(obj);
-    obj.x = newX;
-    obj.y = newY;
-    this.addObject(obj);
+  addWall(wall) {
+    this._addToCell(wall);
   }
 
-  getObjectsInArea(xMin, xMax, yMin, yMax) {
-    const result = [];
-    const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
-    for (const key of keys) {
-      const obj = this.grid.get(key);
-      if (obj) result.push(obj);
+  removeWall(wall) {
+    this._removeFromCell(wall, false);
+  }
+
+  removeWallAt(x, y) {
+    const key = this._getCellKey(x, y);
+    const cell = this.grid.get(key);
+    if (!cell) return;
+
+    for (const obj of cell) {
+      if (obj.x === x && obj.y === y) {
+        cell.delete(obj);
+        break; // Only remove one matching wall
+      }
     }
-    return result;
+
+    if (cell.size === 0) {
+      this.grid.delete(key);
+    }
   }
 
   _getKeysInArea(xMin, xMax, yMin, yMax) {
@@ -85,25 +121,75 @@ class SpatialGrid {
     const endX = Math.floor(xMax / this.cellSize);
     const startY = Math.floor(yMin / this.cellSize);
     const endY = Math.floor(yMax / this.cellSize);
+
     for (let x = startX; x <= endX; x++) {
       for (let y = startY; y <= endY; y++) {
         keys.push(`${x},${y}`);
       }
     }
+
     return keys;
   }
+
+  getObjectsInAreaWithId(xMin, xMax, yMin, yMax, id) {
+    const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
+    const result = [];
+
+    for (const key of keys) {
+      const cell = this.grid.get(key);
+      if (cell) {
+        for (const obj of cell) {
+          if (obj.id === id) result.push(obj);
+        }
+      }
+    }
+
+    return result;
+  }
+
+  getObjectsInArea(xMin, xMax, yMin, yMax) {
+    const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
+    const result = [];
+
+    for (const key of keys) {
+      const cell = this.grid.get(key);
+      if (cell) {
+        result.push(...cell);
+      }
+    }
+
+    return result;
+  }
+
+  getWallsInArea(xMin, xMax, yMin, yMax) {
+    // Same logic as getObjectsInArea
+    return this.getObjectsInArea(xMin, xMax, yMin, yMax);
+  }
+
 }
 
-// Initialize maps with one-wall-per-cell
-mapsconfig.forEach((map, mapKey) => {
-
+// Initialize grids for all maps
+// Adjust as necessary
+Object.keys(mapsconfig).forEach(mapKey => {
+  const map = mapsconfig[mapKey];
   const grid = new SpatialGrid(gridcellsize);
-  map.walls.forEach((wall, index) => {
-    const wallWithId = { ...wall, id: `wall_${index}` };
-    grid.addObject(wallWithId);
-  });
+
+  map.walls.forEach(wall => grid.addWall(wall));
+
+  // Save the grid in the map configuration
   map.grid = grid;
 });
+
+
+function extractWallCoordinates(mapConfig) {
+  return mapConfig.walls.map(({ x, y }) => ({ x, y }));
+}
+
+const transformedMaps = Object.keys(mapsconfig).reduce((acc, key) => {
+  acc[key] = extractWallCoordinates(mapsconfig[key]);
+  return acc;
+}, {});
+
 
 module.exports = {
   server_tick_rate,
@@ -117,7 +203,6 @@ module.exports = {
   playerHitboxHeight,
   gunsconfig,
   mapsconfig,
-  random_mapkeys,
   matchmakingsp,
   gamemodeconfig,
   allowed_gamemodes,
