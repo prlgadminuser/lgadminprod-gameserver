@@ -351,7 +351,7 @@ wss.on("connection", async (ws, req) => { // Made the connection handler async
             return;
         }
 
-        if (!token.length < 300) {
+        if (token.length > 300) {
             ws.close(4094, "Unauthorized");
             return;
         }
