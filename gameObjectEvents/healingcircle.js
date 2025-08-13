@@ -32,7 +32,7 @@ const offsetX = Math.floor(Math.random() * 101) - 50; // Random offset between -
     x: randomX,      // Center x-coordinate
     y: randomY,          // Center y-coordinate
     radius: 0,                  // Initial radius
-    expansionRate: 0.25,           // Radius growth rate per second
+    expansionRate: 0.12,           // Radius growth rate per second
     healAmount: 1,             // Healing amount per tick
     duration: 30000,            // Duration in milliseconds (20 seconds)
     elapsedTime: 0,
@@ -131,3 +131,4 @@ function initializeHealingCircles(room) {
 module.exports = {
   initializeHealingCircles
 };
+
