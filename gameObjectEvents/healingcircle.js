@@ -32,7 +32,7 @@ const offsetX = Math.floor(Math.random() * 101) - 50; // Random offset between -
     x: randomX,      // Center x-coordinate
     y: randomY,          // Center y-coordinate
     radius: 0,                  // Initial radius
-    expansionRate: 0.5,           // Radius growth rate per second
+    expansionRate: 0.25,           // Radius growth rate per second
     healAmount: 1,             // Healing amount per tick
     duration: 30000,            // Duration in milliseconds (20 seconds)
     elapsedTime: 0,
@@ -125,7 +125,7 @@ function initializeHealingCircles(room) {
   // Update healing circles at a regular interval (e.g., 250ms)
   room.intervalIds.push(setInterval(() => {
     updateHealingCircles(250, room);
-  }, 100));
+  }, 50));
 }
 
 module.exports = {
