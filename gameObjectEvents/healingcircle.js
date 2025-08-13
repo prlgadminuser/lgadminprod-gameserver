@@ -25,7 +25,7 @@ function spawnHealingCircle(room) {
     duration: 30000,    // Duration in milliseconds
     elapsedTime: 0,
     maxradius: 70,      // Max radius
-    shrinkRate: 1,      // Integer shrink per update
+    shrinkRate: 0.5,      // Integer shrink per update
   };
 
   room.itemgrid.addObject(newCircle);
@@ -96,4 +96,5 @@ function initializeHealingCircles(room) {
 module.exports = {
   initializeHealingCircles
 };
+
 
