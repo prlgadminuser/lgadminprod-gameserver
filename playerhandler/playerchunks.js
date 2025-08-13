@@ -8,7 +8,7 @@ function findNearestEvents(player, room) {
 
   // Define the search area around the player (radius search area)
 const searchRadiusX = 400;   // width radius
-const searchRadiusY = 220;   // height radius (smaller)
+const searchRadiusY = 240;   // height radius (smaller)
 
 const xMin = player.x - searchRadiusX;
 const xMax = player.x + searchRadiusX;
@@ -100,4 +100,5 @@ function playerchunkrenderer(room) {
 module.exports = {
     playerchunkrenderer
   };
+
   
