@@ -284,6 +284,7 @@ const {
 const {
   increasePlayerPlace,
   increasePlayerWins,
+  increasePlayerKillsAndDamage,
   verifyPlayer,
   checkForMaintenance,
 } = require("./globalhandler/dbrequests");
