@@ -53,7 +53,7 @@ function sendNewFeedPacketToAll(room, entry) {
 
     const FinalPreMessage = JSON.stringify(MessageToSend)
     const compressedPlayerMessage = compressMessage(FinalPreMessage)
-    player.ws.send(compressedPlayerMessage, { binary: true })
+    player.send(compressedPlayerMessage, { binary: true })
 
   })
 }

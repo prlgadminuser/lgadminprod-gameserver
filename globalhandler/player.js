@@ -36,7 +36,7 @@ const { playerhitbox } = require('./config.js')
   const sin = Math.sin(finalDirection);
 
   // Movement deltas
-  const speed = player.speed - 0.3;
+  const speed = player.speed;
   let newX = player.x + speed * cos;
   let newY = player.y + speed * sin;
 

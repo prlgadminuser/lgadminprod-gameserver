@@ -264,13 +264,12 @@ function RemoveRoomPlayer(room, player) {
   if (player.kills > 0 || player.damage > 0)
     increasePlayerKillsAndDamage(player.playerId, player.kills, player.damage);
 
-  if (player.ws) {
+ 
     try {
-      player.ws.close();
+      player.wsClose();
     } catch (e) {
       // ignore errors or log if necessary
     }
-  }
 
   addKillToKillfeed(room, 5, null, player.nmb, null);
   room.players.delete(player.playerId);
@@ -392,7 +391,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
   room.matchmaketimeout = setTimeout(() => {
     room.players.forEach((player) => {
-      player.ws.send("matchmaking_timeout");
+      player.send("matchmaking_timeout");
     });
 
     closeRoom(roomId);
@@ -543,7 +542,10 @@ async function joinRoom(ws, gamemode, playerVerified) {
       gadgetchangevars: gadgetdata.changevariables,
 
       // network
-      ws: ws,
+      wsClose: (code, msg) => ws.close(code, msg),
+      send: (msg) => { if (ws.readyState === ws.OPEN) ws.send(msg) },
+      wsReadyState: () => ws.readyState,
+
       lastmsg: 0,
       rateLimiter: playerRateLimiter,
       intervalIds: [],
@@ -556,7 +558,6 @@ async function joinRoom(ws, gamemode, playerVerified) {
       spectatingplayerid: null,
 
       usegadget(player) {
-
         if (player && room.state === "playing" && player.visible) {
           gadgetdata.gadget(player, room);
         } else {
@@ -579,7 +580,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
     if (room) {
       const timeout = setTimeout(() => {
         if (newPlayer.lastPing <= Date.now() - 5000) {
-          newPlayer.ws.close(4200, "disconnected_inactivity");
+          newPlayer.wsClose(4200, "disconnected_inactivity");
         }
       }, player_idle_timeout);
 
@@ -590,7 +591,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
         return;
       room.players.set(playerId, newPlayer);
 
-      if (ws.readyState === ws.CLOSED) {
+      if (newPlayer.wsReadyState() === ws.CLOSED) {
         RemoveRoomPlayer(room, newPlayer);
         return;
       }
@@ -696,7 +697,7 @@ function cleanupRoom(roomId) {
   }
 
   const playersWithOpenConnections = room.players.filter(
-    (player) => player.ws && player.ws.readyState === WebSocket.OPEN
+    (player) => player.wsReadyState() === WebSocket.OPEN
   );
 
   //console.log(playersWithOpenConnections);
@@ -805,7 +806,7 @@ function SendPreStartMessage(room) {
       },
     };
 
-    player.ws.send(compressMessage(MessageToSend), { binary: true });
+    player.send(compressMessage(MessageToSend), { binary: true });
   }
 }
 
@@ -855,7 +856,7 @@ function prepareRoomMessages(room) {
       room.rdlast = roomdata;
       const compressed = compressMessage(roomdata);
       for (const p of players) {
-        if (!p.ws) continue;
+        if (!p.wsReadyState()) continue;
         p.lastcompressedmessage = compressed;
         p.tick_send_allow = true;
         p.lastMessageHash = generateHash(roomdata);
@@ -928,7 +929,7 @@ function prepareRoomMessages(room) {
 
   // ONE PASS: Build, hash, compress, send
   for (const p of players) {
-    if (!p.ws) continue;
+   if (!p.wsReadyState()) continue;
 
     // Self-data diff
     const nearbyIds = p.nearbyfinalids ? Array.from(p.nearbyfinalids) : [];
@@ -1038,7 +1039,7 @@ function prepareRoomMessages(room) {
 function sendRoomMessages(room) {
   room.players.forEach((player) => {
     if (player.tick_send_allow) {
-      player.ws.send(player.lastcompressedmessage, { binary: true });
+      player.send(player.lastcompressedmessage, { binary: true });
     }
   });
 }
@@ -1054,7 +1055,7 @@ function handleRequest(result, message) {
   const player = result.room.players.get(result.playerId);
 
   if (message.length > 10) {
-    player.ws.close(4000, "ahhh whyyyyy");
+    player.wsClose(4000, "ahhh whyyyyy");
     return;
   }
 

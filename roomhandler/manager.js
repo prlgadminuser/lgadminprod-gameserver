@@ -48,7 +48,7 @@ function closeRoom(roomId) {
   room.players.forEach(player => {
     player.timeoutIds?.forEach(clearTimeout);
     player.intervalIds?.forEach(clearInterval);
-    try { player.ws.close(); } catch {}
+    try { player.wsClose(); } catch {}
     player.bullets?.clear();
     player.nearbyids?.clear();
     player.nearbyplayers = [];
