@@ -94,7 +94,7 @@ function playerchunkrenderer(room) {
       findNearestEvents(player, room)
 
     });
-  }, 100));
+  }, 50));
 }
 
 module.exports = {
@@ -102,3 +102,4 @@ module.exports = {
   };
 
   
+
