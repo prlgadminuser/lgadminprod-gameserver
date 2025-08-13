@@ -21,7 +21,7 @@ function spawnHealingCircle(room) {
     y: randomY,
     radius: 0,          // Initial radius
     expansionRate: 0.5,   // Integer radius growth per update
-    healAmount: -1,      // Integer healing amount
+    healAmount: -0.2,      // Integer healing amount
     duration: 30000,    // Duration in milliseconds
     elapsedTime: 0,
     maxradius: 70,      // Max radius
@@ -96,6 +96,7 @@ function initializeHealingCircles(room) {
 module.exports = {
   initializeHealingCircles
 };
+
 
 
 
