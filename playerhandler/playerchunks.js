@@ -1,105 +1,63 @@
-
 "use strict";
 
-
-
 function findNearestEvents(player, room) {
-  const grid = room.itemgrid; // Assume room.grid is your SpatialGrid
+  const grid = room.itemgrid;
 
-  // Define the search area around the player (radius search area)
-const searchRadiusX = 400;   // width radius
-const searchRadiusY = 240;   // height radius (smaller)
+  const searchRadiusX = 400;
+  const searchRadiusY = 240;
 
-const xMin = player.x - searchRadiusX;
-const xMax = player.x + searchRadiusX;
-const yMin = player.y - searchRadiusY;
-const yMax = player.y + searchRadiusY;
-
+  const xMin = player.x - searchRadiusX;
+  const xMax = player.x + searchRadiusX;
+  const yMin = player.y - searchRadiusY;
+  const yMax = player.y + searchRadiusY;
 
   const objectsInArea = grid.getObjectsInArea(xMin, xMax, yMin, yMax);
 
-  // Filter and map the circles in the area
-  const circles = objectsInArea
-  .filter(obj => obj.id === "circle")
-  .map(circle => [
-    circle.type,
-    circle.x,
-    circle.y,
-    circle.radius
-  ].join(':'));
-
+  // Single pass through objectsInArea
+  const circles = [];
   const animations = {};
-objectsInArea
-  .filter(obj => obj.id === "death" || obj.id === "respawn")
-  .forEach(obj => {
-    animations[obj.obj_id] = `${obj.type}:${obj.x}:${obj.y}`;
-  });
 
-// Assign the results to the player
-player.nearbycircles = circles;
-player.nearbyanimations = animations;
+  for (const obj of objectsInArea) {
+    if (obj.id === "circle") {
+      circles.push([obj.type, obj.x, obj.y, obj.radius].join(':'));
+    } else if (obj.id === "death" || obj.id === "respawn") {
+      animations[obj.obj_id] = `${obj.type}:${obj.x}:${obj.y}`;
+    }
+  }
+
+  player.nearbycircles = circles;
+  player.nearbyanimations = animations;
 }
-
 
 function getPlayersInRange(players, centerX, centerY, xThreshold, yThreshold, excludePlayerId) {
-  const playersInRange = [];
-
-  players.forEach(player => {
-    if (player.nmb !== excludePlayerId) {
-      const isNearX = Math.abs(player.x - centerX) <= xThreshold;
-      const isNearY = Math.abs(player.y - centerY) <= yThreshold;
-
-      if (isNearX && isNearY) {
-        playersInRange.push(player.nmb);
-      }
-    }
-  });
-
-  return playersInRange;
+  return players
+    .filter(p => p.nmb !== excludePlayerId && Math.abs(p.x - centerX) <= xThreshold && Math.abs(p.y - centerY) <= yThreshold)
+    .map(p => p.nmb);
 }
 
-
-function UpdatePlayerChunks(room, player) {
-
-  player.nearbyplayers = getPlayersInRange(Array.from(room.players.values()).filter(p => p.visible), player.x, player.y, 400, 270, player.nmb);
-
+function UpdatePlayerChunks(visiblePlayers, player) {
+  player.nearbyplayers = getPlayersInRange(visiblePlayers, player.x, player.y, 400, 270, player.nmb);
 }
-
-
-
 
 function playerchunkrenderer(room) {
+  const updatePlayers = () => {
+    const visiblePlayers = Array.from(room.players.values()).filter(p => p.visible);
+    visiblePlayers.forEach(player => UpdatePlayerChunks(visiblePlayers, player));
+  };
 
-  room.players.forEach((player) => {
+  const updateEvents = () => {
+    room.players.forEach(player => findNearestEvents(player, room));
+  };
 
-    UpdatePlayerChunks(room, player)
+  // Run immediately
+  updatePlayers();
+  updateEvents();
 
-  });
-
-  room.intervalIds.push(setInterval(() => {
-
-    room.players.forEach((player) => {
-
-      UpdatePlayerChunks(room, player)
-
-    });
-  }, 250));
-
-
-
- room.intervalIds.push(setInterval(() => {
-
-    room.players.forEach((player) => {
-
-      findNearestEvents(player, room)
-
-    });
-  }, 50));
+  // Then schedule intervals
+  room.intervalIds.push(setInterval(updatePlayers, 250));
+  room.intervalIds.push(setInterval(updateEvents, 50));
 }
 
 module.exports = {
-    playerchunkrenderer
-  };
-
-  
-
+  playerchunkrenderer
+};
