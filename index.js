@@ -46,7 +46,6 @@ const ConnectionOptionsRateLimit = {
 };
 
 let connectedClientsCount = 0;
-const wsToUsername = new Map();
 
 redisClient.on('connect', () => {
     console.log('Redis command client connected.');
@@ -399,8 +398,7 @@ wss.on("connection", async (ws, req) => { // Made the connection handler async
             }
         }
 
-        // If we reach here, either the user was not connected, or their previous session was stale.
-        wsToUsername.set(username); // Map WebSocket instance to username
+        
 
         // Add user to per-server hash and per-user key
         await addSession(username, SERVER_INSTANCE_ID, { connectedAt: Date.now() });
@@ -443,9 +441,9 @@ wss.on("connection", async (ws, req) => { // Made the connection handler async
         });
 
         ws.on('close', async () => { // Marked async for Redis operations
-            const currentUser = wsToUsername.get(username); // Get username from local map
+            const currentUser = username; // Get username from local map
             if (currentUser) {
-                wsToUsername.delete(username); // Remove from local WebSocket map
+                wsToUsername.delete(currentUser); // Remove from local WebSocket map
 
                 // Remove user from per-user key and per-server hash
                 await removeSession(currentUser);
