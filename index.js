@@ -334,9 +334,7 @@ wss.on("connection", async (ws, req) => { // Made the connection handler async
 
         if (isMaintenance) {
             ws.send("matchmaking_disabled"); // First send a message
-            setTimeout(() => {
-                ws.close(4008, "maintenance"); // Then close after 10ms
-            }, 10);
+            ws.close(4008, "maintenance"); // Then close after 10ms
             return;
         }
 
@@ -377,6 +375,8 @@ wss.on("connection", async (ws, req) => { // Made the connection handler async
 
         const username = playerVerified.playerId; // Use playerId as the unique username
 
+         ws.username = username;
+
         // --- Use per-user key instead of big hash to check duplicates ---
         const userKey = `${USER_KEY_PREFIX}${username}`;
         const existingServerId = await redisClient.get(userKey);
@@ -409,14 +409,14 @@ wss.on("connection", async (ws, req) => { // Made the connection handler async
         } catch (err) {
             console.error("Error joining room:", err);
             // Clean up Redis session in case of join failure
-            await removeSession(username);
+            await removeSession(ws.username);
             ws.close(1011, "Internal server error");
             return;
         }
 
         if (!joinResult) {
             // Clean up Redis session in case of join failure
-            await removeSession(username);
+            await removeSession(ws.username);
             ws.close(4001, "Invalid token");
             return;
         }
@@ -441,13 +441,9 @@ wss.on("connection", async (ws, req) => { // Made the connection handler async
         });
 
         ws.on('close', async () => { // Marked async for Redis operations
-            const currentUser = username; // Get username from local map
-            if (currentUser) {
-                wsToUsername.delete(currentUser); // Remove from local WebSocket map
 
-                // Remove user from per-user key and per-server hash
-                await removeSession(currentUser);
-            }
+            await removeSession(ws.username);
+            
 
             // --- Original game logic for room cleanup on close ---
             const player = joinResult.room.players.get(joinResult.playerId);
