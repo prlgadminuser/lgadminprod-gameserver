@@ -928,8 +928,8 @@ function prepareRoomMessages(room) {
 
    
     formattedBullets[bullet.id] = [
-    Math.round(bullet.position.x * 10) / 10,
-    Math.round(bullet.position.y * 10) / 10,
+    Math.round(bullet.position.x),
+    Math.round(bullet.position.y),
     Math.round(bullet.direction),
     bullet.gunId
     ]
