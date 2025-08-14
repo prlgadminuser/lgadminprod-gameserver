@@ -872,6 +872,8 @@ function prepareRoomMessages(room) {
     }
     return;
   }
+
+
   // PLAYING STATE
   const aliveCount = players.reduce((c, p) => c + !p.eliminated, 0);
   handlePlayerMoveIntervalAll(room);
@@ -902,8 +904,11 @@ function prepareRoomMessages(room) {
 
   const roomdatahash = generateHash(roomdata)
 
-  if (roomdatahash === room.rdlast) roomdata = undefined;
-  else room.rdlast = roomdatahash
+  if (roomdatahash === room.rdlast) { 
+    roomdata = undefined;
+  }
+   room.rdlast = roomdata
+
 
   // PLAYER POSITIONAL DATA (once)
   const playerData = {};
