@@ -19,7 +19,7 @@ function findNearestEvents(player, room) {
 
   for (const obj of objectsInArea) {
     if (obj.id === "circle") {
-      circles.push([obj.type, obj.x, obj.y, obj.radius].join(':'));
+      circles.push([obj.type, obj.x, obj.y, obj.radius]);
     } else if (obj.id === "death" || obj.id === "respawn") {
       animations[obj.obj_id] = `${obj.type}:${obj.x}:${obj.y}`;
     }

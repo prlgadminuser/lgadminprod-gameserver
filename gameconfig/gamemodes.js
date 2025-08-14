@@ -2,7 +2,7 @@
 // MODIFIERS:
 
 const allowed_gamemodes = new Set([
-  // "devtest", // only enable in local dev server !!!!
+  "devtest", // only enable in local dev server !!!!
 
   "1v1",
   // "deathmatch",
@@ -27,7 +27,7 @@ const gamemodeconfig = {
 
     maxplayers: 1,
     teamsize: 1,
-    respawns_allowed: Infinity,
+    respawns_allowed: 1,
 
     skillpoints_rewardRange: [10, -5], 
     seasoncoins_rewardRange: [30, 5],
@@ -35,7 +35,7 @@ const gamemodeconfig = {
     playerhealth: 77,
     playerspeed: 5.5,
 
-    modifiers: new Set([]),
+    modifiers: new Set(["AutoHealthDamage", "HealingCircles"]),
 
     weapons_modifiers_override: new Set([]),
 

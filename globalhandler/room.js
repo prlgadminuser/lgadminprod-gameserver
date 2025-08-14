@@ -37,6 +37,7 @@ const {
   addRoomToIndex,
   getAvailableRoom,
 } = require("./../roomhandler/manager");
+const { adjustBulletDirection } = require("./collisions.js");
 
 function generateUUID() {
   return "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
@@ -676,11 +677,11 @@ async function startMatch(room, roomId) {
 
                 if (remainingTime <= 0) {
                   clearInterval(room.countdownInterval);
-                  room.countdown = "0-00";
+                  room.countdown = "0:00";
                 } else {
                   const minutes = Math.floor(remainingTime / 1000 / 60);
                   const seconds = Math.floor((remainingTime / 1000) % 60);
-                  room.countdown = `${minutes}-${seconds
+                  room.countdown = `${minutes}:${seconds
                     .toString()
                     .padStart(2, "0")}`;
                 }
@@ -763,7 +764,7 @@ const transformData = (data) => {
   for (const [key, value] of Object.entries(data)) {
     transformed[
       key
-    ] = `${value.x}:${value.y}:${value.health}:${value.starthealth}:${value.type}`;
+    ] = [value.x, value.y, value.health, value.starthealth, value.type]
   }
   return transformed;
 };
@@ -836,28 +837,6 @@ function SendPreStartMessage(room) {
   }
 }
 
-function formatBullets(bullets) {
-  if (bullets.size === 0) return undefined;
-
-  const formattedBullets = {};
-  bullets.forEach((bullet) => {
-    const bullet_id = bullet.bullet_id;
-    const x = bullet.x.toFixed(1);
-    const y = bullet.y.toFixed(1);
-    const direction = Math.round(bullet.direction);
-    const gunid = bullet.gunid;
-    formattedBullets[
-      bullet_id
-    ] = `${bullet_id}=${x},${y},${direction},${gunid}`;
-  });
-
-  const finalBullets =
-    Object.keys(formattedBullets).length > 0
-      ? "$b" + Object.values(formattedBullets).join("")
-      : undefined;
-
-  return finalBullets;
-}
 
 function prepareRoomMessages(room) {
   
@@ -872,7 +851,7 @@ function prepareRoomMessages(room) {
       state_map[room.state],
       room.maxplayers,
       players.length,
-    ].join(":");
+    ]
 
     for (const p of players) {
       p.tick_send_allow = false;
@@ -880,7 +859,7 @@ function prepareRoomMessages(room) {
 
     if (roomdata !== room.rdlast) {
       room.rdlast = roomdata;
-      const compressed = compressMessage(roomdata);
+      const compressed = compressMessage( roomdata );
       for (const p of players) {
         if (!p.wsReadyState()) continue;
         p.lastcompressedmessage = compressed;
@@ -911,13 +890,12 @@ function prepareRoomMessages(room) {
   // ROOM DATA (once)
   let roomdata = [
     state_map[room.state],
-    room.zone,
     room.maxplayers,
     aliveCount,
-    "",
     room.countdown,
     room.winner,
-  ].join(":");
+    room.zone,
+  ]
   if (roomdata === room.rdlast) roomdata = undefined;
   else room.rdlast = roomdata;
 
@@ -933,11 +911,19 @@ function prepareRoomMessages(room) {
 
   if (playerBullets) {
     for (const bullet of playerBullets.values()) {
-      formattedBullets[bullet.id] = `${bullet.id}=${bullet.position.x.toFixed(1)},${bullet.position.y.toFixed(1)},${Math.round(bullet.direction)},${bullet.gunId};`;
+
+   
+    formattedBullets[bullet.id] = [
+    Math.round(bullet.position.x * 10) / 10,
+    Math.round(bullet.position.y * 10) / 10,
+    Math.round(bullet.direction),
+    bullet.gunId
+    ]
+   // console.log(formattedBullets)
     }
   }
 
-  const finalBullets = Object.keys(formattedBullets).length > 0 ? "$b" + Object.values(formattedBullets).join("") : undefined;
+  const finalBullets = Object.keys(formattedBullets).length > 0 ? formattedBullets : undefined;
 
   p.finalbullets = finalBullets;
 
@@ -949,7 +935,7 @@ function prepareRoomMessages(room) {
     p.gun,
     p.emote,
     finalBullets,
-  ].join(":");
+  ]
 }
 
 
@@ -957,7 +943,6 @@ function prepareRoomMessages(room) {
   for (const p of players) {
    if (!p.wsReadyState()) continue;
 
-    // Self-data diff
     const nearbyIds = p.nearbyfinalids ? Array.from(p.nearbyfinalids) : [];
     const selfdata = {
       id: p.nmb,
@@ -1019,7 +1004,7 @@ function prepareRoomMessages(room) {
 
     // Message assembly
     const msg = {
-      rd: roomdata,
+      r: roomdata,
       dm: dummiesFiltered,
       kf: room.newkillfeed,
       sb: room.scoreboard,

@@ -51,11 +51,11 @@ function smoothZoneMovement(room) {
     room.zoneEndY = newCenterY + newHeight / 2;
 
   const zonedata = [
-    Math.round(room.zoneStartX),
-    Math.round(room.zoneStartY),
-    Math.round(room.zoneEndX),
-    Math.round(room.zoneEndY),
-  ].join('$');
+    Math.round(room.zoneStartX) / 10,
+    Math.round(room.zoneStartY) / 10,
+    Math.round(room.zoneEndX) / 10,
+    Math.round(room.zoneEndY) / 10,
+  ]
 
   room.zone = zonedata;
  // For debugging the progress
