@@ -1,4 +1,3 @@
-
 const { Limiter, compressMessage } = require("./..//index.js");
 const {
   matchmaking_timeout,
@@ -905,11 +904,15 @@ function prepareRoomMessages(room) {
 
   const roomdatahash = generateHash(roomdata)
 
+  let finalroomdata 
+
     if (roomdatahash !== room.rdlast) {
       room.rdlast = roomdatahash
+      finalroomdata = roomdata
   } else {
-      roomdata = undefined;
+      finalroomdata = undefined;
   }
+
   // PLAYER POSITIONAL DATA (once)
   const playerData = {};
 
@@ -1015,7 +1018,7 @@ function prepareRoomMessages(room) {
 
     // Message assembly
     const msg = {
-      r: roomdata,
+      r: finalroomdata,
       dm: dummiesFiltered,
       kf: room.newkillfeed,
       sb: room.scoreboard,
