@@ -447,7 +447,8 @@ wss.on("connection", async (ws, req) => { // Made the connection handler async
             
 
             // --- Original game logic for room cleanup on close ---
-            const player = joinResult.room.players.get(joinResult.playerId);
+            const player = joinResult.room.players.get(ws.username);
+            
             if (player) {
                      if (player.kills > 0 || player.damage > 0)
                      increasePlayerKillsAndDamage(player.playerId, player.kills, player.damage);
