@@ -35,7 +35,7 @@ const gamemodeconfig = {
     playerhealth: 77,
     playerspeed: 5.5,
 
-    modifiers: new Set(["AutoHealthDamage", "HealingCircles"]),
+    modifiers: new Set([]),
 
     weapons_modifiers_override: new Set([]),
 
@@ -49,7 +49,7 @@ const gamemodeconfig = {
     seasoncoinsreward: [25, 17, 12, 10, 7],
 
     show_timer: true,
-    custom_map: "prism_party",
+    custom_map: "training",
   },
 
   fightdown: {

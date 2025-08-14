@@ -776,15 +776,15 @@ function SendPreStartMessage(room) {
 
   const AllPlayerData = {};
   for (const p of players) {
-    AllPlayerData[p.nmb] = {
-      hat: p.hat || 0,
-      top: p.top || 0,
-      color: p.player_color,
-      hat_color: p.hat_color,
-      top_color: p.top_color,
-      nickname: p.nickname,
-      starthealth: p.starthealth,
-    };
+    AllPlayerData[p.nmb] = [
+      p.hat || 0,
+      p.top || 0,
+      p.player_color,
+      p.hat_color,
+      p.top_color,
+      p.nickname,
+      p.starthealth,
+    ];
   }
 
   const dummiesFiltered = room.dummies
@@ -837,6 +837,7 @@ function SendPreStartMessage(room) {
   }
 }
 
+const round_player_pos_sending = false // provides 50% better compression but couldnt look smooth enough
 
 function prepareRoomMessages(room) {
   
@@ -942,8 +943,8 @@ function prepareRoomMessages(room) {
   p.finalbullets = finalBullets;
 
   playerData[p.nmb] = [
-    p.x,
-    p.y,
+    round_player_pos_sending ? Math.round(p.x) : p.x,
+    round_player_pos_sending ? Math.round(p.y) : p.y,
     p.direction2,
     p.health,
     p.gun,
@@ -957,7 +958,6 @@ function prepareRoomMessages(room) {
   for (const p of players) {
    if (!p.wsReadyState()) continue;
 
-    const nearbyIds = p.nearbyfinalids ? Array.from(p.nearbyfinalids) : [];
     const selfdata = {
       id: p.nmb,
       state: p.state,
@@ -972,14 +972,14 @@ function prepareRoomMessages(room) {
       cg: +p.canusegadget,
       lg: p.gadgetuselimit,
       ag: +p.gadgetactive,
-      x: p.x,
-      y: p.y,
-      el: JSON.stringify(p.eliminations || []),
+      x: round_player_pos_sending ? Math.round(p.x) : p.x,
+      y: round_player_pos_sending ? Math.round(p.y) : p.y,
+      el: p.eliminations.length > 0 ? p.eliminations : undefined,
       em: p.emote,
       spc: p.spectateid,
       guns: p.loadout_formatted,
-      np: JSON.stringify(nearbyIds),
-      ht: JSON.stringify(p.hitmarkers || []),
+      np: p.nearbyfinalids.length > 0 ? p.nearbyfinalids : undefined,
+      ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
     };
 
     const changes = {};
