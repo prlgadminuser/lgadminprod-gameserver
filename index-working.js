@@ -273,6 +273,8 @@ wss.on("connection", (ws, req) => {
             ws.on('close', () => {
               const player = result.room.players.get(result.playerId);
               if (player) {
+           
+
                 RemoveRoomPlayer(result.room, player)
                 connectedClientsCount--;
                 connectedUsernames.delete(player.playerId);
