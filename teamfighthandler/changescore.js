@@ -60,8 +60,8 @@ function declareWinner(room, winningTeam) {
         const playerObj = room.players.get(player.playerId);
         if (playerObj) {
             playerObj.place = 1; // Mark them in first place
-            increasePlayerWins(playerObj.playerId, 1); // Increase player wins
-            increasePlayerPlace(playerObj.playerId, 1, room); // Increase player place
+            increasePlayerWins(playerObj, 1); // Increase player wins
+            increasePlayerPlace(playerObj, 1, room); // Increase player place
         }
     });
 
@@ -78,7 +78,7 @@ function declareWinner(room, winningTeam) {
             const playerObj = room.players.get(player.playerId);
             if (playerObj) {
                 playerObj.place = 2; // Second place
-                increasePlayerPlace(playerObj.playerId, 2, room); // Increase player place
+                increasePlayerPlace(playerObj, 2, room); // Increase player place
             }
         });
 

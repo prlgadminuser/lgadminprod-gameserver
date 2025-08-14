@@ -29,6 +29,7 @@ const {
 const { initializeAnimations } = require("./../gameObjectEvents/deathrespawn");
 const { playerchunkrenderer } = require("./../playerhandler/playerchunks");
 const { SpatialGrid, gridcellsize } = require("./config.js");
+const { increasePlayerKillsAndDamage } = require("./dbrequests.js");
 const {
   roomIndex,
   rooms,
@@ -267,7 +268,7 @@ function RemoveRoomPlayer(room, player, type) {
   player.nearbyplayers = [];
 
   if (player.kills > 0 || player.damage > 0)
-    increasePlayerKillsAndDamage(player.playerId, player.kills, player.damage);
+    increasePlayerKillsAndDamage(player, player.kills, player.damage);
 
   try {
     player.wsClose();

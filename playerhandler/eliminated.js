@@ -32,7 +32,7 @@ function handleElimination(room, team) {
         const playerObj = room.players.get(player.playerId);
         if (playerObj && !playerObj.eliminated) {
             playerObj.place = adjustedPlace;
-            increasePlayerPlace(playerObj.playerId, adjustedPlace, room);
+            increasePlayerPlace(playerObj, adjustedPlace, room);
         }
     });
 
@@ -101,8 +101,8 @@ function handleElimination(room, team) {
         winningTeam.players.forEach(player => {
             const playerObj = room.players.get(player.playerId);
             playerObj.place = 1; // Set place to 1 for winning team players
-            increasePlayerWins(playerObj.playerId, 1);
-            increasePlayerPlace(playerObj.playerId, 1, room);
+            increasePlayerWins(playerObj, 1);
+            increasePlayerPlace(playerObj, 1, room);
         });
 
         // Add the winning team to the eliminatedTeams array with place 1

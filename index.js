@@ -483,8 +483,8 @@ wss.on("connection", async (ws, req) => { // Made the connection handler async
                             const teamplayer = joinResult.room.players.get(player.playerId);
                             if (teamplayer) {
                                 teamplayer.place = 1
-                                increasePlayerWins(teamplayer.playerId, 1);
-                                increasePlayerPlace(teamplayer.playerId, 1, joinResult.room);
+                                increasePlayerWins(teamplayer, 1);
+                                increasePlayerPlace(teamplayer, 1, joinResult.room);
                             }
                         });
 

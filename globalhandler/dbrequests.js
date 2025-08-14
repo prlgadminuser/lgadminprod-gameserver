@@ -69,8 +69,14 @@ async function verifyPlayer(token) {
 
 
 
-async function increasePlayerKillsAndDamage(playerId, kills, damage) {
-  const username = playerId;
+async function increasePlayerKillsAndDamage(player, kills, damage) {
+
+    if (player.killsndamage_awarded) {
+    return;
+  }
+  player.killsndamage = true
+
+  const username = player.playerId;
   const killcount = +kills;
   const damagecount = +damage;
 
@@ -117,8 +123,14 @@ async function increasePlayerKillsAndDamage(playerId, kills, damage) {
   }
 }
 
-async function increasePlayerWins(playerId, wins2) {
-  const username = playerId;
+async function increasePlayerWins(player, wins2) {
+
+    if (player.wins_awarded) {
+    return;
+  }
+  player.wins_awarded = true
+
+  const username = player.playerId;
   const wins = +wins2;
 
   if (isNaN(wins)) {
@@ -139,16 +151,20 @@ async function increasePlayerWins(playerId, wins2) {
   }
 }
 
-async function increasePlayerPlace(playerId, place2, room) {
-  const username = playerId;
-  const place = +place2;
-  const player = room.players.get(playerId)
+async function increasePlayerPlace(player, place2, room) {
 
-  if (isNaN(place) || place < 1 || place > 5 || player.finalrewards_awarded) {
+  if (player.place_awarded) {
+    return;
+  }
+  player.place_awarded = true
+
+  const username = player.playerId;
+  const place = +place2;
+
+  if (isNaN(place) || place < 1 || place > 10) {
     return;
   }
 
-  player.finalrewards_awarded = true
 
   try {
     const skillpoints = room.place_counts[place - 1];

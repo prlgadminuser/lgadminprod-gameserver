@@ -55,7 +55,7 @@ function closeRoom(roomId) {
     player.nearbyplayers = []; 
 
      if (player.kills > 0 || player.damage > 0)
-    increasePlayerKillsAndDamage(player.playerId, player.kills, player.damage);
+    increasePlayerKillsAndDamage(player, player.kills, player.damage);
 
   });
 
