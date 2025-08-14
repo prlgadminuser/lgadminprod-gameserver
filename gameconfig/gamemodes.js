@@ -116,7 +116,7 @@ const gamemodeconfig = {
     modifiers: new Set([
       //  "UseZone",
       // AutoHealthRestore,
-      "HealingCircles",
+      //"HealingCircles",
     ]),
 
     weapons_modifiers_override: new Set(["CanBounce"]),

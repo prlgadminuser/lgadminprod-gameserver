@@ -847,24 +847,27 @@ function prepareRoomMessages(room) {
 
   // WAITING STATE
   if (!GameRunning) {
+
     const roomdata = [
       state_map[room.state],
       room.maxplayers,
       players.length,
     ]
 
+    const roomdatahash = generateHash(roomdata)
+
     for (const p of players) {
       p.tick_send_allow = false;
     }
 
-    if (roomdata !== room.rdlast) {
-      room.rdlast = roomdata;
+    if (roomdatahash !== room.rdlast) {
+      room.rdlast = generateHash(roomdata);
       const compressed = compressMessage( roomdata );
       for (const p of players) {
         if (!p.wsReadyState()) continue;
         p.lastcompressedmessage = compressed;
         p.tick_send_allow = true;
-        p.lastMessageHash = generateHash(roomdata);
+        p.lastMessageHash = "default";
       }
     }
     return;
