@@ -182,9 +182,9 @@ async function CreateTeams(room) {
 
   // Define team IDs
   const teamIDs = [
-    "Red",
-    "Blue",
-    "Green",
+    "The Tough Shells",
+    "The Jet Setters",
+    "The Highnotes",
     "Yellow",
     "Orange",
     "Purple",
@@ -861,7 +861,7 @@ function prepareRoomMessages(room) {
     }
 
     if (roomdatahash !== room.rdlast) {
-      room.rdlast = generateHash(roomdata);
+      room.rdlast = roomdatahash
       const compressed = compressMessage( roomdata );
       for (const p of players) {
         if (!p.wsReadyState()) continue;
@@ -899,8 +899,11 @@ function prepareRoomMessages(room) {
     room.winner,
     room.zone,
   ]
-  if (roomdata === room.rdlast) roomdata = undefined;
-  else room.rdlast = roomdata;
+
+  const roomdatahash = generateHash(roomdata)
+
+  if (roomdatahash === room.rdlast) roomdata = undefined;
+  else room.rdlast = roomdatahash
 
   // PLAYER POSITIONAL DATA (once)
   const playerData = {};
