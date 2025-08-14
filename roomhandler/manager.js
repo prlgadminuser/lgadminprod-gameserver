@@ -1,4 +1,6 @@
 
+const { increasePlayerKillsAndDamage } = require("./../globalhandler/dbrequests");
+
 const roomIndex = new Map();
 const rooms = new Map();
 
@@ -37,7 +39,6 @@ function removeRoomFromIndex(room) {
 
 
 
-
 function closeRoom(roomId) {
   const room = rooms.get(roomId);
   if (!room) return;
@@ -51,17 +52,25 @@ function closeRoom(roomId) {
     try { player.wsClose(); } catch {}
     player.bullets?.clear();
     player.nearbyids?.clear();
-    player.nearbyplayers = [];
+    player.nearbyplayers = []; 
+
+     if (player.kills > 0 || player.damage > 0)
+    increasePlayerKillsAndDamage(player.playerId, player.kills, player.damage);
+
   });
 
   clearTimeout(room.matchmaketimeout);
   clearTimeout(room.maxopentimeout);
   clearInterval(room.xcleaninterval);
-
   removeRoomFromIndex(room);
   room.players.clear();
   rooms.delete(roomId);
+
+  const room1 = rooms.get(roomId);
+  console.log(room1)
 }
+
+
 
   module.exports = {
     closeRoom,

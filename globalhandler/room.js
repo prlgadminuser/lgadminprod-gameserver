@@ -29,7 +29,6 @@ const {
 const { initializeAnimations } = require("./../gameObjectEvents/deathrespawn");
 const { playerchunkrenderer } = require("./../playerhandler/playerchunks");
 const { SpatialGrid, gridcellsize } = require("./config.js");
-const { increasePlayerKillsAndDamage } = require("./dbrequests");
 const {
   roomIndex,
   rooms,
@@ -145,7 +144,7 @@ function cloneSpatialGrid(original) {
 }
 
 function createRateLimiter() {
-  const rate = 40; // Allow one request every 50 milliseconds
+  const rate = 30; // Allow one request every 50 milliseconds
   return new Limiter({
     tokensPerInterval: rate,
     interval: 1000, // milliseconds
@@ -257,23 +256,46 @@ function clearAndRemoveCompletedTimeouts(timeoutArray, clearFn) {
   });
 }
 
-function RemoveRoomPlayer(room, player) {
+
+function RemoveRoomPlayer(room, player, type) {
   player.timeoutIds?.forEach(clearTimeout);
   player.intervalIds?.forEach(clearInterval);
+
+  try {player.wsClose();} catch {}
+  player.bullets?.clear();
+  player.nearbyids?.clear();
+  player.nearbyplayers = [];
 
   if (player.kills > 0 || player.damage > 0)
     increasePlayerKillsAndDamage(player.playerId, player.kills, player.damage);
 
- 
-    try {
-      player.wsClose();
-    } catch (e) {
-      // ignore errors or log if necessary
-    }
+  try {
+    player.wsClose();
+  } catch (e) {
+    // ignore errors or log if necessary
+  }
 
-  addKillToKillfeed(room, 5, null, player.nmb, null);
+//  addKillToKillfeed(room, 5, null, player.nmb, null);
   room.players.delete(player.playerId);
 }
+
+
+
+
+  function setRoomTimeout(room, fn, ms) {
+  const id = setTimeout(fn, ms);
+  room.timeoutIds.push(id);
+  return id;
+}
+
+function setRoomInterval(room, fn, ms) {
+  const id = setInterval(fn, ms);
+  room.intervalIds.push(id);
+  return id;
+}
+
+
+
 
 function createRoom(roomId, gamemode, gmconfig, splevel) {
   let mapid;
@@ -292,6 +314,8 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
   const bulletgrid = new SpatialGrid(50);
 
   const roomgrid = cloneSpatialGrid(mapdata.grid);
+
+
 
   const room = {
     // Game State
@@ -316,10 +340,10 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     bulletgrid: bulletgrid,
     maxplayers: gmconfig.maxplayers,
     modifiers: gmconfig.modifiers,
-    place_counts: gmconfig.placereward,
     respawns: gmconfig.respawns_allowed,
     showtimer: gmconfig.show_timer,
     sp_level: splevel,
+    place_counts: gmconfig.placereward,
     ss_counts: gmconfig.seasoncoinsreward,
     teamsize: gmconfig.teamsize,
     weapons_modifiers_override: gmconfig.weapons_modifiers_override,
@@ -430,6 +454,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
   // console.log("Room", room.roomId, "created")
   return room;
 }
+
 
 async function joinRoom(ws, gamemode, playerVerified) {
   try {

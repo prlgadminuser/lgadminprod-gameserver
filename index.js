@@ -284,7 +284,6 @@ const {
 const {
   increasePlayerPlace,
   increasePlayerWins,
-  increasePlayerKillsAndDamage,
   verifyPlayer,
   checkForMaintenance,
 } = require("./globalhandler/dbrequests");
@@ -447,11 +446,8 @@ wss.on("connection", async (ws, req) => { // Made the connection handler async
             
 
             // --- Original game logic for room cleanup on close ---
-            const player = joinResult.room.players.get(ws.username);
-            
+            const player = joinResult.room.players.get(joinResult.playerId);
             if (player) {
-                     if (player.kills > 0 || player.damage > 0)
-                     increasePlayerKillsAndDamage(player.playerId, player.kills, player.damage);
 
                 RemoveRoomPlayer(joinResult.room, player)
 

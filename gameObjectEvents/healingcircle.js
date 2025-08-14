@@ -65,8 +65,8 @@ function updateHealingCircles(deltaTime, room) {
 }
 
 function isPlayerInsideCircle(player, circle) {
-  const PLAYER_WIDTH = playerHitboxWidth / 2;
-  const PLAYER_HEIGHT = playerHitboxHeight / 2;
+  const PLAYER_WIDTH = playerHitboxWidth;
+  const PLAYER_HEIGHT = playerHitboxHeight;
 
   const closestX = Math.max(player.x - PLAYER_WIDTH, Math.min(circle.x, player.x + PLAYER_WIDTH));
   const closestY = Math.max(player.y - PLAYER_HEIGHT, Math.min(circle.y, player.y + PLAYER_HEIGHT));
