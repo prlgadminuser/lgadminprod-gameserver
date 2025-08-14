@@ -84,6 +84,11 @@ async function increasePlayerKillsAndDamage(player, kills, damage) {
     return { error: "Invalid count provided" };
   }
 
+  const maxkillcount = 100
+  const maxdamagecount = 50000
+
+  if (killcount > maxkillcount || damagecount > maxdamagecount) return
+
   const updateObject = {
     $inc: {
       ...(killcount > 0 && { "stats.kills": killcount }),
@@ -96,11 +101,11 @@ async function increasePlayerKillsAndDamage(player, kills, damage) {
 
       const incrementResult = await userCollection.updateOne(
         { "account.username": username },
-        updateObject
-
+        updateObject,
+        { hint: "playerProfileIndex" } // <-- Using index hint
       );
 
-      if (incrementResult.modifiedCount > 0 || incrementResult.upsertedCount > 0) {
+      if (killcount > 0 && incrementResult.modifiedCount > 0 || incrementResult.upsertedCount > 0) {
         // If player's kill count was updated or a new player document was inserted
         const eventKillUpdate = await shopcollection.updateOne(
           { _id: "eventKillsCounter" },
@@ -141,9 +146,8 @@ async function increasePlayerWins(player, wins2) {
 
     const incrementResult = await userCollection.updateOne(
       { "account.username": username },
-      {
-        $inc: { "stats.wins": wins },
-      }
+      { $inc: { "stats.wins": wins } },
+      { hint: "playerProfileIndex" }
     );
 
   } catch (error) {
@@ -173,18 +177,12 @@ async function increasePlayerPlace(player, place2, room) {
     player.seasoncoins_inc = season_coins
 
 
-
-    const updateResult = await userCollection.updateOne(
+     const updateResult = await userCollection.updateOne(
       { "account.username": username },
       [
-        {
-          $set: {
-            "stats.sp": {
-              $max: [0, { $add: ["$stats.sp", skillpoints] }] // Ensure it doesn't go below 0
-            }
-          }
-        }
-      ]
+        { $set: { "stats.sp": { $max: [0, { $add: ["$stats.sp", skillpoints] }] } } }
+      ],
+      { hint: "playerProfileIndex" } // <-- Using index hint
     );
 
 
