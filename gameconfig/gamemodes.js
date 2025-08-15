@@ -100,7 +100,7 @@ const gamemodeconfig = {
     seasoncoinsreward: [25, 12],
 
     show_timer: false,
-    custom_map: 2,
+    custom_map: "prism_party",
   },
 
   training: {
