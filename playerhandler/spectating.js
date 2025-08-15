@@ -50,7 +50,7 @@ function handleSpectatorMode(player, room) {
   function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
     spectatingPlayer.x = targetPlayer.x;
     spectatingPlayer.y = targetPlayer.y;
-    spectatingPlayer.direction2 = targetPlayer.direction2;
+   // spectatingPlayer.direction2 = targetPlayer.direction2;
     spectatingPlayer.spectateid = targetPlayer.nmb;
   }
   
@@ -75,17 +75,12 @@ function handleSpectatorMode(player, room) {
   
   // Function to monitor spectating logic continuously for a player
   function startSpectatingLogic(player, room) {
-    const intervalId = room.intervalIds.push(setInterval(() => {
-      if (!player.eliminated) {
-        clearInterval(intervalId); // Stop spectating logic if player is not eliminated
-      } else {
-        handleSpectatorMode(player, room); // Continuously handle spectating state
-      }
-    }, server_tick_rate - 0.3)); // Adjust intervalfrequency as needed
+    player.spectating = true
   }
   
 
   
 module.exports = {
-    startSpectatingLogic
+    startSpectatingLogic,
+    handleSpectatorMode
   };

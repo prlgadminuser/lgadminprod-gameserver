@@ -880,6 +880,7 @@ function prepareRoomMessages(room) {
   const aliveCount = players.reduce((c, p) => c + !p.eliminated, 0);
   handlePlayerMoveIntervalAll(room);
 
+
   // DUMMIES (once)
   let dummiesFiltered;
   if (room.dummies) {
@@ -920,6 +921,11 @@ function prepareRoomMessages(room) {
 
 
   for (const p of players) {
+
+  if (p.spectating) handleSpectatorMode(p, room);// Continuously handle spectating state
+
+  
+
   if (!p.visible) continue;
 
   const formattedBullets = {};

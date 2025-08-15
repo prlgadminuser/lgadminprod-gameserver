@@ -42,6 +42,8 @@ function UpdatePlayerChunks(visiblePlayers, player) {
 
 function playerchunkrenderer(room) {
   const updatePlayers = () => {
+  //  const visiblePlayers = Array.from(room.players.values()).filter(p => p.visible);
+
     const visiblePlayers = Array.from(room.players.values());
     visiblePlayers.forEach(player => UpdatePlayerChunks(visiblePlayers, player));
   };
