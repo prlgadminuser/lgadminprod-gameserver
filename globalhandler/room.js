@@ -978,7 +978,7 @@ function prepareRoomMessages(room) {
       em: p.emote,
       spc: p.spectateid,
       guns: p.loadout_formatted,
-      np: p.nearbyfinalids ? p.nearbyfinalids.length > 0 ? p.nearbyfinalids : undefined : undefined,
+      np: p.nearbyfinalids ? p.nearbyfinalids.length > 0 ? p.nearbyfinalids : [] : undefined,
       ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
     };
 
