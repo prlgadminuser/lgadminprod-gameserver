@@ -547,11 +547,11 @@ async function joinRoom(ws, gamemode, playerVerified) {
       shoot_direction: 90,
       hitmarkers: [],
       eliminations: [],
+      nearbyanimations: [],
       can_bullets_bounce: false,
       bullets: new Map(),
       nearbyids: new Set(),
       nearbyplayers: [],
-
       // movement
       moving: false,
       direction: null,
@@ -583,6 +583,9 @@ async function joinRoom(ws, gamemode, playerVerified) {
       spectateid: 0,
       spectatingTarget: null,
       spectatingplayerid: null,
+      
+      //final rewards 
+      finalrewards: [],
 
       usegadget(player) {
         if (player && room.state === "playing" && player.visible) {
@@ -774,9 +777,9 @@ function SendPreStartMessage(room) {
 
   const players = Array.from(room.players.values());
 
-  const AllPlayerData = {};
+  const AllData = {};
   for (const p of players) {
-    AllPlayerData[p.nmb] = [
+    AllData[p.nmb] = [
       p.hat || 0,
       p.top || 0,
       p.player_color,
@@ -801,9 +804,7 @@ function SendPreStartMessage(room) {
       g: player.gun,
       kil: player.kills,
       dmg: player.damage,
-      rwds: [player.place, player.skillpoints_inc, player.seasoncoins_inc].join(
-        "$"
-      ),
+      rwds: player.finalrewards,
       killer: player.eliminator,
       cg: +player.canusegadget,
       lg: player.gadgetuselimit,
@@ -818,7 +819,7 @@ function SendPreStartMessage(room) {
     };
 
     const MessageToSend = {
-      AllPlayerData,
+      AllData,
       SelfData: {
         teamdata: player.teamdata,
         pid: player.nmb,
@@ -837,11 +838,11 @@ function SendPreStartMessage(room) {
   }
 }
 
-const round_player_pos_sending = false // provides 50% better compression but couldnt look smooth enough
+const round_player_pos_sending = true // provides 50% better compression but couldnt look smooth enough
 
 function prepareRoomMessages(room) {
   
-//  console.time('prepareRoomMessages');
+//console.time()
 
   const players = Array.from(room.players.values());
   const GameRunning = room.state === "playing" || room.state === "countdown";
@@ -957,7 +958,6 @@ function prepareRoomMessages(room) {
   // ONE PASS: Build, hash, compress, send
   for (const p of players) {
    if (!p.wsReadyState()) continue;
-
     const selfdata = {
       id: p.nmb,
       state: p.state,
@@ -967,7 +967,7 @@ function prepareRoomMessages(room) {
       g: p.gun,
       kil: p.kills,
       dmg: p.damage,
-      rwds: [p.place, p.skillpoints_inc, p.seasoncoins_inc].join("$"),
+      rwds: p.finalrewards.length > 0 ? p.finalrewards : undefined,
       killer: p.eliminator,
       cg: +p.canusegadget,
       lg: p.gadgetuselimit,
@@ -978,7 +978,7 @@ function prepareRoomMessages(room) {
       em: p.emote,
       spc: p.spectateid,
       guns: p.loadout_formatted,
-      np: p.nearbyfinalids.length > 0 ? p.nearbyfinalids : undefined,
+      np: p.nearbyfinalids ? p.nearbyfinalids.length > 0 ? p.nearbyfinalids : undefined : undefined,
       ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
     };
 
@@ -1057,8 +1057,9 @@ function prepareRoomMessages(room) {
   for (const p of players) {
     p.hitmarkers = [];
     p.eliminations = [];
+//    p.nearbyanimations = []
   }
-   // console.timeEnd('prepareRoomMessages');
+// console.timeEnd();
 }
 
 function sendRoomMessages(room) {

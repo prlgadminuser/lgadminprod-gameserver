@@ -176,6 +176,8 @@ async function increasePlayerPlace(player, place2, room) {
     player.skillpoints_inc = skillpoints
     player.seasoncoins_inc = season_coins
 
+    player.finalrewards = [place2, skillpoints, season_coins]
+
 
      const updateResult = await userCollection.updateOne(
       { "account.username": username },

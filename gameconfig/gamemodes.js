@@ -5,6 +5,7 @@ const allowed_gamemodes = new Set([
   "devtest", // only enable in local dev server !!!!
 
   "1v1",
+  "fightdown",
   // "deathmatch",
   //"breakthrough",
   "training",
@@ -35,7 +36,7 @@ const gamemodeconfig = {
     playerhealth: 77,
     playerspeed: 5.5,
 
-    modifiers: new Set([]),
+    modifiers: new Set(["AutoHealthDamage"]),
 
     weapons_modifiers_override: new Set([]),
 
@@ -49,14 +50,14 @@ const gamemodeconfig = {
     seasoncoinsreward: [25, 17, 12, 10, 7],
 
     show_timer: true,
-    custom_map: "training",
+    custom_map: "prism_party",
   },
 
   fightdown: {
     can_hit_dummies: false,
     can_hit_players: true,
 
-    maxplayers: 5,
+    maxplayers: 4,
     teamsize: 1,
     respawns_allowed: 0,
 

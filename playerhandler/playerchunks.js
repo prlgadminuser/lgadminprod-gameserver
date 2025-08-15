@@ -15,18 +15,14 @@ function findNearestEvents(player, room) {
 
   // Single pass through objectsInArea
   const circles = [];
-  const animations = {};
 
   for (const obj of objectsInArea) {
     if (obj.id === "circle") {
       circles.push([obj.type, obj.x, obj.y, obj.radius]);
     } else if (obj.id === "death" || obj.id === "respawn") {
-      animations[obj.obj_id] = `${obj.type}:${obj.x}:${obj.y}`;
+     player.nearbyanimations.push([obj.type, obj.x, obj.y]);
     }
   }
-
-  player.nearbycircles = circles;
-  player.nearbyanimations = animations;
 }
 
 function getPlayersInRange(players, centerX, centerY, xThreshold, yThreshold, excludePlayerId) {
