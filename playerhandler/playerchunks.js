@@ -21,7 +21,7 @@ function findNearestEvents(player, room) {
     if (obj.id === "circle") {
       circles.push([obj.type, obj.x, obj.y, obj.radius]);
     } else if (obj.id === "death" || obj.id === "respawn") {
-      animations[obj.obj_id] = `${obj.type}:${obj.x}:${obj.y}`;
+      animations[obj.obj_id] = [obj.type, obj.x, obj.y];
     }
   }
   
@@ -57,7 +57,7 @@ function playerchunkrenderer(room) {
   updateEvents();
 
   // Then schedule intervals
-  room.intervalIds.push(setInterval(updatePlayers, 250));
+  room.intervalIds.push(setInterval(updatePlayers, 100));
   room.intervalIds.push(setInterval(updateEvents, 50));
 }
 
