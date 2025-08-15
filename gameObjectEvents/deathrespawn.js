@@ -1,6 +1,6 @@
-const disabled = true
+const disabled = false
 function spawnAnimation(room, player, animationType) {
-  if (!disabled) return;
+  if (disabled) return;
   if (!player) return; // Ensure the player exists
 
   // Generate a unique identifier for the animation object

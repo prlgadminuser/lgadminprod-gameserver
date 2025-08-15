@@ -21,11 +21,12 @@ function findNearestEvents(player, room) {
     if (obj.id === "circle") {
       circles.push([obj.type, obj.x, obj.y, obj.radius]);
     } else if (obj.id === "death" || obj.id === "respawn") {
-     //player.nearbyanimations.push([obj.type, obj.x, obj.y]); 
+      animations[obj.obj_id] = `${obj.type}:${obj.x}:${obj.y}`;
     }
   }
   
-  player.nearbycircles = circles;
+   player.nearbycircles = circles;
+  player.nearbyanimations = animations;
 
 }
 
