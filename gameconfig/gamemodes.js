@@ -58,7 +58,7 @@ const gamemodeconfig = {
     can_hit_players: true,
 
     maxplayers: 8,
-    teamsize: 2,
+    teamsize: 1,
     respawns_allowed: 0,
 
     playerhealth: 77,
@@ -188,4 +188,5 @@ module.exports = {
   gamemodeconfig: new Map(Object.entries(gamemodeconfig)),
   allowed_gamemodes,
 };
+
 
