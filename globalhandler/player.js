@@ -79,7 +79,7 @@ function handlePlayerCollision(room, shootingPlayer, targetPlayer, damage, gunid
   shootingPlayer.damage += GUN_BULLET_DAMAGE;
   targetPlayer.last_hit_time = new Date().getTime();
 
-  const hit = [ targetPlayer.x, targetPlayer.y, GUN_BULLET_DAMAGE ]
+  const hit = `${targetPlayer.x}:${targetPlayer.y}:${GUN_BULLET_DAMAGE}`
 
   shootingPlayer.hitmarkers.push(hit)
 
@@ -135,7 +135,7 @@ function handleDummyCollision(room, shootingPlayer, dummyKey, damage) {
 
   dummy.health -= GUN_BULLET_DAMAGE;
 
-  const hit = [dummy.x, dummy.y, GUN_BULLET_DAMAGE]
+  const hit = `${dummy.x}:${dummy.y}:${GUN_BULLET_DAMAGE}`
 
   shootingPlayer.hitmarkers.push(hit);
 
