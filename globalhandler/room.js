@@ -28,6 +28,7 @@ const {
 } = require("./../gameObjectEvents/healingcircle");
 const { initializeAnimations } = require("./../gameObjectEvents/deathrespawn");
 const { playerchunkrenderer } = require("./../playerhandler/playerchunks");
+const { handleSpectatorMode } = require("./../playerhandler/spectating");
 const { SpatialGrid, gridcellsize } = require("./config.js");
 const { increasePlayerKillsAndDamage } = require("./dbrequests.js");
 const {
