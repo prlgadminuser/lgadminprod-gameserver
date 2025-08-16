@@ -617,7 +617,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
       spectatingPlayer: playerId,
       spectateid: 0,
       spectatingTarget: null,
-      spectatingplayerId: null,
+      spectatingPlayerId: null,
       
       //final rewards 
       finalrewards: [],
@@ -1049,7 +1049,7 @@ function prepareRoomMessages(room) {
       y: roundPositions ? Math.round(p.y) : p.y,
       el: p.eliminations.length > 0 ? p.eliminations : undefined,
       em: p.emote,
-      spc: p.spectatingplayerId,
+      spc: p.spectatingPlayerId,
       guns: p.loadout_formatted,
       np: JSON.stringify(Array.from(p.nearbyfinalids)),
       ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
