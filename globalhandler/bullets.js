@@ -176,9 +176,6 @@ class BulletManager {
       if (this.room.config && this.room.winner === -1) {
         let hitSomething = false;
 
-        if (!this.room.winner === -1) continue;
-
-
         const centerX = bullet.position.x
         const centerY = bullet.position.y
         const threshold = bullet.width > bullet.height ? bullet.width : bullet.height

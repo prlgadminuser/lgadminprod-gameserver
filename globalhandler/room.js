@@ -978,8 +978,7 @@ function prepareRoomMessages(room) {
 
   if (p.spectating) handleSpectatorMode(p, room);// Continuously handle spectating state
 
-  if (!p.visible) continue;
-
+  
   const formattedBullets = {};
 
   const centerX = p.x
@@ -987,13 +986,7 @@ function prepareRoomMessages(room) {
   const xThreshold = 300
   const yThreshold = 170
 
-  const nearbyBullets = room.bulletgrid.getObjectsInArea(
-        centerX - xThreshold,
-        centerX + xThreshold,
-        centerY - yThreshold,
-        centerY + yThreshold,
-        );
-
+  const nearbyBullets = room.bulletgrid.getObjectsInArea(centerX - xThreshold, centerX + xThreshold, centerY - yThreshold, centerY + yThreshold);
 
   if (nearbyBullets) {
     for (const bullet of nearbyBullets.values()) {
@@ -1009,9 +1002,10 @@ function prepareRoomMessages(room) {
   }
 
   const finalBullets = Object.keys(formattedBullets).length > 0 ? formattedBullets : undefined;
-
   p.finalbullets = finalBullets;
  
+
+  if (!p.visible) continue;
 
   playerData[p.nmb] = [
     roundPositions ? Math.round(p.x) : p.x,
