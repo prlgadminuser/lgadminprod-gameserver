@@ -560,7 +560,8 @@ async function joinRoom(ws, gamemode, playerVerified) {
       can_bullets_bounce: false,
       bullets: new Map(),
       nearbyids: new Set(),
-      nearbyplayers: [],
+      nearbyplayers: new Set(),
+      nearbyfinalids: [],
       // movement
       moving: false,
       direction: null,
@@ -944,11 +945,7 @@ const nearbyPlayers = spatialGrid.getObjectsInArea(
 
   for (const p of players) {
 
-  if (p._gridKey) room.realtimegrid.updateObject(p, p.x, p.y);
-
   if (p.spectating) handleSpectatorMode(p, room);// Continuously handle spectating state
-
-  
 
   if (!p.visible) continue;
 
@@ -989,8 +986,6 @@ const nearbyPlayers = spatialGrid.getObjectsInArea(
   for (const p of players) {
    if (!p.wsReadyState()) continue;
 
-     const nearbyIds = p.nearbyfinalids ? Array.from(p.nearbyfinalids) : [];
-
     const selfdata = {
       id: p.nmb,
       state: p.state,
@@ -1011,7 +1006,7 @@ const nearbyPlayers = spatialGrid.getObjectsInArea(
       em: p.emote,
       spc: p.spectateid,
       guns: p.loadout_formatted,
-      np: nearbyIds,
+      np: p.nearbyfinalids,
       ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
     };
 

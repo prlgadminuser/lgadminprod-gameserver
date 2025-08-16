@@ -66,6 +66,8 @@ const { playerhitbox } = require('./config.js')
   // Store new position (avoid parseFloat — toFixed is slower than necessary)
   player.x = Math.round(newX * 10000) / 10000;
   player.y = Math.round(newY * 10000) / 10000;
+
+  if (player._gridKey) room.realtimegrid.updateObject(player, player.x, player.y);
 }
 
 
