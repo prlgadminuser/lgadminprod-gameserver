@@ -202,8 +202,6 @@ class BulletManager {
         centerY + yThreshold,
         );
 
-        if (nearbyPlayers.length < 1) continue;
-
         for (const otherPlayer of nearbyPlayers) {
           if (otherPlayer.playerId !== bullet.ownerId && otherPlayer.visible && !this.isAlly(bullet.ownerId, otherPlayer)) {
             if (isCollisionWithPlayer({x: bullet.position.x, y: bullet.position.y }, otherPlayer, bullet.height, bullet.width, bullet.direction - 90)) {
