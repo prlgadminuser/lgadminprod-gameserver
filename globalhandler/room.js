@@ -1034,17 +1034,16 @@ const nearbyPlayers = spatialGrid.getObjectsInArea(
     const previousHashes = p.pdHashes || {};
     const currentHashes = {};
 
-    for (const nearbyId of p.nearbyplayers) {
+    for (const nearbyId of playersInRange) {
        const data = playerData[nearbyId];
-      if (!playersInRange.has(+id)) continue;
         if (!data) continue; 
 
       const hash = generateHash(data);
-      if (previousHashes[id] !== hash) {
-        filteredplayers[id] = data;
+      if (previousHashes[nearbyId] !== hash) {
+        filteredplayers[nearbyId] = data;
       }
-      currentHashes[id] = hash;
-      p.nearbyids.add(id);
+      currentHashes[nearbyId] = hash;
+      p.nearbyids.add(nearbyId);
     }
 
     p.pd = filteredplayers;
