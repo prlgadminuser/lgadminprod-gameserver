@@ -43,6 +43,7 @@ function handleSpectatorMode(player, room) {
 
 
 function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
+  console.log(targetPlayer)
   if (!targetPlayer) return
   spectatingPlayer.x = targetPlayer.x
   spectatingPlayer.y = targetPlayer.y
