@@ -23,6 +23,7 @@ function respawnplayer(room, player) {
 
   player.timeoutIds.push(setTimeout(() =>{
      room.realtimegrid.addObject(player);
+    player.spectating = false
     player.visible = true
     player.state = 1
     }, 5000));

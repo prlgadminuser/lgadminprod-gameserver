@@ -606,10 +606,8 @@ async function joinRoom(ws, gamemode, playerVerified) {
 
       // spectating
       spectating: false,
-      spectatingPlayer: playerId,
-      spectateid: 0,
-      spectatingTarget: null,
-      spectatingplayerid: null,
+      spectatingTarget: playerId,
+      spectatingPlayerId: -1,
       
       //final rewards 
       finalrewards: [],
@@ -833,7 +831,7 @@ function SendPreStartMessage(room) {
       y: player.y,
       el: player.eliminations,
       em: player.emote,
-      spc: player.spectateid,
+      spc: player.spectatingTarget,
       guns: player.loadout_formatted,
       np: player.npfix,
     };
@@ -967,12 +965,14 @@ function prepareRoomMessages(room) {
   const playerData = {};
 
   for (const p of players) {
-    if (p.spectating) handleSpectatorMode(p, room); // keep spectating updated
 
-    if (!p.visible) continue; // spectators/eliminated players invisible to others
+    if (p.spectating) handleSpectatorMode(p, room);
+
+    if (p.spectating) continue
+
 
     // alive players → add to playerData
-    if (!p.spectating) {
+   
       playerData[p.nmb] = [
         roundPositions ? Math.round(p.x) : p.x,
         roundPositions ? Math.round(p.y) : p.y,
@@ -1002,27 +1002,14 @@ function prepareRoomMessages(room) {
           ];
         }
       }
-
       p.finalbullets = Object.keys(formattedBullets).length > 0 ? formattedBullets : undefined;
     }
 
-    // spectator inherits target view
-    if (p.spectating && p.spectatingTarget) {
-      const target = room.players.get(p.spectatingTarget);
-      if (target && !target.eliminated) {
-        p.finalbullets     = target.finalbullets;
-        p.nearbyplayers    = target.nearbyplayers;
-        p.nearbyfinalids   = target.nearbyfinalids;
-        p.nearbycircles    = target.nearbycircles;
-        p.nearbyanimations = target.nearbyanimations;
-      }
-    }
-  }
-
-  // ONE PASS: Build, hash, compress, send
-  // ONE PASS: Build, hash, compress, send
+ 
 for (const p of players) {
   if (!p.wsReadyState()) continue;
+
+
 
   const selfdata = {
     id: p.nmb,
@@ -1042,14 +1029,15 @@ for (const p of players) {
     y: roundPositions ? Math.round(p.y) : p.y,
     el: p.eliminations.length > 0 ? p.eliminations : undefined,
     em: p.emote,
-    spc: p.spectating ? p.spectatingTarget : undefined, // spectator info
+    spc: p.spectatingTargetId, // spectator info
     guns: p.loadout_formatted,
     np: JSON.stringify(Array.from(p.nearbyfinalids || [])),
     ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
   };
 
+  
   // only diff send selfdata
-  const changes = {};
+  let changes = {};
   const lastSelf = p.selflastmsg || {};
   for (const k in selfdata) {
     if (selfdata[k] !== lastSelf[k]) changes[k] = selfdata[k];
@@ -1057,8 +1045,8 @@ for (const p of players) {
   if (Object.keys(changes).length)
     p.selflastmsg = { ...lastSelf, ...changes };
 
-  // 🟢 FIXED: skip calculating nearby if spectating
   if (!p.spectating) {
+  
     if (!p.nearbyids) p.nearbyids = new Set();
     p.nearbyids.clear();
 
@@ -1078,19 +1066,12 @@ for (const p of players) {
       currentHashes[nearbyId] = hash;
       p.nearbyids.add(nearbyId);
     }
-
+  
     p.pd = filteredplayers;
     p.nearbyfinalids = p.nearbyids;
     p.pdHashes = currentHashes;
-  } else {
-    // spectator → just inherit target pd + ids
-    const target = room.players.get(p.spectatingTarget);
-    if (target) {
-      p.pd = target.pd;
-      p.nearbyfinalids = target.nearbyfinalids;
-      p.pdHashes = target.pdHashes;
-    }
   }
+} 
 
   // assemble message
   const msg = {
@@ -1126,13 +1107,7 @@ for (const p of players) {
   } else {
     p.tick_send_allow = false;
   }
-  }
 }
-
-
-
-
-
 
 
 function sendRoomMessages(room) {

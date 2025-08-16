@@ -100,7 +100,7 @@ function handlePlayerCollision(room, shootingPlayer, targetPlayer, damage, gunid
     addKillToKillfeed(room, 1, shootingPlayer.nmb, targetPlayer.nmb, gunid)
     spawnAnimation(room, targetPlayer, "death");
     targetPlayer.eliminator = shootingPlayer.nmb;
-    targetPlayer.spectatingTarget = shootingPlayer.playerId;
+    targetPlayer.spectatingTarget = shootingPlayer;
     shootingPlayer.kills += 1;
 
   } else if (targetPlayer.health < 1 && targetPlayer.respawns > 0) {
