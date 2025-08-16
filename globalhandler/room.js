@@ -1114,6 +1114,12 @@ for (const p of players) {
     p.tick_send_allow = false;
   }
 }
+  room.destroyedWalls = [];
+  for (const p of players) {
+    p.hitmarkers = [];
+    p.eliminations = [];
+    // p.nearbyanimations = [];
+  }
 }
 
 
