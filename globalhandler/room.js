@@ -856,18 +856,12 @@ function prepareRoomMessages(room) {
   const players = Array.from(room.players.values());
   const GameRunning = room.state === "playing" || room.state === "countdown";
 
+  // WAITING STATE
   if (!GameRunning) {
-    const roomdata = [
-      state_map[room.state],
-      room.maxplayers,
-      players.length,
-    ];
-
+    const roomdata = [state_map[room.state], room.maxplayers, players.length];
     const roomdatahash = generateHash(roomdata);
 
-    for (const p of players) {
-      p.tick_send_allow = false;
-    }
+    for (const p of players) p.tick_send_allow = false;
 
     if (roomdatahash !== room.rdlast) {
       room.rdlast = roomdatahash;
@@ -882,10 +876,11 @@ function prepareRoomMessages(room) {
     return;
   }
 
+  // PLAYING STATE
   const aliveCount = players.reduce((c, p) => c + !p.eliminated, 0);
   handlePlayerMoveIntervalAll(room);
 
-  // DUMMIES
+  // DUMMIES (once)
   let dummiesFiltered;
   if (room.dummies) {
     const transformed = transformData(room.dummies);
@@ -899,7 +894,7 @@ function prepareRoomMessages(room) {
     dummiesFiltered = room.dummiesfiltered;
   }
 
-  // ROOM DATA
+  // ROOM DATA (once)
   const roomdata = [
     state_map[room.state],
     room.maxplayers,
@@ -911,7 +906,7 @@ function prepareRoomMessages(room) {
   const roomdatahash = generateHash(roomdata);
   const finalroomdata = roomdatahash !== room.rdlast ? (room.rdlast = roomdatahash, roomdata) : undefined;
 
-  // PLAYER DATA + Hash Caching
+  // PLAYER DATA (once)
   const playerData = {};
   const playerDataHashes = {};
 
@@ -927,7 +922,7 @@ function prepareRoomMessages(room) {
           Math.round(bullet.position.x),
           Math.round(bullet.position.y),
           Math.round(bullet.direction),
-          bullet.gunId
+          bullet.gunId,
         ];
       }
     }
@@ -949,11 +944,11 @@ function prepareRoomMessages(room) {
     playerDataHashes[p.nmb] = generateHash(pdata);
   }
 
-  // MESSAGE PER PLAYER
+  // PER-PLAYER MESSAGE ASSEMBLY
   for (const p of players) {
     if (!p.wsReadyState()) continue;
 
-    // Update & cache nearbyplayers Set only if changed
+    // Cache nearby set only if changed
     const currentNearby = p.nearbyplayers || [];
     if (!arraysEqual(currentNearby, p._cachedNearbyIds)) {
       p._cachedNearbyIds = currentNearby;
@@ -963,6 +958,7 @@ function prepareRoomMessages(room) {
     const nearbySet = p.nearbyplayersSet;
     const nearbyIdsArray = p.nearbyfinalids ? Array.from(p.nearbyfinalids) : [];
 
+    // SELF DATA diffing
     const selfdata = {
       id: p.nmb,
       state: p.state,
@@ -996,6 +992,7 @@ function prepareRoomMessages(room) {
       p.selflastmsg = { ...lastSelf, ...changes };
     }
 
+    // Filtered player data (diff by hash)
     if (!p.nearbyids) p.nearbyids = new Set();
     p.nearbyids.clear();
 
@@ -1018,32 +1015,20 @@ function prepareRoomMessages(room) {
     p.pd = filteredplayers;
     p.pdHashes = currentHashes;
 
-    // Assemble final message
-    const msg = {
-      r: finalroomdata,
-      dm: dummiesFiltered,
-      kf: room.newkillfeed,
-      sb: room.scoreboard,
-      sd: Object.keys(changes).length ? changes : undefined,
-      WLD: room.destroyedWalls,
-      cl: p.nearbycircles,
-      an: p.nearbyanimations,
-      b: p.finalbullets,
-      pd: p.pd,
-    };
+    // Final message assembly
+    const msg = {};
+    if (finalroomdata) msg.r = finalroomdata;
+    if (dummiesFiltered) msg.dm = dummiesFiltered;
+    if (room.newkillfeed) msg.kf = room.newkillfeed;
+    if (room.scoreboard) msg.sb = room.scoreboard;
+    if (Object.keys(changes).length) msg.sd = changes;
+    if (room.destroyedWalls.length) msg.WLD = room.destroyedWalls;
+    if (p.nearbycircles) msg.cl = p.nearbycircles;
+    if (p.nearbyanimations) msg.an = p.nearbyanimations;
+    if (p.finalbullets) msg.b = p.finalbullets;
+    if (Object.keys(p.pd).length) msg.pd = p.pd;
 
-    // Remove empty keys
-    for (const key in msg) {
-      if (
-        !msg[key] ||
-        (Array.isArray(msg[key]) && msg[key].length === 0) ||
-        (typeof msg[key] === "object" && Object.keys(msg[key]).length === 0)
-      ) {
-        delete msg[key];
-      }
-    }
-
-    // Send if changed
+    // Send only if changed
     const hash = generateHash(msg);
     if (hash !== p.lastMessageHash) {
       p.lastcompressedmessage = compressMessage(msg);
