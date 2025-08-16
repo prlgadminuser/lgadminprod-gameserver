@@ -617,7 +617,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
       spectatingPlayer: playerId,
       spectateid: 0,
       spectatingTarget: null,
-      spectatingPlayerId: null,
+      spectatingPlayerId: -1,
       
       //final rewards 
       finalrewards: [],
@@ -841,7 +841,7 @@ function SendPreStartMessage(room) {
       y: player.y,
       el: player.eliminations,
       em: player.emote,
-      spc: player.spectateid,
+      spc: player.spectatingPlayerId,
       guns: player.loadout_formatted,
       np: player.npfix,
     };

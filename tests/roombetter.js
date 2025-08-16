@@ -136,7 +136,7 @@ function prepareRoomMessages(room) {
       y: round_player_pos_sending ? Math.round(p.y) : p.y,
       el: p.eliminations.length > 0 ? p.eliminations : undefined,
       em: p.emote,
-      spc: p.spectateid,
+      spc: p.spectatingPlayerId,
       guns: p.loadout_formatted,
       np: nearbyIdsArray.length > 0 ? JSON.stringify(nearbyIdsArray) : undefined,
       ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
