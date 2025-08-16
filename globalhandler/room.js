@@ -1037,15 +1037,19 @@ for (const p of players) {
 
   
   // only diff send selfdata
-  let changes = {};
+ 
   const lastSelf = p.selflastmsg || {};
+
+
+  let changes = {}
+
   for (const k in selfdata) {
     if (selfdata[k] !== lastSelf[k]) changes[k] = selfdata[k];
   }
   if (Object.keys(changes).length)
-    p.selflastmsg = { ...lastSelf, ...changes };
+    p.selflastmsg = { ...lastSelf, ...changes }; 
 
-  if (!p.spectating) {
+   if (!p.spectating) {
   
     if (!p.nearbyids) p.nearbyids = new Set();
     p.nearbyids.clear();
@@ -1071,7 +1075,8 @@ for (const p of players) {
     p.nearbyfinalids = p.nearbyids;
     p.pdHashes = currentHashes;
   }
-} 
+
+
 
   // assemble message
   const msg = {
@@ -1086,6 +1091,7 @@ for (const p of players) {
     b: p.finalbullets,
     pd: p.pd,
   };
+
 
   // remove empty
   for (const key in msg) {
@@ -1107,6 +1113,7 @@ for (const p of players) {
   } else {
     p.tick_send_allow = false;
   }
+}
 }
 
 
