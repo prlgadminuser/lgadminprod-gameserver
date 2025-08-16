@@ -839,7 +839,7 @@ function SendPreStartMessage(room) {
   }
 }
 
-const round_player_pos_sending = false // provides 50% better compression but couldnt look smooth enough
+const round_player_pos_sending = true// provides 50% better compression but couldnt look smooth enough
 
 function prepareRoomMessages(room) {
   
