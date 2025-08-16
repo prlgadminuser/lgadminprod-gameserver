@@ -6,7 +6,7 @@ const { gunsconfig } = require('./../gameconfig/guns');
 const { matchmakingsp } = require('./../gameconfig/matchmaking');
 
 const gridcellsize = 40;
-const server_tick_rate = 16.5;
+const server_tick_rate = 16.7;
 const player_idle_timeout = 10000;
 const maxClients = 100;
 
