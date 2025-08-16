@@ -48,7 +48,15 @@ function generateUUID() {
   });
 }
 
+//
+
 function generateHash(message) {
+  const str = JSON.stringify(message);
+  
+  return str;
+}
+
+function generateHash2(message) {
   let hash = 0;
   const str = JSON.stringify(message);
   for (let i = 0; i < str.length; i++) {
