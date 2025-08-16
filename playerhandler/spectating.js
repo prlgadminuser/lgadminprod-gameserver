@@ -48,6 +48,7 @@ function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
   spectatingPlayer.x = targetPlayer.x
   spectatingPlayer.y = targetPlayer.y
   spectatingPlayer.nearbyfinalids = targetPlayer.nearbyfinalids
+  if (!spectatingPlayer.nearbyfinalids.has(targetPlayer.nmb)) spectatingPlayer.nearbyfinalids.add(targetPlayer.nmb);
   //spectatingPlayer.hitmarkers = targetPlayer.hitmarkers
   spectatingPlayer.nearbycircles = targetPlayer.nearbycircles
   spectatingPlayer.nearbyanimations = targetPlayer.nearbyanimations
