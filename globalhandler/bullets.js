@@ -187,7 +187,24 @@ class BulletManager {
       // Collision with players
       if (this.room.config && this.room.winner === -1) {
         let hitSomething = false;
-        for (const otherPlayer of this.room.players.values()) {
+
+
+        const centerX = bullet.position.x
+        const centerY = bullet.position.y
+        const threshold = bullet.width > bullet.height ? bullet.width : bullet.height
+        const xThreshold = threshold* 1.2
+        const yThreshold = threshold * 1.2
+        
+        const nearbyPlayers = this.room.realtimegrid.getObjectsInArea(
+        centerX - xThreshold,
+        centerX + xThreshold,
+        centerY - yThreshold,
+        centerY + yThreshold,
+        );
+
+        if (nearbyPlayers.length < 1) continue;
+
+        for (const otherPlayer of nearbyPlayers) {
           if (otherPlayer.playerId !== bullet.ownerId && otherPlayer.visible && !this.isAlly(bullet.ownerId, otherPlayer)) {
             if (isCollisionWithPlayer({x: bullet.position.x, y: bullet.position.y }, otherPlayer, bullet.height, bullet.width, bullet.direction - 90)) {
               const distTraveled = bullet.position.distanceTo(bullet.startPosition);
