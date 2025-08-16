@@ -904,7 +904,6 @@ function prepareRoomMessages(room) {
   
 //console.time()
 
-  HandleAfflictions(room);
 
   const players = Array.from(room.players.values());
   const GameRunning = room.state === "playing" || room.state === "countdown";
@@ -936,12 +935,14 @@ function prepareRoomMessages(room) {
     }
     return;
   }
+  
 
 
   // PLAYING STATE
   const aliveCount = players.reduce((c, p) => c + !p.eliminated, 0);
   handlePlayerMoveIntervalAll(room);
 
+  HandleAfflictions(room);
 
   // DUMMIES (once)
   let dummiesFiltered;
@@ -983,8 +984,6 @@ function prepareRoomMessages(room) {
 
 
   for (const p of players) {
-
-  if (p.spectating) handleSpectatorMode(p, room);// Continuously handle spectating state
 
   if (p.spectating) continue
   
@@ -1067,6 +1066,7 @@ function prepareRoomMessages(room) {
       p.nearbyids = new Set();
     }
     
+    if (p.spectating) handleSpectatorMode(p, room);
 
 if (!p.spectating)  {
     p.nearbyids.clear();
