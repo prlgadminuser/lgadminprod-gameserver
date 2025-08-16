@@ -320,7 +320,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
   const itemgrid = new SpatialGrid(gridcellsize); // grid system for items
   const bulletgrid = new SpatialGrid(50)
-  const realtimegrid = new RealTimeObjectGrid(400)
+  const realtimegrid = new RealTimeObjectGrid(250)
 
   const roomgrid = cloneSpatialGrid(mapdata.grid);
 
@@ -1034,8 +1034,10 @@ const nearbyPlayers = spatialGrid.getObjectsInArea(
     const previousHashes = p.pdHashes || {};
     const currentHashes = {};
 
-    for (const [id, data] of Object.entries(playerData)) {
+    for (const nearbyId of p.nearbyplayers) {
+       const data = playerData[nearbyId];
       if (!playersInRange.has(+id)) continue;
+        if (!data) continue; 
 
       const hash = generateHash(data);
       if (previousHashes[id] !== hash) {
@@ -1045,8 +1047,8 @@ const nearbyPlayers = spatialGrid.getObjectsInArea(
       p.nearbyids.add(id);
     }
 
-    p.nearbyfinalids = p.nearbyids;
     p.pd = filteredplayers;
+    p.nearbyfinalids = p.nearbyids;
     p.pdHashes = currentHashes;
 
     // Message assembly
