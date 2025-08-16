@@ -61,7 +61,7 @@ const gamemodeconfig = {
     skillpoints_rewardRange: [10, -5], 
     seasoncoins_rewardRange: [30, 5],
 
-    maxplayers: 21,
+    maxplayers: 10,
     teamsize: 1,
     respawns_allowed: 999,
 
@@ -192,6 +192,7 @@ module.exports = {
   gamemodeconfig: new Map(Object.entries(gamemodeconfig)),
   allowed_gamemodes,
 };
+
 
 
 
