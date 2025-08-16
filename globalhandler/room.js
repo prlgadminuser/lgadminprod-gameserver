@@ -1007,6 +1007,7 @@ function prepareRoomMessages(room) {
 
  
 for (const p of players) {
+
   if (!p.wsReadyState()) continue;
 
 
@@ -1041,16 +1042,9 @@ for (const p of players) {
   const lastSelf = p.selflastmsg || {};
 
 
-  let changes = {}
 
-  for (const k in selfdata) {
-    if (selfdata[k] !== lastSelf[k]) changes[k] = selfdata[k];
-  }
-  if (Object.keys(changes).length)
-    p.selflastmsg = { ...lastSelf, ...changes }; 
 
-   if (!p.spectating) {
-  
+  if (!p.spectating) {
     if (!p.nearbyids) p.nearbyids = new Set();
     p.nearbyids.clear();
 
@@ -1075,6 +1069,16 @@ for (const p of players) {
     p.nearbyfinalids = p.nearbyids;
     p.pdHashes = currentHashes;
   }
+}
+
+  let changes = {}
+
+  for (const k in selfdata) {
+    if (selfdata[k] !== lastSelf[k]) changes[k] = selfdata[k];
+  }
+  if (Object.keys(changes).length)
+    p.selflastmsg = { ...lastSelf, ...changes }; 
+
 
 
 
@@ -1113,7 +1117,7 @@ for (const p of players) {
   } else {
     p.tick_send_allow = false;
   }
-}
+
   room.destroyedWalls = [];
   for (const p of players) {
     p.hitmarkers = [];
