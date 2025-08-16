@@ -1010,41 +1010,13 @@ for (const p of players) {
 
   if (!p.wsReadyState()) continue;
 
-
-
-  const selfdata = {
-    id: p.nmb,
-    state: p.state,
-    h: p.health,
-    sh: p.starthealth,
-    s: +p.shooting,
-    g: p.gun,
-    kil: p.kills,
-    dmg: p.damage,
-    rwds: p.finalrewards.length > 0 ? p.finalrewards : undefined,
-    killer: p.eliminator,
-    cg: +p.canusegadget,
-    lg: p.gadgetuselimit,
-    ag: +p.gadgetactive,
-    x: roundPositions ? Math.round(p.x) : p.x,
-    y: roundPositions ? Math.round(p.y) : p.y,
-    el: p.eliminations.length > 0 ? p.eliminations : undefined,
-    em: p.emote,
-    spc: p.spectatingTargetId, // spectator info
-    guns: p.loadout_formatted,
-    np: JSON.stringify(Array.from(p.nearbyfinalids || [])),
-    ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
-  };
-
   
   // only diff send selfdata
  
-  const lastSelf = p.selflastmsg || {};
-
-
 
 
   if (!p.spectating) {
+
     if (!p.nearbyids) p.nearbyids = new Set();
     p.nearbyids.clear();
 
@@ -1071,6 +1043,33 @@ for (const p of players) {
   }
 }
 
+  const selfdata = {
+    id: p.nmb,
+    state: p.state,
+    h: p.health,
+    sh: p.starthealth,
+    s: +p.shooting,
+    g: p.gun,
+    kil: p.kills,
+    dmg: p.damage,
+    rwds: p.finalrewards.length > 0 ? p.finalrewards : undefined,
+    killer: p.eliminator,
+    cg: +p.canusegadget,
+    lg: p.gadgetuselimit,
+    ag: +p.gadgetactive,
+    x: roundPositions ? Math.round(p.x) : p.x,
+    y: roundPositions ? Math.round(p.y) : p.y,
+    el: p.eliminations.length > 0 ? p.eliminations : undefined,
+    em: p.emote,
+    spc: p.spectatingTargetId, // spectator info
+    guns: p.loadout_formatted,
+    np: JSON.stringify(Array.from(p.nearbyfinalids || [])),
+    ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
+  };
+
+  const lastSelf = p.selflastmsg || {};
+
+
   let changes = {}
 
   for (const k in selfdata) {
@@ -1078,7 +1077,6 @@ for (const p of players) {
   }
   if (Object.keys(changes).length)
     p.selflastmsg = { ...lastSelf, ...changes }; 
-
 
 
 
