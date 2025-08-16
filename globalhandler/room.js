@@ -1085,12 +1085,11 @@ if (!p.spectating)  {
       if (previousHashes[nearbyId] !== hash) {
         
         if (p.spectating) {
-          filteredplayers[nearbyId] = data; 
+          filteredplayers[nearbyId] = data
         } else {
-          if (nearbyId !== selfid) {
+          if (nearbyId !== selfid) 
           filteredplayers[nearbyId] = data
         }
-      }
       }
       currentHashes[nearbyId] = hash;
       p.nearbyids.add(nearbyId);
