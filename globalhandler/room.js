@@ -1072,7 +1072,6 @@ if (!p.spectating)  {
     p.nearbyids.clear();
     let filteredplayers = {};
 
-    const selfid = p.nmb
     const playersInRange = p.nearbyplayers;
     const previousHashes = p.pdHashes || {};
     const currentHashes = {};
@@ -1083,20 +1082,20 @@ if (!p.spectating)  {
 
       const hash = generateHash(data);
       if (previousHashes[nearbyId] !== hash) {
-         if (nearbyId !== selfid) {
-          filteredplayers[nearbyId] = data  
+        
+          filteredplayers[nearbyId] = data
+        }
       }
       currentHashes[nearbyId] = hash;
       p.nearbyids.add(nearbyId);
-    }
-  }
+  //  }
 
 
     p.pd = filteredplayers;
     p.nearbyfinalids = p.nearbyids;
     p.pdHashes = currentHashes;
 
-     
+     }
 
     // Message assembly
     const msg = {
@@ -1142,7 +1141,6 @@ if (!p.spectating)  {
 //    p.nearbyanimations = []
   }
 // console.timeEnd();
-}
 }
 
 
