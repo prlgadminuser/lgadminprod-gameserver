@@ -1096,6 +1096,9 @@ if (!p.spectating)  {
      }
     }
 
+
+    const pdToSend = { ...p.pd };
+    delete pdToSend[p.nmb];
     // Message assembly
     const msg = {
       r: finalroomdata,
@@ -1107,7 +1110,7 @@ if (!p.spectating)  {
       cl: p.nearbycircles,
       an: p.nearbyanimations,
       b: p.finalbullets,
-      pd: p.pd,
+      pd: pdToSend,
     };
 
     // Remove empty keys
