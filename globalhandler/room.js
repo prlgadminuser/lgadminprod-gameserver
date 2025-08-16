@@ -1038,7 +1038,7 @@ for (const p of players) {
 
    // only diff send selfdata
   const lastSelf = p.selflastmsg || {};
-  var changes = {}; // use var so it's accessible outside this block
+  let changes = {}; // use var so it's accessible outside this block
 
   for (const k in selfdata) {
     if (selfdata[k] !== lastSelf[k]) {
@@ -1051,7 +1051,7 @@ for (const p of players) {
   }
 
   // nearby player processing (skip actual computation if spectating)
-  if (!p.spectating) {
+
     if (!p.nearbyids) p.nearbyids = new Set();
     p.nearbyids.clear();
 
@@ -1071,16 +1071,12 @@ for (const p of players) {
       currentHashes[nearbyId] = hash;
       p.nearbyids.add(nearbyId);
     }
-
+  
     p.pd = filteredplayers;
     p.nearbyfinalids = p.nearbyids;
     p.pdHashes = currentHashes;
-  } else {
-    // define empty objects so message assembly works
-    p.pd = p.pd || {};
-    p.nearbyfinalids = p.nearbyfinalids || new Set();
-    p.pdHashes = p.pdHashes || {};
-  }
+  
+}
 
   // assemble message
   const msg = {
@@ -1118,6 +1114,7 @@ for (const p of players) {
   }
 }
 
+
 // reset hitmarkers and eliminations
 room.destroyedWalls = [];
 for (const player of players) {
@@ -1125,7 +1122,7 @@ for (const player of players) {
   player.eliminations = [];
   // player.nearbyanimations = [];
 }
-}
+
 
 
 function sendRoomMessages(room) {
