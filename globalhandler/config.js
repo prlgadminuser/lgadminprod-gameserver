@@ -41,9 +41,12 @@ class RealTimeObjectGrid {
   }
 
   addObject(obj) {
+  
+    if (!obj.position) {
     if (typeof obj.x !== 'number' || typeof obj.y !== 'number') {
       throw new Error("Object must have numeric 'x' and 'y' properties.");
     }
+  }
 
     const key = this._getCellKey(obj.x, obj.y);
     if (!this.grid.has(key)) {

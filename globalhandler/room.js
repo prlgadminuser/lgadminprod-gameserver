@@ -320,8 +320,8 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
   if (!mapdata) console.error("map does not exist");
 
   const itemgrid = new SpatialGrid(gridcellsize); // grid system for items
-  const bulletgrid = new SpatialGrid(50)
   const realtimegrid = new RealTimeObjectGrid(250)
+  const bulletgrid = new RealTimeObjectGrid(50)
 
   const roomgrid = cloneSpatialGrid(mapdata.grid);
 
@@ -346,10 +346,13 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     timeoutIds: [],
     winner: -1,
 
+    // bullets handler
+    bullets: new Map(),
+    bulletgrid: bulletgrid,
+
     // Game Configuration
     itemgrid: itemgrid,
     realtimegrid: realtimegrid,
-    bulletgrid: bulletgrid,
     maxplayers: gmconfig.maxplayers,
     modifiers: gmconfig.modifiers,
     respawns: gmconfig.respawns_allowed,
@@ -858,20 +861,42 @@ function SendPreStartMessage(room) {
   }
 }
 
-const round_player_pos_sending = true // provides 50% better compression but couldnt look smooth enough
+
+const roundPositions = false // provides 50% better compression but couldnt look smooth enough
+
+
+function buildNearbyPlayerJSON(p) {
+  if (!p.lastSentData) p.lastSentData = {};
+
+ // Math.floor(p.x * 10)
+
+
+  const currentData = {
+    x: roundPositions ? Math.round(p.x) : p.x,
+    y: roundPositions ? Math.round(p.y) : p.y,
+    dir: p.direction2,
+    health: p.health,
+    gun: p.gun,
+    emote: p.emote,
+    bullets: p.finalbullets || undefined,
+  };
+
+  const changes = {};
+  for (const key in currentData) {
+    if (JSON.stringify(currentData[key]) !== JSON.stringify(p.lastSentData[key])) {
+      changes[key] = currentData[key];
+    }
+  }
+
+  // Update last sent data
+  p.lastSentData = { ...p.lastSentData, ...changes };
+
+  return Object.keys(changes).length ? changes : null; // null = no changes
+}
+
 
 function prepareRoomMessages(room) {
   
-/*  spatialGrid.updateObject(player, player.x, player.y);
-
-const nearbyPlayers = spatialGrid.getObjectsInArea(
-  player.x - VIEW_RADIUS,
-  player.x + VIEW_RADIUS,
-  player.y - VIEW_RADIUS,
-  player.y + VIEW_RADIUS
-);
-*/
-
 //console.time()
 
   HandleAfflictions(room);
@@ -959,12 +984,23 @@ const nearbyPlayers = spatialGrid.getObjectsInArea(
   if (!p.visible) continue;
 
   const formattedBullets = {};
-  const playerBullets = room.bulletManager.bullets.get(p.playerId);
 
-  if (playerBullets) {
-    for (const bullet of playerBullets.values()) {
+  const centerX = p.x
+  const centerY = p.y
+  const xThreshold = 260
+  const yThreshold = 170
 
-   
+  const nearbyBullets = room.bulletgrid.getObjectsInArea(
+        centerX - xThreshold,
+        centerX + xThreshold,
+        centerY - yThreshold,
+        centerY + yThreshold,
+        );
+
+
+  if (nearbyBullets) {
+    for (const bullet of nearbyBullets.values()) {
+
     formattedBullets[bullet.id] = [
     Math.round(bullet.position.x),
     Math.round(bullet.position.y),
@@ -978,15 +1014,15 @@ const nearbyPlayers = spatialGrid.getObjectsInArea(
   const finalBullets = Object.keys(formattedBullets).length > 0 ? formattedBullets : undefined;
 
   p.finalbullets = finalBullets;
+ 
 
   playerData[p.nmb] = [
-    round_player_pos_sending ? Math.round(p.x) : p.x,
-    round_player_pos_sending ? Math.round(p.y) : p.y,
+    roundPositions ? Math.round(p.x) : p.x,
+    roundPositions ? Math.round(p.y) : p.y,
     p.direction2,
     p.health,
     p.gun,
     p.emote,
-    finalBullets,
   ]
 }
 
@@ -1009,8 +1045,8 @@ const nearbyPlayers = spatialGrid.getObjectsInArea(
       cg: +p.canusegadget,
       lg: p.gadgetuselimit,
       ag: +p.gadgetactive,
-      x: round_player_pos_sending ? Math.round(p.x) : p.x,
-      y: round_player_pos_sending ? Math.round(p.y) : p.y,
+      x: roundPositions ? Math.round(p.x) : p.x,
+      y: roundPositions ? Math.round(p.y) : p.y,
       el: p.eliminations.length > 0 ? p.eliminations : undefined,
       em: p.emote,
       spc: p.spectateid,

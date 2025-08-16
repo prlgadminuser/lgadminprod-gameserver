@@ -88,7 +88,7 @@ class Bullet {
 class BulletManager {
   constructor(room) {
     this.room = room;
-    this.bullets = new Map(); // id => Bullet
+    this.bullets = room.bullets // id => Bullet
     this.scheduledBullets = [];
   }
 
@@ -124,11 +124,8 @@ class BulletManager {
       ownerId: player.playerId,
     });
 
-    if (!this.bullets.has(player.playerId)) {
-      this.bullets.set(player.playerId, new Map());
-    }
-
-      this.bullets.get(player.playerId).set(id, bullet);
+    this.bullets.set(id, bullet); 
+    this.room.bulletgrid.addObject(bullet);
    // this.room.bulletsUpdates.push(this.formatBulletSpawnMsg(bullet));
 
     return bullet;
@@ -143,24 +140,16 @@ class BulletManager {
    this.processScheduledBullets();
   const toRemove = []; // array of [playerId, bulletId]
 
-  for (const [playerId, playerBullets] of this.bullets.entries()) {
-    // if playerBullets is not a Map (defensive), skip
-    if (!(playerBullets instanceof Map)) continue;
 
-    for (const [id, bullet] of playerBullets.entries()) {
-      // skip if bullet was already killed earlier
-      if (!bullet || !bullet.alive) {
-        toRemove.push([playerId, id]);
-        continue;
-      }
-
-      if (bullet.isExpired()) {
-        toRemove.push([playerId, id]);
+    for (const [id, bullet] of this.bullets.entries()) {
+      if (!bullet || !bullet.alive || bullet.isExpired()) {
+        toRemove.push(id);
         continue;
       }
 
       const nextPos = bullet.nextPosition();
    
+       this.room.bulletgrid.updateObject(bullet, nextPos.x, nextPos.y);
      
       // Collision with walls
       if (isCollisionWithBullet(this.room.grid, nextPos.x, nextPos.y, bullet.height, bullet.width, bullet.direction - 90)) {
@@ -178,11 +167,11 @@ class BulletManager {
             adjustBulletDirection(bullet, collidedWall, -90);
             continue; // Don't move bullet position this tick
           }
-          toRemove.push([playerId, id]);
+          toRemove.push(id);
           continue;
         }
       }
-
+    
       // Collision with players
       if (this.room.config && this.room.winner === -1) {
         let hitSomething = false;
@@ -191,8 +180,8 @@ class BulletManager {
         const centerX = bullet.position.x
         const centerY = bullet.position.y
         const threshold = bullet.width > bullet.height ? bullet.width : bullet.height
-        const xThreshold = threshold * 1.2
-        const yThreshold = threshold * 1.2
+        const xThreshold = threshold
+        const yThreshold = threshold
         
         const nearbyPlayers = this.room.realtimegrid.getObjectsInArea(
         centerX - xThreshold,
@@ -219,7 +208,7 @@ class BulletManager {
                 expires: Date.now() + 3000, // when this effect ends
               });
 
-              toRemove.push([playerId, id]);
+              toRemove.push(id);
               hitSomething = true;
               break;
             }
@@ -249,7 +238,7 @@ class BulletManager {
                 expires: Date.now() + 3000, // when this effect ends
               });
 
-            toRemove.push([playerId, id]);
+            toRemove.push(id);
             hitDummy = true;
             break;
           }
@@ -257,32 +246,22 @@ class BulletManager {
        if (hitDummy) continue;
       }
      bullet.position = nextPos;
+  }
 
+   for (const id of toRemove) {
+      this.killBullet(id);
     }
   }
 
-  // perform deletions AFTER iterating
-  for (const [playerId, bulletId] of toRemove) {
-    this.killBullet(playerId, bulletId);
+   killBullet(bulletId) {
+    const bullet = this.bullets.get(bulletId);
+    if (!bullet) return;
+
+    this.room.bulletgrid.removeObject(bullet); 
+    bullet.kill();
+    this.bullets.delete(bulletId);
+    this.room.bulletsUpdates.push(`DEL:${bulletId}`);
   }
-}
-
-  killBullet(playerId, bulletId) {
-  const playerBullets = this.bullets.get(playerId);
-  if (!playerBullets) return;
-
-  const bullet = playerBullets.get(bulletId);
-  if (!bullet) return;
-
-  bullet.kill();
-  playerBullets.delete(bulletId);
-  this.room.bulletsUpdates.push(`DEL:${bulletId}`);
-
-  // If no bullets left for player, clean up empty map (FIXED reference)
-  if (playerBullets.size === 0) {
-    this.bullets.delete(playerId); // <-- was this.player.bullets.delete(playerId) (bug)
-  }
-}
 
   isAlly(ownerId, otherPlayer) {
     const owner = this.room.players.get(ownerId);
@@ -306,13 +285,12 @@ class BulletManager {
 }
 
 
-  scheduleBullet(player, bulletData, delayMs) {
-  const spawnTime = Date.now() + delayMs;
-  this.scheduledBullets.push({ spawnTime, playerId: player.playerId, bulletData });
+   scheduleBullet(player, bulletData, delayMs) {
+    const spawnTime = Date.now() + delayMs;
+    this.scheduledBullets.push({ spawnTime, playerId: player.playerId, bulletData });
+  }
 }
 
-// In your main update loop (BulletManager.update or Room.update)
-  }
 
 // ---------- Helper Functions (stub these with your existing implementations) ----------
 
