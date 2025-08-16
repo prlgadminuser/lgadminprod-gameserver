@@ -30,14 +30,24 @@ function findNearestEvents(player, room) {
 
 }
 
-function getPlayersInRange(players, centerX, centerY, xThreshold, yThreshold, excludePlayerId) {
-  return players
-    .filter(p => p.nmb !== excludePlayerId && Math.abs(p.x - centerX) <= xThreshold && Math.abs(p.y - centerY) <= yThreshold)
-    .map(p => p.nmb);
+function getPlayersInRange(room, centerX, centerY, xThreshold, yThreshold, excludePlayer) {
+  const nearbyPlayers = room.realtimegrid.getObjectsInArea(
+  centerX - xThreshold,
+  centerX + xThreshold,
+  centerY - yThreshold,
+  centerY + yThreshold,
+);
+
+const others = nearbyPlayers.filter(p => p !== excludePlayer);
+
+//const others = nearbyPlayers.filter(p => p !== excludePlayer && p.isPlayer);
+
+return others
 }
 
-function UpdatePlayerChunks(visiblePlayers, player) {
-  player.nearbyplayers = getPlayersInRange(visiblePlayers, player.x, player.y, 400, 270, player.nmb);
+function UpdatePlayerChunks(room, player) {
+  const nearby = getPlayersInRange(room, player.x, player.y, 400, 270, player);
+  player.nearbyplayers = new Set(nearby.map(p => p.nmb));
 }
 
 function playerchunkrenderer(room) {
@@ -45,7 +55,7 @@ function playerchunkrenderer(room) {
   //  const visiblePlayers = Array.from(room.players.values()).filter(p => p.visible);
 
     const visiblePlayers = Array.from(room.players.values());
-    visiblePlayers.forEach(player => UpdatePlayerChunks(visiblePlayers, player));
+    visiblePlayers.forEach(player => UpdatePlayerChunks(room, player));
   };
 
   const updateEvents = () => {

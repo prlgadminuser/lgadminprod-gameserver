@@ -57,13 +57,9 @@ const gamemodeconfig = {
     can_hit_dummies: false,
     can_hit_players: true,
 
-    
-    skillpoints_rewardRange: [10, -5], 
-    seasoncoins_rewardRange: [30, 5],
-
-    maxplayers: 10,
+    maxplayers: 4,
     teamsize: 1,
-    respawns_allowed: 999,
+    respawns_allowed: 0,
 
     playerhealth: 77,
     playerspeed: 1.6,
@@ -192,12 +188,3 @@ module.exports = {
   gamemodeconfig: new Map(Object.entries(gamemodeconfig)),
   allowed_gamemodes,
 };
-
-
-
-
-
-
-
-
-

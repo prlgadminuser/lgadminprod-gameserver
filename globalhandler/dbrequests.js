@@ -171,8 +171,14 @@ async function increasePlayerPlace(player, place2, room) {
 
 
   try {
-    const skillpoints = room.place_counts[place - 1];
-    const season_coins = room.ss_counts[place - 1];
+    const skillpoints = +room.place_counts[place - 1];
+    const season_coins = +room.ss_counts[place - 1];
+
+      if (isNaN(skillpoints) || isNaN(season_coins)) {
+      return;
+  }
+
+
     player.skillpoints_inc = skillpoints
     player.seasoncoins_inc = season_coins
 

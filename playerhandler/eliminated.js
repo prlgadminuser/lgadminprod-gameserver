@@ -44,6 +44,7 @@ function handleElimination(room, team) {
             playerObj.visible = false;
             playerObj.state = 3;
             playerObj.moving = false; // Mark as eliminated (spectator state)
+            room.realtimegrid.removeObject(playerObj);
 
             clearInterval(playerObj.moveInterval);
             clearTimeout(playerObj.timeout);
