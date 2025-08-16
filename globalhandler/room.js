@@ -1036,23 +1036,22 @@ for (const p of players) {
     ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
   };
 
-  
-  // only diff send selfdata
- 
+   // only diff send selfdata
   const lastSelf = p.selflastmsg || {};
-
-
-  var changes = {}
+  var changes = {}; // use var so it's accessible outside this block
 
   for (const k in selfdata) {
-    if (selfdata[k] !== lastSelf[k]) changes[k] = selfdata[k];
+    if (selfdata[k] !== lastSelf[k]) {
+      changes[k] = selfdata[k];
+    }
   }
-  if (Object.keys(changes).length)
-    p.selflastmsg = { ...lastSelf, ...changes }; 
 
+  if (Object.keys(changes).length) {
+    p.selflastmsg = { ...lastSelf, ...changes };
+  }
 
-    if (!p.spectating) {
-
+  // nearby player processing (skip actual computation if spectating)
+  if (!p.spectating) {
     if (!p.nearbyids) p.nearbyids = new Set();
     p.nearbyids.clear();
 
@@ -1072,15 +1071,16 @@ for (const p of players) {
       currentHashes[nearbyId] = hash;
       p.nearbyids.add(nearbyId);
     }
-  
+
     p.pd = filteredplayers;
     p.nearbyfinalids = p.nearbyids;
     p.pdHashes = currentHashes;
+  } else {
+    // define empty objects so message assembly works
+    p.pd = p.pd || {};
+    p.nearbyfinalids = p.nearbyfinalids || new Set();
+    p.pdHashes = p.pdHashes || {};
   }
-  }
-
-
-
 
   // assemble message
   const msg = {
@@ -1095,7 +1095,6 @@ for (const p of players) {
     b: p.finalbullets,
     pd: p.pd,
   };
-
 
   // remove empty
   for (const key in msg) {
@@ -1117,14 +1116,15 @@ for (const p of players) {
   } else {
     p.tick_send_allow = false;
   }
+}
 
-
-  room.destroyedWalls = [];
-  for (const p of players) {
-    p.hitmarkers = [];
-    p.eliminations = [];
-    // p.nearbyanimations = [];
-  }
+// reset hitmarkers and eliminations
+room.destroyedWalls = [];
+for (const player of players) {
+  player.hitmarkers = [];
+  player.eliminations = [];
+  // player.nearbyanimations = [];
+}
 }
 
 
