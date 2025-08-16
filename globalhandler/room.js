@@ -319,7 +319,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
   if (!mapdata) console.error("map does not exist");
 
   const itemgrid = new SpatialGrid(gridcellsize); // grid system for items
-  const realtimegrid = new RealTimeObjectGrid(250)
+  const realtimegrid = new RealTimeObjectGrid(300)
   const bulletgrid = new RealTimeObjectGrid(50)
 
   const roomgrid = cloneSpatialGrid(mapdata.grid);
@@ -984,7 +984,7 @@ function prepareRoomMessages(room) {
 
   const centerX = p.x
   const centerY = p.y
-  const xThreshold = 260
+  const xThreshold = 300
   const yThreshold = 170
 
   const nearbyBullets = room.bulletgrid.getObjectsInArea(
