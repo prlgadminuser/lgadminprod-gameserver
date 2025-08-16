@@ -77,7 +77,7 @@ function playerchunkrenderer(room) {
   updateEvents();
 
   // Then schedule intervals
-  room.intervalIds.push(setInterval(updatePlayers, 25));
+  room.intervalIds.push(setInterval(updatePlayers, 100));
   room.intervalIds.push(setInterval(updateEvents, 50));
 }
 
