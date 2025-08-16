@@ -1084,11 +1084,13 @@ if (!p.spectating)  {
       const hash = generateHash(data);
       if (previousHashes[nearbyId] !== hash) {
         
-        if (!p.spectating && nearbyId !== selfid) {
+        if (p.spectating) {
           filteredplayers[nearbyId] = data; 
         } else {
+          if (nearbyId !== selfid) {
           filteredplayers[nearbyId] = data
         }
+      }
       }
       currentHashes[nearbyId] = hash;
       p.nearbyids.add(nearbyId);
