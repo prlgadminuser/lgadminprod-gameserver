@@ -1011,7 +1011,7 @@ const nearbyPlayers = spatialGrid.getObjectsInArea(
       em: p.emote,
       spc: p.spectateid,
       guns: p.loadout_formatted,
-      np: JSON.stringify(nearbyIds),
+      np: nearbyIds,
       ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
     };
 
