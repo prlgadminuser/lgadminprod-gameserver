@@ -1042,7 +1042,7 @@ for (const p of players) {
   const lastSelf = p.selflastmsg || {};
 
 
-  let changes = {}
+  var changes = {}
 
   for (const k in selfdata) {
     if (selfdata[k] !== lastSelf[k]) changes[k] = selfdata[k];
@@ -1051,6 +1051,7 @@ for (const p of players) {
     p.selflastmsg = { ...lastSelf, ...changes }; 
 
 
+    if (!p.spectating) {
 
     if (!p.nearbyids) p.nearbyids = new Set();
     p.nearbyids.clear();
@@ -1075,7 +1076,7 @@ for (const p of players) {
     p.pd = filteredplayers;
     p.nearbyfinalids = p.nearbyids;
     p.pdHashes = currentHashes;
-  
+  }
   }
 
 
