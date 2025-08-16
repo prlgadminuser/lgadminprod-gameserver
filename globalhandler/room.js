@@ -1080,11 +1080,11 @@ if (!p.spectating)  {
     for (const nearbyId of playersInRange) {
        const data = playerData[nearbyId];
         if (!data) continue; 
-         if (nearbyId === selfid) continue; 
 
       const hash = generateHash(data);
       if (previousHashes[nearbyId] !== hash) {
-        filteredplayers[nearbyId] = data;
+        
+        if (nearbyId !== selfid) filteredplayers[nearbyId] = data;
       }
       currentHashes[nearbyId] = hash;
       p.nearbyids.add(nearbyId);
