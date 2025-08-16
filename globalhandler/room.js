@@ -1090,7 +1090,6 @@ if (!p.spectating)  {
       p.nearbyids.add(nearbyId);
     }
   }
-}
 
 
     p.pd = filteredplayers;
@@ -1143,6 +1142,7 @@ if (!p.spectating)  {
 //    p.nearbyanimations = []
   }
 // console.timeEnd();
+}
 }
 
 
