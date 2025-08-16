@@ -1082,10 +1082,8 @@ if (!p.spectating)  {
 
       const hash = generateHash(data);
       if (previousHashes[nearbyId] !== hash) {
-        
           filteredplayers[nearbyId] = data
         }
-      }
       currentHashes[nearbyId] = hash;
       p.nearbyids.add(nearbyId);
   //  }
@@ -1096,6 +1094,7 @@ if (!p.spectating)  {
     p.pdHashes = currentHashes;
 
      }
+    }
 
     // Message assembly
     const msg = {
