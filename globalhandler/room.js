@@ -1010,38 +1010,7 @@ for (const p of players) {
 
   if (!p.wsReadyState()) continue;
 
-  
-  // only diff send selfdata
- 
 
-
-  if (!p.spectating) {
-
-    if (!p.nearbyids) p.nearbyids = new Set();
-    p.nearbyids.clear();
-
-    let filteredplayers = {};
-    const playersInRange = p.nearbyplayers || [];
-    const previousHashes = p.pdHashes || {};
-    const currentHashes = {};
-
-    for (const nearbyId of playersInRange) {
-      const data = playerData[nearbyId];
-      if (!data) continue;
-
-      const hash = generateHash(data);
-      if (previousHashes[nearbyId] !== hash) {
-        filteredplayers[nearbyId] = data;
-      }
-      currentHashes[nearbyId] = hash;
-      p.nearbyids.add(nearbyId);
-    }
-  
-    p.pd = filteredplayers;
-    p.nearbyfinalids = p.nearbyids;
-    p.pdHashes = currentHashes;
-  }
-}
 
   const selfdata = {
     id: p.nmb,
@@ -1067,6 +1036,9 @@ for (const p of players) {
     ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
   };
 
+  
+  // only diff send selfdata
+ 
   const lastSelf = p.selflastmsg || {};
 
 
@@ -1077,6 +1049,33 @@ for (const p of players) {
   }
   if (Object.keys(changes).length)
     p.selflastmsg = { ...lastSelf, ...changes }; 
+
+
+  if (!p.spectating) {
+    if (!p.nearbyids) p.nearbyids = new Set();
+    p.nearbyids.clear();
+
+    let filteredplayers = {};
+    const playersInRange = p.nearbyplayers || [];
+    const previousHashes = p.pdHashes || {};
+    const currentHashes = {};
+
+    for (const nearbyId of playersInRange) {
+      const data = playerData[nearbyId];
+      if (!data) continue;
+
+      const hash = generateHash(data);
+      if (previousHashes[nearbyId] !== hash) {
+        filteredplayers[nearbyId] = data;
+      }
+      currentHashes[nearbyId] = hash;
+      p.nearbyids.add(nearbyId);
+    }
+  
+    p.pd = filteredplayers;
+    p.nearbyfinalids = p.nearbyids;
+    p.pdHashes = currentHashes;
+  }
 
 
 
@@ -1115,6 +1114,7 @@ for (const p of players) {
   } else {
     p.tick_send_allow = false;
   }
+}
 
   room.destroyedWalls = [];
   for (const p of players) {
