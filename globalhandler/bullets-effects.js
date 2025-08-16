@@ -1,48 +1,41 @@
 
 const { handlePlayerCollision, handleDummyCollision } = require("./player")
 
-function AddAffliction(room, shootingPlayer, target, data) {
+function HandleAfflictions(room) {
+  const now = Date.now();
 
-    const { target_type, damage, speed, duration, gunid, dummykey } = data
+  // Iterate backward to allow removal
+  for (let i = room.activeAfflictions.length - 1; i >= 0; i--) {
+    const aff = room.activeAfflictions[i];
 
+    // Remove if expired
+    if (now >= aff.expires) {
+      room.activeAfflictions.splice(i, 1);
+      continue;
+    }
 
+    // Skip until next tick
+    if (now < aff.nextTick) continue;
 
-    const interval = setInterval(() => {
+    // Apply effect
+    if (aff.target_type === "dummy") {
+      if (!room.dummies[aff.dummykey]) {
+        room.activeAfflictions.splice(i, 1);
+        continue;
+      }
+      handleDummyCollision(room, aff.shootingPlayer, aff.dummykey, aff.damage);
+    } else if (aff.target_type === "player") {
+      if (!aff.target.visible) {
+        room.activeAfflictions.splice(i, 1);
+        continue;
+      }
+      handlePlayerCollision(room, aff.shootingPlayer, aff.target, aff.damage, aff.gunid);
+    }
 
-        if (!target) {
-            clearInterval(interval);
-            return;
-        }
-
-        if (target_type === "player" && !target.visible) {
-            clearInterval(interval);
-            return;
-        }
-       
-        if (target_type === "dummy" && !room.dummies[dummykey]) {
-            clearInterval(interval);
-            return;
-        }
-
-
-        
-        if (target_type === "dummy") {
-        handleDummyCollision(room, shootingPlayer, dummykey, damage)    
-        } else if (target_type === "player") {
-        handlePlayerCollision(room, shootingPlayer, target, damage, gunid)
-        }
-
-
-
-    }, speed);
-
-    room.intervalIds.push(interval)
-
-    room.timeoutIds.push(setTimeout(() => {
-        clearInterval(interval)
-    }, duration));
+    // Schedule next tick
+    aff.nextTick += aff.speed;
+  }
 }
 
-// AddAffliction(room, target, shootingPlayer, damage, speed, duration)
 
-module.exports = { AddAffliction }
+module.exports = { HandleAfflictions }

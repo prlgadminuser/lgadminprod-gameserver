@@ -12,6 +12,7 @@ const {
   room_max_open_time,
 } = require("./config.js");
 const { handleBulletFired, BulletManager } = require("./bullets.js");
+const { HandleAfflictions } = require('./bullets-effects')
 const { handleMovement } = require("./player.js");
 const {
   startRegeneratingHealth,
@@ -338,6 +339,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     objects: [],
     destroyedWalls: [],
     bulletsUpdates: [],
+    activeAfflictions: [],
     players: new Map(),
     snap: [],
     state: "waiting", // Possible values: "waiting", "playing", "countdown"
@@ -388,6 +390,18 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
   addRoomToIndex(room);
   rooms.set(roomId, room);
+
+  
+room.intervalIds.push(setInterval(() => {
+  const now = Date.now();
+
+  for (const player of room.players.values()) {
+    if (player.lastPing <= now - player_idle_timeout) {
+      player.wsClose(4200, "disconnected_inactivity");
+    }
+  }
+}, player_idle_timeout / 2));
+
 
   room.xcleaninterval = setInterval(() => {
     if (room) {
@@ -583,6 +597,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
       send: (msg) => { if (ws.readyState === ws.OPEN) ws.send(msg) },
       wsReadyState: () => ws.readyState,
 
+      lastPing: Date.now(),
       lastmsg: 0,
       rateLimiter: playerRateLimiter,
       intervalIds: [],
@@ -619,14 +634,6 @@ async function joinRoom(ws, gamemode, playerVerified) {
     }
 
     if (room) {
-      const timeout = setTimeout(() => {
-        if (newPlayer.lastPing <= Date.now() - 5000) {
-          newPlayer.wsClose(4200, "disconnected_inactivity");
-        }
-      }, player_idle_timeout);
-
-      newPlayer.timeoutIds.push(timeout);
-      newPlayer.timeout = timeout;
 
       if (room.state !== "waiting" || room.players.size >= room.maxplayers)
         return;
@@ -866,6 +873,8 @@ const nearbyPlayers = spatialGrid.getObjectsInArea(
 */
 
 //console.time()
+
+  HandleAfflictions(room);
 
   const players = Array.from(room.players.values());
   const GameRunning = room.state === "playing" || room.state === "countdown";

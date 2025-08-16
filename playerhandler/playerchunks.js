@@ -46,7 +46,7 @@ return others
 }
 
 function UpdatePlayerChunks(room, player) {
-  const nearbyIds = getPlayersInRange(room, player.x, player.y, 260, 200, player)
+  const nearbyIds = getPlayersInRange(room, player.x, player.y, 260, 170, player)
     .map(p => p.nmb);
 
   const nearbySet = player.nearbyplayers;
@@ -54,8 +54,8 @@ function UpdatePlayerChunks(room, player) {
   for (const id of nearbyIds) {
     nearbySet.add(id);     // add current nearby IDs
   }
-}
 
+}
 
 
 
@@ -77,12 +77,10 @@ function playerchunkrenderer(room) {
   updateEvents();
 
   // Then schedule intervals
-  room.intervalIds.push(setInterval(updatePlayers, 50));
+  room.intervalIds.push(setInterval(updatePlayers, 25));
   room.intervalIds.push(setInterval(updateEvents, 50));
 }
 
 module.exports = {
   playerchunkrenderer
 };
-
-

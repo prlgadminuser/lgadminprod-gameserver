@@ -3,7 +3,6 @@
 const { isCollisionWithBullet, adjustBulletDirection, findCollidedWall, isCollisionWithPlayer } = require('./collisions');
 const { handlePlayerCollision, handleDummyCollision } = require('./player');
 const { gunsconfig } = require('./config');
-const { AddAffliction } = require('./bullets-effects')
 
 
 class Vec2 {
@@ -192,7 +191,7 @@ class BulletManager {
         const centerX = bullet.position.x
         const centerY = bullet.position.y
         const threshold = bullet.width > bullet.height ? bullet.width : bullet.height
-        const xThreshold = threshold* 1.2
+        const xThreshold = threshold * 1.2
         const yThreshold = threshold * 1.2
         
         const nearbyPlayers = this.room.realtimegrid.getObjectsInArea(
@@ -209,12 +208,15 @@ class BulletManager {
               const finalDamage = calculateFinalDamage(distTraveled, bullet.maxDistance, bullet.damage, bullet.damageConfig);
               handlePlayerCollision(this.room, this.room.players.get(bullet.ownerId), otherPlayer, finalDamage, bullet.gunId);
 
-              AddAffliction(this.room, this.room.players.get(bullet.ownerId), otherPlayer, {
+              this.room.activeAfflictions.push({
+                shootingPlayer: this.room.players.get(bullet.ownerId),
+                target: otherPlayer,
                 target_type: "player",
                 damage: 1,
-                speed: 500,
-                duration: 3000,
+                speed: 500, // interval between hits in ms
                 gunid: bullet.gunId,
+                nextTick: Date.now() + 500, // first tick time
+                expires: Date.now() + 3000, // when this effect ends
               });
 
               toRemove.push([playerId, id]);
@@ -236,14 +238,16 @@ class BulletManager {
             const finalDamage = calculateFinalDamage(distTraveled, bullet.maxDistance, bullet.damage, bullet.damageConfig);
             handleDummyCollision(this.room, this.room.players.get(bullet.ownerId), dummyKey, finalDamage);
 
-            AddAffliction(this.room, this.room.players.get(bullet.ownerId), dummy, {
-              target_type: "dummy",
-              damage: 1,
-              speed: 500,
-              duration: 3000,
-              gunid: bullet.gunId,
-              dummykey: dummyKey,
-            });
+              this.room.activeAfflictions.push({
+                shootingPlayer: this.room.players.get(bullet.ownerId),
+                 dummykey: dummyKey,
+                target_type: "dummy",
+                damage: 1,
+                speed: 500, // interval between hits in ms
+                gunid: bullet.gunId,
+                nextTick: Date.now() + 500, // first tick time
+                expires: Date.now() + 3000, // when this effect ends
+              });
 
             toRemove.push([playerId, id]);
             hitDummy = true;

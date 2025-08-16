@@ -45,7 +45,20 @@ function updateHealingCircles(deltaTime, room) {
     }
 
     // Heal players inside the circle
-    room.players.forEach((player) => {
+
+        const centerX = circle.x
+        const centerY = circle.y
+        const xThreshold = 100
+        const yThreshold = 100
+        
+        const nearbyPlayers = this.room.realtimegrid.getObjectsInArea(
+        centerX - xThreshold,
+        centerX + xThreshold,
+        centerY - yThreshold,
+        centerY + yThreshold,
+        );
+
+    nearbyPlayers.forEach((player) => {
       if (player.state === 1 && isPlayerInsideCircle(player, circle) && circle.radius > Math.floor(circle.maxradius * 0.3)) {
         player.health = Math.min(player.health + circle.healAmount, player.starthealth);
       }
