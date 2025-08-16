@@ -53,7 +53,17 @@ function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
   spectatingPlayer.nearbycircles = targetPlayer.nearbycircles
   spectatingPlayer.nearbyanimations = targetPlayer.nearbyanimations
   spectatingPlayer.finalbullets = targetPlayer.finalbullets
-  spectatingPlayer.pd = targetPlayer.pd
+  
+    spectatingPlayer.pd = targetPlayer.pd;
+  // Add/update the target’s own data
+  spectatingPlayer.pd[targetPlayer.nmb] = [
+    targetPlayer.x,
+    targetPlayer.y,
+    targetPlayer.direction2,
+    targetPlayer.health,
+    targetPlayer.gun,
+    targetPlayer.emote,
+  ];
   spectatingPlayer.spectatingPlayerId = targetPlayer.nmb
   spectatingPlayer.spectatingTarget = targetPlayer
 }
