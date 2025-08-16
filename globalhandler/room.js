@@ -271,7 +271,6 @@ function RemoveRoomPlayer(room, player, type) {
   player.intervalIds?.forEach(clearInterval);
 
   try {player.wsClose();} catch {}
-  player.bullets?.clear();
   player.nearbyids?.clear();
   player.nearbyplayers = [];
 
@@ -575,7 +574,6 @@ async function joinRoom(ws, gamemode, playerVerified) {
       eliminations: [],
       nearbyanimations: [],
       can_bullets_bounce: false,
-      bullets: new Map(),
       nearbyids: new Set(),
       nearbyplayers: new Set(),
       nearbyfinalids: [],
@@ -626,7 +624,6 @@ async function joinRoom(ws, gamemode, playerVerified) {
     };
 
     newPlayer.gun = newPlayer.loadout[1];
-    newPlayer.loadout[3] = "4"
 
     if (newPlayer.gadgetchangevars) {
       for (const [variable, change] of Object.entries(
