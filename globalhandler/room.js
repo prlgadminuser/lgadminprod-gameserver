@@ -162,7 +162,6 @@ async function setupRoomPlayers(room) {
   // Iterate over each player in the room's players collection
   room.players.forEach((player) => {
 
-    room.realtimegrid.addObject(player);
     // Set the player's unique number (nmb)
     player.nmb = playerNumberID;
 
@@ -179,6 +178,8 @@ async function setupRoomPlayers(room) {
 
     // Increment the player number for the next player
     playerNumberID++;
+
+    room.realtimegrid.addObject(player)
   });
 }
 
@@ -658,6 +659,8 @@ async function startMatch(room, roomId) {
 
   await setupRoomPlayers(room);
   await CreateTeams(room);
+
+
 
   playerchunkrenderer(room);
   SendPreStartMessage(room);
