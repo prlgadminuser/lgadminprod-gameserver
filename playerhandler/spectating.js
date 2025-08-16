@@ -48,7 +48,7 @@ function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
   spectatingPlayer.x = targetPlayer.x
   spectatingPlayer.y = targetPlayer.y
   spectatingPlayer.nearbyfinalids = targetPlayer.nearbyfinalids
-  spectatingPlayer.hitmarkers = targetPlayer.hitmarkers
+  //spectatingPlayer.hitmarkers = targetPlayer.hitmarkers
   spectatingPlayer.nearbycircles = targetPlayer.nearbycircles
   spectatingPlayer.nearbyanimations = targetPlayer.nearbyanimations
   spectatingPlayer.finalbullets = targetPlayer.finalbullets
