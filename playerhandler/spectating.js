@@ -1,6 +1,5 @@
 "use strict";
 
-const { server_tick_rate } = require("../globalhandler/config");
 
 // Function to handle spectating logic for eliminated players
 function handleSpectatorMode(player, room) {
@@ -44,6 +43,7 @@ function handleSpectatorMode(player, room) {
 
 
 function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
+  if (!targetPlayer) return
   spectatingPlayer.x = targetPlayer.x
   spectatingPlayer.y = targetPlayer.y
   spectatingPlayer.nearbyfinalids = targetPlayer.nearbyfinalids
