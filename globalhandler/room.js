@@ -841,7 +841,7 @@ function SendPreStartMessage(room) {
 
 const round_player_pos_sending = true// provides 50% better compression but couldnt look smooth enough
 
-const round_player_pos_sending = false; // Better compression but less smooth
+//const round_player_pos_sending = false; // Better compression but less smooth
 
 function arraysEqual(a, b) {
   if (a === b) return true;
