@@ -1083,20 +1083,21 @@ if (!p.spectating)  {
 
       const hash = generateHash(data);
       if (previousHashes[nearbyId] !== hash) {
-         if (nearbyId !== selfid) 
-          filteredplayers[nearbyId] = data
-        }
+         if (nearbyId !== selfid) {
+          filteredplayers[nearbyId] = data  
       }
       currentHashes[nearbyId] = hash;
       p.nearbyids.add(nearbyId);
-  //  }
+    }
+  }
+}
 
 
     p.pd = filteredplayers;
     p.nearbyfinalids = p.nearbyids;
     p.pdHashes = currentHashes;
 
-     }
+     
 
     // Message assembly
     const msg = {
