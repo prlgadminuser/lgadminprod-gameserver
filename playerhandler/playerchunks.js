@@ -38,15 +38,13 @@ function getPlayersInRange(room, centerX, centerY, xThreshold, yThreshold, exclu
   centerY + yThreshold,
 );
 
-const others = nearbyPlayers.filter(p => p !== excludePlayer);
-
 //const others = nearbyPlayers.filter(p => p !== excludePlayer && p.isPlayer);
 
-return others
+return nearbyPlayers
 }
 
 function UpdatePlayerChunks(room, player) {
-  const nearbyIds = getPlayersInRange(room, player.x, player.y, 300, 170, player)
+  const nearbyIds = getPlayersInRange(room, player.x, player.y, 300, 170)
     .map(p => p.nmb);
 
   const nearbySet = player.nearbyplayers;

@@ -1066,10 +1066,13 @@ function prepareRoomMessages(room) {
     if (!p.nearbyids) {
       p.nearbyids = new Set();
     }
+    
 
+if (!p.spectating)  {
     p.nearbyids.clear();
     let filteredplayers = {};
 
+    const selfid = p.nmb
     const playersInRange = p.nearbyplayers;
     const previousHashes = p.pdHashes || {};
     const currentHashes = {};
@@ -1077,6 +1080,7 @@ function prepareRoomMessages(room) {
     for (const nearbyId of playersInRange) {
        const data = playerData[nearbyId];
         if (!data) continue; 
+         if (nearbyId === selfid) continue; 
 
       const hash = generateHash(data);
       if (previousHashes[nearbyId] !== hash) {
@@ -1086,9 +1090,12 @@ function prepareRoomMessages(room) {
       p.nearbyids.add(nearbyId);
     }
 
+
     p.pd = filteredplayers;
     p.nearbyfinalids = p.nearbyids;
     p.pdHashes = currentHashes;
+
+     }
 
     // Message assembly
     const msg = {
@@ -1135,6 +1142,12 @@ function prepareRoomMessages(room) {
   }
 // console.timeEnd();
 }
+
+
+
+
+
+
 
 function sendRoomMessages(room) {
   room.players.forEach((player) => {
