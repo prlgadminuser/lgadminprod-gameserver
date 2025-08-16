@@ -1019,12 +1019,12 @@ function prepareRoomMessages(room) {
     const msg = {};
     if (finalroomdata) msg.r = finalroomdata;
     if (dummiesFiltered) msg.dm = dummiesFiltered;
-    if (room.newkillfeed) msg.kf = room.newkillfeed;
+    if (room.newkillfeed && room.newkillfeed.length > 0) msg.kf = room.newkillfeed;
     if (room.scoreboard) msg.sb = room.scoreboard;
     if (Object.keys(changes).length) msg.sd = changes;
     if (room.destroyedWalls.length) msg.WLD = room.destroyedWalls;
-    if (p.nearbycircles) msg.cl = p.nearbycircles;
-    if (p.nearbyanimations) msg.an = p.nearbyanimations;
+    if (p.nearbycircles && p.nearbycircles.length > 0) msg.cl = p.nearbycircles;
+    if (p.nearbyanimations && p.nearbyanimations.length > 0) msg.an = p.nearbyanimations;
     if (p.finalbullets) msg.b = p.finalbullets;
     if (Object.keys(p.pd).length) msg.pd = p.pd;
 
