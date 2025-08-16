@@ -46,7 +46,7 @@ return others
 }
 
 function UpdatePlayerChunks(room, player) {
-  const nearbyIds = getPlayersInRange(room, player.x, player.y, 230, 160, player)
+  const nearbyIds = getPlayersInRange(room, player.x, player.y, 260, 200, player)
     .map(p => p.nmb);
 
   const nearbySet = player.nearbyplayers;
@@ -84,4 +84,5 @@ function playerchunkrenderer(room) {
 module.exports = {
   playerchunkrenderer
 };
+
 
