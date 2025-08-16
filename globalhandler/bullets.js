@@ -93,8 +93,8 @@ class BulletManager {
   }
 
   generateBulletId() {
-    return Math.random().toString(36).substring(2, 7);
-  }
+  return Math.random().toString(36).substring(2, 5); // 3 characters
+}
 
     spawnBullet(player, bulletData) {
     const id = this.generateBulletId();
