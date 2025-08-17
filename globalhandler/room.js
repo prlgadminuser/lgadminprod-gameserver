@@ -1108,9 +1108,8 @@ function prepareRoomMessages(room) {
       if (!arraysEqual(previousData[nearbyId], data)) {
           filteredplayers[nearbyId] = data
         }
-      currentData[nearbyId] = hash;
+      currentData[nearbyId] = data
       p.nearbyids.add(nearbyId);
-  //  }
 
 
     p.pd = filteredplayers;
