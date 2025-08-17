@@ -48,8 +48,22 @@ function generateUUID() {
 //
 
 function generateHash(message) {
-   return JSON.stringify(message);
+     let hash = 2166136261;
+    for (let i = 0; i < message.length; i++) {
+        let val = message[i];
+        if (typeof val === "string") {
+            for (let j = 0; j < val.length; j++) {
+                hash ^= val.charCodeAt(j);
+                hash = (hash * 16777619) >>> 0;
+            }
+        } else {
+            hash ^= val;
+            hash = (hash * 16777619) >>> 0;
+        }
+    }
+    return hash >>> 0;
 }
+
 
 function generateHash2(message) {
   let hash = 0;
@@ -376,6 +390,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     zoneEndX: mapdata.width,
     zoneEndY: mapdata.height,
     // Metadata
+    zone: 0,
     roomId: roomId,
   };
 
@@ -793,6 +808,54 @@ const transformData = (data) => {
   return transformed;
 };
 
+
+
+function encodePosition(num) {
+  return Math.round(num * 100); // keep 2 decimals
+  // Math.floor(p.x * 10)
+}
+
+function generateHash(message) {
+     let hash = 2166136261;
+    for (let i = 0; i < message.length; i++) {
+        let val = message[i];
+        if (typeof val === "string") {
+            for (let j = 0; j < val.length; j++) {
+                hash ^= val.charCodeAt(j);
+                hash = (hash * 16777619) >>> 0;
+            }
+        } else {
+            hash ^= val;
+            hash = (hash * 16777619) >>> 0;
+        }
+    }
+    return hash >>> 0;
+}
+
+
+function BuildSelfData(player) {
+ return {
+      state: player.state,
+      h: player.health,
+      s: +player.shooting,
+      g: player.gun,
+      kil: player.kills,
+      dmg: player.damage,
+      rwds: player.finalrewards,
+    //  killer: player.eliminator,
+      cg: +player.canusegadget,
+      lg: player.gadgetuselimit,
+      ag: +player.gadgetactive,
+      x: encodePosition(player.x),
+      y: encodePosition(player.y),
+      el: player.eliminations,
+      em: player.emote,
+      spc: player.spectatingPlayerId,
+      guns: player.loadout_formatted,
+      np: player.npfix,
+ }
+}
+
 function SendPreStartMessage(room) {
   // Prebuild AllPlayerData
 
@@ -863,18 +926,6 @@ function SendPreStartMessage(room) {
 
 
 
-
- 
-
-
-
-
-function encodePosition(num) {
-  return Math.round(num * 100); // keep 2 decimals
-  // Math.floor(p.x * 10)
-}
-
-
 function prepareRoomMessages(room) {
   
 //console.time()
@@ -916,7 +967,6 @@ function prepareRoomMessages(room) {
   // PLAYING STATE
   const aliveCount = players.reduce((c, p) => c + !p.eliminated, 0);
   handlePlayerMoveIntervalAll(room);
-
   HandleAfflictions(room);
 
   // DUMMIES (once)
@@ -954,9 +1004,9 @@ function prepareRoomMessages(room) {
       finalroomdata = undefined;
   }
 
-  // PLAYER POSITIONAL DATA (once)
-  const playerData = {};
 
+
+  const playerData = {};
 
   for (const p of players) {
 
@@ -973,25 +1023,20 @@ function prepareRoomMessages(room) {
 
   if (nearbyBullets) {
     for (const bullet of nearbyBullets.values()) {
-
     formattedBullets[bullet.id] = [
     Math.round(bullet.position.x),
     Math.round(bullet.position.y),
     Math.round(bullet.direction),
     bullet.gunId
     ]
-   // console.log(formattedBullets)
     }
   }
 
   const finalBullets = Object.keys(formattedBullets).length > 0 ? formattedBullets : undefined;
   p.finalbullets = finalBullets;
- 
 
   if (!p.visible) continue;
-
-  Math.floor(p.x / 10)
-
+//  Math.floor(p.x / 10)
   playerData[p.nmb] = [
     encodePosition(p.x),
     encodePosition(p.y),
@@ -1003,33 +1048,12 @@ function prepareRoomMessages(room) {
 }
 
 
+
   // ONE PASS: Build, hash, compress, send
   for (const p of players) {
    if (!p.wsReadyState()) continue;
 
-    const selfdata = {
-      id: p.nmb,
-      state: p.state,
-      h: p.health,
-      sh: p.starthealth,
-      s: +p.shooting,
-      g: p.gun,
-      kil: p.kills,
-      dmg: p.damage,
-      rwds: p.finalrewards.length > 0 ? p.finalrewards : undefined,
-      killer: p.eliminator,
-      cg: +p.canusegadget,
-      lg: p.gadgetuselimit,
-      ag: +p.gadgetactive,
-      x: encodePosition(p.x),
-      y: encodePosition(p.y),
-      el: p.eliminations.length > 0 ? p.eliminations : undefined,
-      em: p.emote,
-      spc: p.spectatingPlayerId,
-      guns: p.loadout_formatted,
-      np: generateHash(Array.from(p.nearbyfinalids)),
-      ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
-    };
+    const selfdata = BuildSelfData(p)
 
     const changes = {};
     const lastSelf = p.selflastmsg || {};
@@ -1039,9 +1063,9 @@ function prepareRoomMessages(room) {
     if (Object.keys(changes).length)
       p.selflastmsg = { ...lastSelf, ...changes };
 
-    if (!p.nearbyids) {
-      p.nearbyids = new Set();
-    }
+//    if (!p.nearbyids) {
+//      p.nearbyids = new Set();
+  //  }
     
     if (p.spectating) handleSpectatorMode(p, room);
 
