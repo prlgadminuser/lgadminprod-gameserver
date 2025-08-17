@@ -48,9 +48,7 @@ function generateUUID() {
 //
 
 function generateHash(message) {
-  const str = JSON.stringify(message);
-  
-  return str;
+   return JSON.stringify(message);
 }
 
 function generateHash2(message) {
@@ -862,36 +860,18 @@ function SendPreStartMessage(room) {
 }
 
 
-const roundPositions = false// provides 50% better compression but couldnt look smooth enough
 
 
-function buildNearbyPlayerJSON(p) {
-  if (!p.lastSentData) p.lastSentData = {};
-
- // Math.floor(p.x * 10)
 
 
-  const currentData = {
-    x: roundPositions ? Math.round(p.x) : p.x,
-    y: roundPositions ? Math.round(p.y) : p.y,
-    dir: p.direction2,
-    health: p.health,
-    gun: p.gun,
-    emote: p.emote,
-    bullets: p.finalbullets || undefined,
-  };
+ 
 
-  const changes = {};
-  for (const key in currentData) {
-    if (JSON.stringify(currentData[key]) !== JSON.stringify(p.lastSentData[key])) {
-      changes[key] = currentData[key];
-    }
-  }
 
-  // Update last sent data
-  p.lastSentData = { ...p.lastSentData, ...changes };
 
-  return Object.keys(changes).length ? changes : null; // null = no changes
+
+function encodePosition(num) {
+  return Math.round(num * 100); // keep 2 decimals
+  // Math.floor(p.x * 10)
 }
 
 
@@ -1010,9 +990,11 @@ function prepareRoomMessages(room) {
 
   if (!p.visible) continue;
 
+  Math.floor(p.x / 10)
+
   playerData[p.nmb] = [
-    roundPositions ? Math.round(p.x) : p.x,
-    roundPositions ? Math.round(p.y) : p.y,
+    encodePosition(p.x),
+    encodePosition(p.y),
     p.direction2,
     p.health,
     p.gun,
@@ -1039,8 +1021,8 @@ function prepareRoomMessages(room) {
       cg: +p.canusegadget,
       lg: p.gadgetuselimit,
       ag: +p.gadgetactive,
-      x: roundPositions ? Math.round(p.x) : p.x,
-      y: roundPositions ? Math.round(p.y) : p.y,
+      x: encodePosition(p.x),
+      y: encodePosition(p.y),
       el: p.eliminations.length > 0 ? p.eliminations : undefined,
       em: p.emote,
       spc: p.spectatingPlayerId,
@@ -1072,6 +1054,8 @@ if (!p.spectating)  {
     const currentHashes = {};
 
     for (const nearbyId of playersInRange) {
+
+      if (nearbyId === p.nmb) continue; 
        const data = playerData[nearbyId];
         if (!data) continue; 
 
@@ -1091,9 +1075,11 @@ if (!p.spectating)  {
      }
     }
 
+    //const { [p.nmb]: _, ...pdToSend } = p.pd;
 
-    const pdToSend = { ...p.pd };
-    delete pdToSend[p.nmb];
+
+    const pdToSend = p.pd;
+
     // Message assembly
     const msg = {
       r: finalroomdata,
