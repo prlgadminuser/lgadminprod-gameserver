@@ -1090,7 +1090,7 @@ function prepareRoomMessages(room) {
        const data = playerData[nearbyId];
         if (!data) continue; 
 
-      const hash = hashArray(data);
+      const hash = generateHash(data);
       if (previousHashes[nearbyId] !== hash) {
           filteredplayers[nearbyId] = data
         }
