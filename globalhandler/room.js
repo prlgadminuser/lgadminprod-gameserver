@@ -841,43 +841,34 @@ function hashArray(arr) {
   return hash;
 }
 
-function arraysDiffer(a, b) {
-  let hash = 0;
-  for (let i = 0; i < arr.length; i++) {
-    let val = arr[i];
-    // Convert value to string to handle numbers/strings uniformly
-    let str = String(val);
-    for (let j = 0; j < str.length; j++) {
-      hash = (hash << 5) - hash + str.charCodeAt(j);
-      hash |= 0; // Convert to 32-bit integer
-    }
-  }
-  return hash;
-}
 
 
-
-function BuildSelfData(player) {
- return {
-      state: player.state,
-      h: player.health,
-      s: +player.shooting,
-      g: player.gun,
-      kil: player.kills,
-      dmg: player.damage,
-      rwds: player.finalrewards,
-    //  killer: player.eliminator,
-      cg: +player.canusegadget,
-      lg: player.gadgetuselimit,
-      ag: +player.gadgetactive,
+function BuildSelfData(p) {
+ const selfdata = {
+      state: p.state,
+      h: p.health,
+      sh: p.starthealth,
+      s: +p.shooting,
+      g: p.gun,
+      kil: p.kills,
+      dmg: p.damage,
+      rwds: p.finalrewards.length > 0 ? p.finalrewards : undefined,
+      killer: p.eliminator,
+      cg: +p.canusegadget,
+      lg: p.gadgetuselimit,
+      ag: +p.gadgetactive,
       x: encodePosition(player.x),
       y: encodePosition(player.y),
-      el: player.eliminations,
-      em: player.emote,
-      spc: player.spectatingPlayerId,
-      guns: player.loadout_formatted,
-      np: player.npfix,
- }
+      el: p.eliminations.length > 0 ? p.eliminations : undefined,
+      em: p.emote,
+      spc: p.spectatingPlayerId,
+      guns: p.loadout_formatted,
+      np: JSON.stringify(Array.from(p.nearbyfinalids)),
+      ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
+ 
+}
+
+return selfdata
 }
 
 function SendPreStartMessage(room) {
