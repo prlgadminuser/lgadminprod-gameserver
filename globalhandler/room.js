@@ -361,6 +361,8 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     timeoutIds: [],
     winner: -1,
 
+    showTxt: gmconfig.showTxt,
+
     countdown: 0,
 
     // bullets handler
@@ -373,7 +375,6 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     maxplayers: gmconfig.maxplayers,
     modifiers: gmconfig.modifiers,
     respawns: gmconfig.respawns_allowed,
-    showtimer: gmconfig.show_timer,
     sp_level: splevel,
     place_counts: gmconfig.placereward,
     ss_counts: gmconfig.seasoncoinsreward,
@@ -709,7 +710,7 @@ async function startMatch(room, roomId) {
 
             room.state = "playing";
 
-            if (room.showtimer === true) {
+            if (room.showTxt.has("countdown")) {
               const countdownDuration = room_max_open_time;
               const countdownStartTime = Date.now();
 
@@ -816,19 +817,6 @@ function encodePosition(num) {
   return Math.round(num * 100); // keep 2 decimals
   // Math.floor(p.x * 10)
 }
-
-function arraysDifferent(a, b) {
-  if (a.length !== b.length) return true; // Early exit if lengths differ
-
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) {
-      return true; // Early exit on first difference
-    }
-  }
-
-  return false; // No differences found
-}
-
 
 function generateHash(message) {
    return JSON.stringify(message)
@@ -942,6 +930,7 @@ function SendPreStartMessage(room) {
       RoomData: {
         mapid: room.map,
         type: room.matchtype,
+        showTxt: room.showTxt,
         sb: room.scoreboard,
       },
     };

@@ -49,9 +49,13 @@ const gamemodeconfig = {
     placereward: [10, 8, 6, -1, -5],
     seasoncoinsreward: [25, 17, 12, 10, 7],
 
-    show_timer: true,
+         showTxt: new Set([
+      "countdown"
+    ]),
+
     custom_map: "prism_party",
   },
+
 
   fightdown: {
     can_hit_dummies: false,
@@ -77,9 +81,12 @@ const gamemodeconfig = {
     placereward: [10, 8, 6, -1, -5],
     seasoncoinsreward: [25, 17, 12, 10, 7],
 
-    show_timer: false,
+     showTxt: new Set([
+      "countdown"
+    ]),
     custom_map: "prism_party",
   },
+
 
   "1v1": {
     can_hit_dummies: false,
@@ -98,10 +105,14 @@ const gamemodeconfig = {
 
     placereward: [16, -8],
     seasoncoinsreward: [25, 12],
+    
+   showTxt: new Set([
+      "countdown"
+    ]),
 
-    show_timer: false,
     custom_map: "prism_party",
   },
+
 
   training: {
     can_hit_dummies: true,
@@ -125,9 +136,13 @@ const gamemodeconfig = {
     placereward: [0],
     seasoncoinsreward: [0],
 
-    show_timer: true,
+     showTxt: new Set([
+      "countdown"
+    ]),
+    
     custom_map: "training",
   },
+
 
   deathmatch: {
     can_hit_dummies: false,
@@ -142,15 +157,19 @@ const gamemodeconfig = {
 
     placereward: [7, -2],
     seasoncoinsreward: [17, 10],
-    show_timer: true,
 
     modifiers: new Set([]),
 
     weapons_modifiers_override: new Set([]),
 
+     showTxt: new Set([
+      "countdown"
+    ]),
+
     custom_map: 5,
     matchtype: "td",
   },
+
 
   breakthrough: {
     can_hit_dummies: false,
@@ -170,6 +189,10 @@ const gamemodeconfig = {
     modifiers: new Set(["UseZone"]),
 
     weapons_modifiers_override: new Set(["DestroyWalls"]),
+
+     showTxt: new Set([
+      "countdown"
+    ]),
 
     custom_map: "breakthrough",
     //matchtype: "td"
