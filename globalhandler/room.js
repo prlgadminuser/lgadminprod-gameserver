@@ -361,6 +361,8 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     timeoutIds: [],
     winner: -1,
 
+    countdown: 0,
+
     // bullets handler
     bullets: new Map(),
     bulletgrid: bulletgrid,
@@ -835,12 +837,23 @@ function generateHash(message) {
 function hashArray(arr) {
   let hash = 0;
   for (let i = 0; i < arr.length; i++) {
-    let val = arr[i] === "" ? 0 : arr[i]; // treat empty string as 0
-    hash = ((hash << 5) - hash + val) | 0; // 32-bit integer hash
+    let val = arr[i];
+    if (val === "") val = 0;      // empty string -> 0
+    else if (typeof val === "string") val = hashString(val); // handle non-numeric string
+
+    hash = ((hash << 5) - hash + val) | 0;
   }
   return hash;
 }
 
+// Simple string-to-number hash
+function hashString(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+  }
+  return h;
+}
 
 
 function BuildSelfData(p) {
@@ -1090,7 +1103,7 @@ function prepareRoomMessages(room) {
        const data = playerData[nearbyId];
         if (!data) continue; 
 
-      const hash = generateHash(data);
+      const hash = hashArray(data);
       if (previousHashes[nearbyId] !== hash) {
           filteredplayers[nearbyId] = data
         }
