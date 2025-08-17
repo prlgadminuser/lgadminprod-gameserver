@@ -892,6 +892,15 @@ function SendPreStartMessage(room) {
     ? transformData(room.dummies)
     : undefined;
 
+    const RoomData = {
+        mapid: room.map,
+        type: room.matchtype,
+        modifiers:  Array.from(room.modifiers), // set needs array converting
+        sb: room.scoreboard,
+      }
+
+      
+
   for (const player of players) {
     const self_info = {
       id: player.nmb,
@@ -925,12 +934,7 @@ function SendPreStartMessage(room) {
         dummies: dummiesFiltered,
         gadget: player.gadgetid,
       },
-      RoomData: {
-        mapid: room.map,
-        type: room.matchtype,
-        modifiers: room.modifiers,
-        sb: room.scoreboard,
-      },
+      RoomData: RoomData,
     };
 
     player.send(compressMessage(MessageToSend), { binary: true });
