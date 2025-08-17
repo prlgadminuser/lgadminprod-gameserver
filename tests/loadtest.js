@@ -1,5 +1,11 @@
 const WebSocket = require('ws');
 
+const limit = 3; // number of simulated clients
+
+const gamemode = "fightdown"
+
+const serverBase = 'wss://s1-eu-sdgame.onrender.com/';
+
 const tokenList = [
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImhsaGxobGgiLCJpYXQiOjE3NTE2MTUyMzJ9.dAzQRAshvg4qMevIYDkOAUbh2NQp4UmRuDBzztLlRiQ",
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpqaWpvaWppaiIsImlhdCI6MTc1MTcxMjE4NX0.uN1cdBzEE9QYt_s7eWiC9RmbnZSBpxSVI60Ze68vNnw",
@@ -24,10 +30,10 @@ const tokenList = [
 
 ];
 
-const serverBase = 'wss://s1-eu-sdgame.onrender.com/';
+
 
 function randomCommand() {
-  const commandTypes = ['move', 'stop', 'shoot', 'changeWeapon'];
+  const commandTypes = ['move', 'stop', 'changeWeapon'];
 
   const type = commandTypes[Math.floor(Math.random() * commandTypes.length)];
 
@@ -51,7 +57,7 @@ function randomCommand() {
 
 
 function startClient(token) {
-  const wsUrl = `${serverBase}${token}/fightdown`;
+  const wsUrl = `${serverBase}${token}/${gamemode}`;
 
   const ws = new WebSocket(wsUrl, {
     headers: { Origin: 'https://skilldown.netlify.app' },
@@ -93,7 +99,6 @@ function startClient(token) {
   });
 }
 
-const limit = 20; // number of simulated clients
 
 for (let i = 0; i < Math.min(limit, tokenList.length); i++) {
   startClient(tokenList[i]);
