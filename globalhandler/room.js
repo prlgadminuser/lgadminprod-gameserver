@@ -361,8 +361,6 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     timeoutIds: [],
     winner: -1,
 
-    showTxt: gmconfig.showTxt,
-
     countdown: 0,
 
     // bullets handler
@@ -710,7 +708,7 @@ async function startMatch(room, roomId) {
 
             room.state = "playing";
 
-            if (room.showTxt.has("countdown")) {
+            if (room.modifiers.has("countdown")) {
               const countdownDuration = room_max_open_time;
               const countdownStartTime = Date.now();
 
@@ -930,7 +928,7 @@ function SendPreStartMessage(room) {
       RoomData: {
         mapid: room.map,
         type: room.matchtype,
-        showTxt: room.showTxt,
+        modifiers: room.modifiers,
         sb: room.scoreboard,
       },
     };

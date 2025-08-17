@@ -49,10 +49,6 @@ const gamemodeconfig = {
     placereward: [10, 8, 6, -1, -5],
     seasoncoinsreward: [25, 17, 12, 10, 7],
 
-         showTxt: new Set([
-      "countdown"
-    ]),
-
     custom_map: "prism_party",
   },
 
@@ -81,9 +77,6 @@ const gamemodeconfig = {
     placereward: [10, 8, 6, -1, -5],
     seasoncoinsreward: [25, 17, 12, 10, 7],
 
-     showTxt: new Set([
-      "countdown"
-    ]),
     custom_map: "prism_party",
   },
 
@@ -105,10 +98,6 @@ const gamemodeconfig = {
 
     placereward: [16, -8],
     seasoncoinsreward: [25, 12],
-    
-   showTxt: new Set([
-      "countdown"
-    ]),
 
     custom_map: "prism_party",
   },
@@ -135,10 +124,6 @@ const gamemodeconfig = {
 
     placereward: [0],
     seasoncoinsreward: [0],
-
-     showTxt: new Set([
-      "countdown"
-    ]),
     
     custom_map: "training",
   },
@@ -162,9 +147,6 @@ const gamemodeconfig = {
 
     weapons_modifiers_override: new Set([]),
 
-     showTxt: new Set([
-      "countdown"
-    ]),
 
     custom_map: 5,
     matchtype: "td",
@@ -190,9 +172,6 @@ const gamemodeconfig = {
 
     weapons_modifiers_override: new Set(["DestroyWalls"]),
 
-     showTxt: new Set([
-      "countdown"
-    ]),
 
     custom_map: "breakthrough",
     //matchtype: "td"
