@@ -312,7 +312,7 @@ function calculateFinalDamage(distanceUsed, bulletMaxDistance, normalDamage, lay
 }
 
 function handleBulletFired(room, player, gunType) {
-  const gun = gunsconfig.get(gunType);
+  const gun = gunsconfig[gunType];
   const currentTime = Date.now();
 
   // Prevent shooting if player is already shooting or cooldown not passed

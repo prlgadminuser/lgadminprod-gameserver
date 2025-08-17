@@ -1260,11 +1260,10 @@ function handleSwitchGun(data, player) {
     !player.shooting &&
     GunID >= 1 &&
     GunID <= 3 &&
-    gunsconfig.has(`${GunID}`)
+    GunID in gunsconfig
   ) {
     player.gun = player.loadout[GunID];
-  } else {
-  }
+}
 }
 
 function handleEmote(data, player) {

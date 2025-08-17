@@ -197,6 +197,7 @@ const gunsconfig = {
 
 
 module.exports = {
-  gunsconfig: new Map(Object.entries(gunsconfig)),
+  gunsconfig,
+  //gunsconfig: new Map(Object.entries(gunsconfig)),
   gunskeys: Object.keys(gunsconfig)
 };
