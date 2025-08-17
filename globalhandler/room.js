@@ -1055,7 +1055,7 @@ if (!p.spectating)  {
 
     for (const nearbyId of playersInRange) {
 
-     // if (nearbyId === p.nmb) continue; 
+     if (nearbyId === p.nmb) continue; 
        const data = playerData[nearbyId];
         if (!data) continue; 
 
@@ -1075,10 +1075,14 @@ if (!p.spectating)  {
      }
     }
 
-   const { [p.nmb]: _, ...pdToSend } = p.pd;
+    //const pdToSend = { ...p.pd };
+//delete pdToSend[p.nmb];
 
 
-   // const pdToSend = p.pd;
+  // const { [p.nmb]: _, ...pdToSend } = p.pd;
+
+
+   const pdToSend = p.pd;
 
     // Message assembly
     const msg = {
