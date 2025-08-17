@@ -862,7 +862,7 @@ function SendPreStartMessage(room) {
 }
 
 
-const roundPositions = true// provides 50% better compression but couldnt look smooth enough
+const roundPositions = false// provides 50% better compression but couldnt look smooth enough
 
 
 function buildNearbyPlayerJSON(p) {
