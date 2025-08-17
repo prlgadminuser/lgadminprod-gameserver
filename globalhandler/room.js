@@ -899,7 +899,7 @@ function SendPreStartMessage(room) {
         sb: room.scoreboard,
       }
 
-      
+
 
   for (const player of players) {
     const self_info = {
@@ -922,8 +922,11 @@ function SendPreStartMessage(room) {
       em: player.emote,
       spc: player.spectatingPlayerId,
       guns: player.loadout_formatted,
-      np: player.npfix,
+      np: JSON.stringify(Array.from(player.nearbyfinalids)),
+      ht: [],
     };
+
+    player.selflastmsg = self_info
 
     const MessageToSend = {
       AllData,
@@ -1095,6 +1098,7 @@ function prepareRoomMessages(room) {
         if (!data) continue; 
 
       const hash = hashArray(data);
+      
       if (previousHashes[nearbyId] !== hash) {
           filteredplayers[nearbyId] = data
         }
