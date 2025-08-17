@@ -1075,8 +1075,7 @@ if (!p.spectating)  {
      }
     }
 
-   // const { [p.nmb]: _, ...pdToSend } = p.pd;
-    const pdToSend = p.spectating ? p.pd : { [p.nmb]: _, ...p.pd };
+   const { [p.nmb]: _, ...pdToSend } = p.pd;
 
 
    // const pdToSend = p.pd;
