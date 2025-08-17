@@ -815,22 +815,37 @@ function encodePosition(num) {
   // Math.floor(p.x * 10)
 }
 
-function generateHash(message) {
-     let hash = 2166136261;
-    for (let i = 0; i < message.length; i++) {
-        let val = message[i];
-        if (typeof val === "string") {
-            for (let j = 0; j < val.length; j++) {
-                hash ^= val.charCodeAt(j);
-                hash = (hash * 16777619) >>> 0;
-            }
-        } else {
-            hash ^= val;
-            hash = (hash * 16777619) >>> 0;
-        }
+function arraysDifferent(a, b) {
+  if (a.length !== b.length) return true; // Early exit if lengths differ
+
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) {
+      return true; // Early exit on first difference
     }
-    return hash >>> 0;
+  }
+
+  return false; // No differences found
 }
+
+
+function generateHash(message) {
+   return JSON.stringify(message)
+}
+
+function arraysDiffer(a, b) {
+  let hash = 0;
+  for (let i = 0; i < arr.length; i++) {
+    let val = arr[i];
+    // Convert value to string to handle numbers/strings uniformly
+    let str = String(val);
+    for (let j = 0; j < str.length; j++) {
+      hash = (hash << 5) - hash + str.charCodeAt(j);
+      hash |= 0; // Convert to 32-bit integer
+    }
+  }
+  return hash;
+}
+
 
 
 function BuildSelfData(player) {
@@ -927,9 +942,7 @@ function SendPreStartMessage(room) {
 
 
 function prepareRoomMessages(room) {
-  
 //console.time()
-
 
   const players = Array.from(room.players.values());
   const GameRunning = room.state === "playing" || room.state === "countdown";
@@ -962,8 +975,6 @@ function prepareRoomMessages(room) {
     return;
   }
   
-
-
   // PLAYING STATE
   const aliveCount = players.reduce((c, p) => c + !p.eliminated, 0);
   handlePlayerMoveIntervalAll(room);
@@ -1003,8 +1014,6 @@ function prepareRoomMessages(room) {
   } else {
       finalroomdata = undefined;
   }
-
-
 
   const playerData = {};
 
@@ -1047,8 +1056,6 @@ function prepareRoomMessages(room) {
   ]
 }
 
-
-
   // ONE PASS: Build, hash, compress, send
   for (const p of players) {
    if (!p.wsReadyState()) continue;
@@ -1069,7 +1076,7 @@ function prepareRoomMessages(room) {
     
     if (p.spectating) handleSpectatorMode(p, room);
 
-if (!p.spectating)  {
+  if (!p.spectating)  {
     p.nearbyids.clear();
     let filteredplayers = {};
 
@@ -1098,15 +1105,10 @@ if (!p.spectating)  {
 
      }
     }
-
     //const pdToSend = { ...p.pd };
-//delete pdToSend[p.nmb];
-
-
+    //delete pdToSend[p.nmb];
+    // const pdToSend = p.pd;
   const { [p.nmb]: _, ...pdToSend } = p.pd;
-
-
-  // const pdToSend = p.pd;
 
     // Message assembly
     const msg = {
