@@ -44,7 +44,7 @@ return others
 }
 
 function UpdatePlayerChunks(room, player) {
-  const nearbyIds = getPlayersInRange(room, player.x, player.y, 330, 180)
+  const nearbyIds = getPlayersInRange(room, player.x, player.y, 300, 160)
     .map(p => p.nmb);
 
   const nearbySet = player.nearbyplayers;
@@ -60,9 +60,9 @@ function UpdatePlayerChunks(room, player) {
 
 function playerchunkrenderer(room) {
   const updatePlayers = () => {
-  //  const visiblePlayers = Array.from(room.players.values()).filter(p => p.visible);
+  const visiblePlayers = Array.from(room.players.values()).filter(p => p.visible);
 
-    const visiblePlayers = Array.from(room.players.values());
+   // const visiblePlayers = Array.from(room.players.values());
     visiblePlayers.forEach(player => UpdatePlayerChunks(room, player));
   };
 
