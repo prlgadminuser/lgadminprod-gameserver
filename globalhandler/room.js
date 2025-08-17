@@ -832,6 +832,15 @@ function generateHash(message) {
    return JSON.stringify(message)
 }
 
+function hashArray(arr) {
+  let hash = 0;
+  for (let i = 0; i < arr.length; i++) {
+    let val = arr[i] === "" ? 0 : arr[i]; // treat empty string as 0
+    hash = ((hash << 5) - hash + val) | 0; // 32-bit integer hash
+  }
+  return hash;
+}
+
 function arraysDiffer(a, b) {
   let hash = 0;
   for (let i = 0; i < arr.length; i++) {
@@ -956,7 +965,7 @@ function prepareRoomMessages(room) {
       players.length,
     ]
 
-    const roomdatahash = generateHash(roomdata)
+    const roomdatahash = hashArray(roomdata)
 
     for (const p of players) {
       p.tick_send_allow = false;
@@ -1004,7 +1013,7 @@ function prepareRoomMessages(room) {
     room.zone,
   ]
 
-  const roomdatahash = generateHash(roomdata)
+  const roomdatahash = hashArray(roomdata)
 
   let finalroomdata 
 
@@ -1090,7 +1099,7 @@ function prepareRoomMessages(room) {
        const data = playerData[nearbyId];
         if (!data) continue; 
 
-      const hash = generateHash(data);
+      const hash = hashArray(data);
       if (previousHashes[nearbyId] !== hash) {
           filteredplayers[nearbyId] = data
         }
@@ -1156,12 +1165,6 @@ function prepareRoomMessages(room) {
   }
 // console.timeEnd();
 }
-
-
-
-
-
-
 
 function sendRoomMessages(room) {
   room.players.forEach((player) => {
