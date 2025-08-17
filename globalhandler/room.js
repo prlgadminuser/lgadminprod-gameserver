@@ -19,9 +19,6 @@ const {
   startDecreasingHealth,
 } = require("./match-modifiers");
 const { gadgetconfig } = require("./gadgets.js");
-const {
-  StartremoveOldKillfeedEntries,
-} = require("./killfeed.js");
 const { UseZone } = require("./zone");
 const {
   initializeHealingCircles,
@@ -327,7 +324,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
   if (!mapdata) console.error("map does not exist");
 
   const itemgrid = new SpatialGrid(gridcellsize); // grid system for items
-  const realtimegrid = new RealTimeObjectGrid(300)
+  const realtimegrid = new RealTimeObjectGrid(200)
   const bulletgrid = new RealTimeObjectGrid(50)
 
   const roomgrid = cloneSpatialGrid(mapdata.grid);
@@ -342,7 +339,6 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     intervalIds: [],
     killfeed: [],
     matchtype: gmconfig.matchtype,
-    newkillfeed: [],
     objects: [],
     destroyedWalls: [],
     bulletsUpdates: [],
@@ -721,7 +717,6 @@ async function startMatch(room, roomId) {
               room.intervalIds.push(room.countdownInterval);
             }
 
-            StartremoveOldKillfeedEntries(room);
             initializeAnimations(room);
 
             if (room.modifiers.has("HealingCircles"))
@@ -1050,7 +1045,7 @@ function prepareRoomMessages(room) {
       em: p.emote,
       spc: p.spectatingPlayerId,
       guns: p.loadout_formatted,
-      np: JSON.stringify(Array.from(p.nearbyfinalids)),
+      np: generateHash(Array.from(p.nearbyfinalids)),
       ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
     };
 
@@ -1103,7 +1098,7 @@ if (!p.spectating)  {
     const msg = {
       r: finalroomdata,
       dm: dummiesFiltered,
-      kf: room.newkillfeed,
+      kf: room.killfeed,
       sb: room.scoreboard,
       sd: Object.keys(changes).length ? changes : undefined,
       WLD: room.destroyedWalls,
@@ -1136,11 +1131,12 @@ if (!p.spectating)  {
   }
 
   // CLEANUP
+  room.killfeed = [];
   room.destroyedWalls = [];
   for (const p of players) {
     p.hitmarkers = [];
     p.eliminations = [];
-//    p.nearbyanimations = []
+    p.nearbyanimations = []
   }
 // console.timeEnd();
 }

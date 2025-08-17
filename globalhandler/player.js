@@ -64,8 +64,8 @@ const { playerhitbox } = require('./config.js')
   else if (newY > mapHeight) newY = mapHeight;
 
   // Store new position (avoid parseFloat — toFixed is slower than necessary)
-  player.x = Math.round(newX * 10000) / 10000;
-  player.y = Math.round(newY * 10000) / 10000;
+  player.x = Math.round(newX * 100) / 100;
+  player.y = Math.round(newY * 100) / 100;
 
   if (player._gridKey) room.realtimegrid.updateObject(player, player.x, player.y);
 }
@@ -73,10 +73,8 @@ const { playerhitbox } = require('./config.js')
 
 
 function handlePlayerCollision(room, shootingPlayer, targetPlayer, damage, gunid) {
-  // Ensure damage doesn't exceed the target player's remaining health
-  const GUN_BULLET_DAMAGE = Math.min(damage, targetPlayer.health);
 
-  // Apply damage to the target player and update shooting player's total damage
+  const GUN_BULLET_DAMAGE = Math.min(damage, targetPlayer.health);
   targetPlayer.health -= GUN_BULLET_DAMAGE;
   shootingPlayer.damage += GUN_BULLET_DAMAGE;
   targetPlayer.last_hit_time = new Date().getTime();
@@ -85,15 +83,12 @@ function handlePlayerCollision(room, shootingPlayer, targetPlayer, damage, gunid
 
   shootingPlayer.hitmarkers.push(hit)
 
-  // Get the number of active players in the target player's team
   const teamActivePlayers = TeamPlayersActive(room, targetPlayer);
-
-  const player_alive = !targetPlayer.health <= 0
 
   if (targetPlayer.health <= 0 && targetPlayer.respawns <= 0 && teamActivePlayers <= 1) {
 
     const elimType = 2; // Type 2 for complete elimination
-    const ElimMessage = `${targetPlayer.nmb}:${elimType}`;
+    const ElimMessage = [ elimType, targetPlayer.nmb ];
     shootingPlayer.eliminations.push(ElimMessage)
 
     handleElimination(room, targetPlayer.team.players);
@@ -106,7 +101,7 @@ function handlePlayerCollision(room, shootingPlayer, targetPlayer, damage, gunid
   } else if (targetPlayer.health < 1 && targetPlayer.respawns > 0) {
 
     const elimType = 1; // Type 1 for respawnable elimination
-    const ElimMessage = `${targetPlayer.nmb}:${elimType}`;
+    const ElimMessage = [ elimType, targetPlayer.nmb ];
     shootingPlayer.eliminations.push(ElimMessage)
 
     targetPlayer.visible = false;

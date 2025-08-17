@@ -93,9 +93,9 @@ function handleElimination(room, team) {
         const activePlayers = winningTeam.players.filter(player => !room.players.get(player.playerId).eliminated);
         if (activePlayers.length === 1) {
             const remainingPlayer = activePlayers[0];
-            room.winner = remainingPlayer.nmb; // Winner is the player with no eliminations
+            room.winner = remainingPlayer.nmb; 
         } else {
-            room.winner = winningTeam.id; // Multiple players in the team
+            room.winner = winningTeam.id; 
         }
 
         // Mark the winning players with place 1
