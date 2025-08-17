@@ -832,6 +832,16 @@ function hashArray(arr) {
   return hash;
 }
 
+function arraysEqual(a, b) {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
 // Simple string-to-number hash
 function hashString(str) {
   let h = 0;
@@ -963,14 +973,13 @@ function prepareRoomMessages(room) {
       players.length,
     ]
 
-    const roomdatahash = hashArray(roomdata)
 
     for (const p of players) {
       p.tick_send_allow = false;
     }
 
-    if (roomdatahash !== room.rdlast) {
-      room.rdlast = roomdatahash
+      if (!arraysEqual(room.rdlast, roomdata)) {
+      room.rdlast = roomdata
       const compressed = compressMessage( roomdata );
       for (const p of players) {
         if (!p.wsReadyState()) continue;
@@ -1011,12 +1020,11 @@ function prepareRoomMessages(room) {
     room.zone,
   ]
 
-  const roomdatahash = hashArray(roomdata)
 
   let finalroomdata 
 
-    if (roomdatahash !== room.rdlast) {
-      room.rdlast = roomdatahash
+     if (!arraysEqual(room.rdlast, roomdata)) {
+      room.rdlast = roomdata
       finalroomdata = roomdata
   } else {
       finalroomdata = undefined;
@@ -1088,8 +1096,8 @@ function prepareRoomMessages(room) {
     let filteredplayers = {};
 
     const playersInRange = p.nearbyplayers;
-    const previousHashes = p.pdHashes || {};
-    const currentHashes = {};
+    const previousData = p.pdHashes || {};
+    const currentData = {};
 
     for (const nearbyId of playersInRange) {
 
@@ -1097,19 +1105,17 @@ function prepareRoomMessages(room) {
        const data = playerData[nearbyId];
         if (!data) continue; 
 
-      const hash = hashArray(data);
-      
-      if (previousHashes[nearbyId] !== hash) {
+      if (!arraysEqual(previousData[nearbyId], data)) {
           filteredplayers[nearbyId] = data
         }
-      currentHashes[nearbyId] = hash;
+      currentData[nearbyId] = hash;
       p.nearbyids.add(nearbyId);
   //  }
 
 
     p.pd = filteredplayers;
     p.nearbyfinalids = p.nearbyids;
-    p.pdHashes = currentHashes;
+    p.pdHashes = currentData;
 
      }
     }
