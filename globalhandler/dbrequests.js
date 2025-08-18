@@ -184,7 +184,7 @@ async function increasePlayerPlace(player, place2, room) {
 
     player.finalrewards = [place2, skillpoints, season_coins]
 
-    if (!skillpoints === 0) {
+    if (skillpoints !== 0) {
      await userCollection.updateOne(
       { "account.username": username },
       [
