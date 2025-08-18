@@ -58,7 +58,7 @@ class Bullet {
     this.maxDistance = maxDistance;
     this.damage = damage;
     this.damageConfig = damageConfig;
-    this.gunId = gunId;
+    this.gunId = Number(gunId);
     this.modifiers = modifiers;
     this.ownerId = ownerId;
     this.startPosition = position;

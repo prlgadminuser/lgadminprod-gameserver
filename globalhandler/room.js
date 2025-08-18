@@ -1068,8 +1068,10 @@ function prepareRoomMessages(room) {
     bullet.gunId,
     bullet.effect,
     ]
-    }
+    } 
   }
+
+   console.log(formattedBullets)
 
   const finalBullets = Object.keys(formattedBullets).length > 0 ? formattedBullets : undefined;
   p.finalbullets = finalBullets;
@@ -1120,6 +1122,7 @@ function prepareRoomMessages(room) {
        const data = playerData[nearbyId];
         if (!data) continue; 
 
+       
       if (!arraysEqual(previousData[nearbyId], data)) {
           filteredplayers[nearbyId] = data
         }
