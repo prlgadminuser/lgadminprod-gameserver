@@ -1071,7 +1071,7 @@ function prepareRoomMessages(room) {
     } 
   }
 
-   console.log(formattedBullets)
+  //console.log(formattedBullets)
 
   const finalBullets = Object.keys(formattedBullets).length > 0 ? formattedBullets : undefined;
   p.finalbullets = finalBullets;
