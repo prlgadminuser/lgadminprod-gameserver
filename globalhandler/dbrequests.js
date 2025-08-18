@@ -184,14 +184,15 @@ async function increasePlayerPlace(player, place2, room) {
 
     player.finalrewards = [place2, skillpoints, season_coins]
 
-
-     const updateResult = await userCollection.updateOne(
+    if (skillpoints > 0) {
+     await userCollection.updateOne(
       { "account.username": username },
       [
         { $set: { "stats.sp": { $max: [0, { $add: ["$stats.sp", skillpoints] }] } } }
       ],
       { hint: "playerProfileIndex" } // <-- Using index hint
     );
+  }
 
 
     await battlePassCollection.updateOne(
