@@ -665,7 +665,8 @@ async function joinRoom(ws, gamemode, playerVerified) {
 
     if (room.players.size >= room.maxplayers && room.state === "waiting") {
 
-    const allAlive = room.players.every(p => p.wsReadyState() === ws.OPEN);
+    const allAlive = Array.from(room.players.values())
+  .every(p => p.wsReadyState() === ws.OPEN);
 
     if (!allAlive) return
 
