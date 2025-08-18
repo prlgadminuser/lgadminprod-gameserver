@@ -1,6 +1,5 @@
 "use strict";
 
-
 // Function to handle spectating logic for eliminated players
 function handleSpectatorMode(player, room) {
   if (!player.eliminated) {
@@ -20,13 +19,15 @@ function handleSpectatorMode(player, room) {
   const now = Date.now();
   const currentTarget = player.spectatingTarget;
 
-  // Always update view if there is a target
+  // Always update view if there is a target (even if eliminated)
   if (currentTarget) {
     updateSpectatingPlayer(player, currentTarget);
   }
 
-  // Only switch target if cooldown passed OR no target
-  if (!currentTarget || now - player.lastSpectateSwitch >= 2000 || currentTarget.eliminated) {
+  // Decide if we should switch
+  // - no target at all
+  // - OR cooldown passed (2s), even if target was eliminated
+  if (!currentTarget || now - (player.lastSpectateSwitch || 0) >= 2000) {
     const nearestNonEliminated = findNearestPlayer(
       player,
       Array.from(room.players.values()).filter(p => !p.eliminated && p !== player)
@@ -40,22 +41,19 @@ function handleSpectatorMode(player, room) {
   }
 }
 
-
 function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
-//  console.log(targetPlayer)
-  if (!targetPlayer) return
-  spectatingPlayer.x = targetPlayer.x
-  spectatingPlayer.y = targetPlayer.y
-  spectatingPlayer.nearbyfinalids = targetPlayer.nearbyfinalids
-  //if (!spectatingPlayer.nearbyfinalids.has(targetPlayer.nmb)) spectatingPlayer.nearbyfinalids.add(targetPlayer.nmb);
-  spectatingPlayer.hitmarkers = targetPlayer.hitmarkers
-  spectatingPlayer.nearbycircles = targetPlayer.nearbycircles
-  spectatingPlayer.nearbyanimations = targetPlayer.nearbyanimations
-  spectatingPlayer.finalbullets = targetPlayer.finalbullets
+  if (!targetPlayer) return;
+  spectatingPlayer.x = targetPlayer.x;
+  spectatingPlayer.y = targetPlayer.y;
+  spectatingPlayer.nearbyfinalids = targetPlayer.nearbyfinalids;
+  spectatingPlayer.hitmarkers = targetPlayer.hitmarkers;
+  spectatingPlayer.nearbycircles = targetPlayer.nearbycircles;
+  spectatingPlayer.nearbyanimations = targetPlayer.nearbyanimations;
+  spectatingPlayer.finalbullets = targetPlayer.finalbullets;
   spectatingPlayer.pd = targetPlayer.pd;
 
-  spectatingPlayer.spectatingPlayerId = targetPlayer.nmb
-  spectatingPlayer.spectatingTarget = targetPlayer
+  spectatingPlayer.spectatingPlayerId = targetPlayer.nmb;
+  spectatingPlayer.spectatingTarget = targetPlayer;
 }
 
 function findNearestPlayer(eliminatedPlayer, players) {
@@ -65,7 +63,7 @@ function findNearestPlayer(eliminatedPlayer, players) {
   players.forEach((player) => {
     const distance = Math.sqrt(
       Math.pow(player.x - eliminatedPlayer.x, 2) +
-        Math.pow(player.y - eliminatedPlayer.y, 2)
+      Math.pow(player.y - eliminatedPlayer.y, 2)
     );
 
     if (distance < shortestDistance) {
@@ -77,7 +75,7 @@ function findNearestPlayer(eliminatedPlayer, players) {
   return nearestPlayer;
 }
 
-function startSpectatingLogic(player, room) {
+function startSpectatingLogic(player) {
   player.spectating = true;
 }
 
