@@ -1,85 +1,87 @@
 "use strict";
 
-function findNearestEvents(player, room) {
-  const grid = room.itemgrid;
 
-  const searchRadiusX = 400;
-  const searchRadiusY = 240;
+// Function to handle spectating logic for eliminated players
+function handleSpectatorMode(player, room) {
+  if (!player.eliminated) {
+    // No longer eliminated: stop spectating
+    player.spectating = false;
+    player.spectatingTarget = null;
+    player.lastSpectateSwitch = null;
+    return;
+  }
 
-  const xMin = player.x - searchRadiusX;
-  const xMax = player.x + searchRadiusX;
-  const yMin = player.y - searchRadiusY;
-  const yMax = player.y + searchRadiusY;
+  // Immediately enable spectating if not already
+  if (!player.spectating) {
+    player.spectating = true;
+    player.lastSpectateSwitch = Date.now();
+  }
 
-  const objectsInArea = grid.getObjectsInArea(xMin, xMax, yMin, yMax);
+  const now = Date.now();
+  const currentTarget = player.spectatingTarget;
 
-  // Single pass through objectsInArea
-  const circles = [];
-    const animations = [];
+  // Always update view if there is a target
+  if (currentTarget) {
+    updateSpectatingPlayer(player, currentTarget);
+  }
 
-  for (const obj of objectsInArea) {
-    if (obj.id === "circle") {
-      circles.push([obj.type, obj.x, obj.y, obj.radius]);
-    } else if (obj.id === "death" || obj.id === "respawn") {
-      animations.push([obj.type, obj.x, obj.y]);
+  // Only switch target if cooldown passed OR no target
+  if (!currentTarget || now - player.lastSpectateSwitch >= 2000 || currentTarget.eliminated) {
+    const nearestNonEliminated = findNearestPlayer(
+      player,
+      Array.from(room.players.values()).filter(p => !p.eliminated && p !== player)
+    );
+
+    if (nearestNonEliminated) {
+      player.spectatingTarget = nearestNonEliminated;
+      player.lastSpectateSwitch = now;
+      updateSpectatingPlayer(player, nearestNonEliminated);
     }
   }
-  
-   player.nearbycircles = circles;
-  player.nearbyanimations = animations;
-
-}
-
-const xThreshold = 380
-const yThreshold = 300
-
-function getPlayersInRange(room, centerX, centerY, excludePlayer) {
-
-  const xMin = centerX - xThreshold;
-  const xMax = centerX + xThreshold;
-  const yMin = centerY - yThreshold;
-  const yMax = centerY + yThreshold;
-
-   const nearbyPlayers = room.realtimegrid.getObjectsInArea(xMin, xMax, yMin, yMax);
-
-  // Filter out the excluded player and non-player objects,
-  // and ensure they are actually within the rectangle
-  const others = nearbyPlayers.filter(p =>
-    p !== excludePlayer &&
-    p.isPlayer &&
-    p.x >= xMin &&
-    p.x <= xMax &&
-    p.y >= yMin &&
-    p.y <= yMax
-  );
-
-  return others;
-}
-
-function UpdatePlayerChunks(room, player) {
-  const nearbyIds = getPlayersInRange(room, player.x, player.y)
-    .map(p => p.nmb);
-
-  const nearbySet = player.nearbyplayers;
-  nearbySet.clear();       // remove all old IDs
-  for (const id of nearbyIds) {
-    nearbySet.add(id);     // add current nearby IDs
-  }
 }
 
 
+function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
+//  console.log(targetPlayer)
+  if (!targetPlayer) return
+  spectatingPlayer.x = targetPlayer.x
+  spectatingPlayer.y = targetPlayer.y
+  spectatingPlayer.nearbyfinalids = targetPlayer.nearbyfinalids
+  //if (!spectatingPlayer.nearbyfinalids.has(targetPlayer.nmb)) spectatingPlayer.nearbyfinalids.add(targetPlayer.nmb);
+  spectatingPlayer.hitmarkers = targetPlayer.hitmarkers
+  spectatingPlayer.nearbycircles = targetPlayer.nearbycircles
+  spectatingPlayer.nearbyanimations = targetPlayer.nearbyanimations
+  spectatingPlayer.finalbullets = targetPlayer.finalbullets
+  spectatingPlayer.pd = targetPlayer.pd;
 
+  spectatingPlayer.spectatingPlayerId = targetPlayer.nmb
+  spectatingPlayer.spectatingTarget = targetPlayer
+}
 
-function playerchunkrenderer(room) {
-  
-  const visiblePlayers = Array.from(room.players.values()).filter(p => !p.spectating);
+function findNearestPlayer(eliminatedPlayer, players) {
+  let nearestPlayer = null;
+  let shortestDistance = Infinity;
 
-   // const visiblePlayers = Array.from(room.players.values());
-    visiblePlayers.forEach(player => UpdatePlayerChunks(room, player));
-  
-    room.players.forEach(player => findNearestEvents(player, room));
+  players.forEach((player) => {
+    const distance = Math.sqrt(
+      Math.pow(player.x - eliminatedPlayer.x, 2) +
+        Math.pow(player.y - eliminatedPlayer.y, 2)
+    );
+
+    if (distance < shortestDistance) {
+      shortestDistance = distance;
+      nearestPlayer = player;
+    }
+  });
+
+  return nearestPlayer;
+}
+
+function startSpectatingLogic(player, room) {
+  player.spectating = true;
 }
 
 module.exports = {
-  playerchunkrenderer,
+  startSpectatingLogic,
+  handleSpectatorMode,
 };
