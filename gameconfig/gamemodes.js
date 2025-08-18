@@ -57,7 +57,7 @@ const gamemodeconfig = {
     can_hit_dummies: false,
     can_hit_players: true,
 
-    maxplayers: 8,
+    maxplayers: 4,
     teamsize: 1,
     respawns_allowed: 0,
 
@@ -74,8 +74,8 @@ const gamemodeconfig = {
       3: { points: 20, coins: 10 },
     },
 
-    placereward: [10, 8, 6, -1, -5],
-    seasoncoinsreward: [25, 17, 12, 10, 7],
+    skillpoints_rewardRange: [10, -5], 
+    seasoncoins_rewardRange: [30, 5],
 
     custom_map: "prism_party",
   },
@@ -190,4 +190,3 @@ module.exports = {
   gamemodeconfig: new Map(Object.entries(gamemodeconfig)),
   allowed_gamemodes,
 };
-
