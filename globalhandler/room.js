@@ -353,7 +353,6 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     matchtype: gmconfig.matchtype,
     objects: [],
     destroyedWalls: [],
-    bulletsUpdates: [],
     activeAfflictions: [],
     players: new Map(),
     snap: [],
@@ -810,8 +809,12 @@ const transformData = (data) => {
   const transformed = {};
   for (const [key, value] of Object.entries(data)) {
     transformed[
-      key
-    ] = [value.x, value.y, value.health, value.starthealth, value.type]
+      key] = [
+      value.x, 
+      value.y, 
+      value.health, 
+      value.type
+    ]
   }
   return transformed;
 };
@@ -1009,11 +1012,12 @@ function prepareRoomMessages(room) {
   // DUMMIES (once)
   let dummiesFiltered;
   if (room.dummies) {
+    
     const transformed = transformData(room.dummies);
-    const hash = deepHash(transformed);
-    if (hash !== room.previousdummies) {
+    
+    if (!arraysEqual(transformed, room.previousdummies)) {
       room.dummiesfiltered = transformed;
-      room.previousdummies = hash;
+      room.previousdummies = transformed;
     } else {
       room.dummiesfiltered = undefined;
     }
@@ -1061,7 +1065,8 @@ function prepareRoomMessages(room) {
     Math.round(bullet.position.x),
     Math.round(bullet.position.y),
     Math.round(bullet.direction),
-    bullet.gunId
+    bullet.gunId,
+    bullet.effect,
     ]
     }
   }

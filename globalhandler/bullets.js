@@ -64,6 +64,8 @@ class Bullet {
     this.startPosition = position;
     this.spawnTime = Date.now();
     this.alive = true;
+    this.new = true
+    this.effect = 1; // firing effect at spawn
   }
 
   nextPosition() {
@@ -126,14 +128,10 @@ class BulletManager {
 
     this.bullets.set(id, bullet); 
     this.room.bulletgrid.addObject(bullet);
-   // this.room.bulletsUpdates.push(this.formatBulletSpawnMsg(bullet));
 
     return bullet;
   }
 
-  formatBulletSpawnMsg(bullet) {
-    return `${bullet.id}:${bullet.position.x.toFixed(4)}:${bullet.position.y.toFixed(4)}:${bullet.direction}:${bullet.speed}:${bullet.gunId}`;
-  }
 
   update() {
   // collect deletions to avoid mutating the Map while iterating
@@ -147,9 +145,13 @@ class BulletManager {
         continue;
       }
 
+    
+
       const nextPos = bullet.nextPosition();
    
        this.room.bulletgrid.updateObject(bullet, nextPos.x, nextPos.y);
+
+      let newEffect = 0
      
       // Collision with walls
       if (isCollisionWithBullet(this.room.grid, nextPos.x, nextPos.y, bullet.height, bullet.width, bullet.direction - 90)) {
@@ -157,14 +159,17 @@ class BulletManager {
         if (collidedWall) {
           if (GunHasModifier("DestroyWalls", this.room, bullet.modifiers)) {
             DestroyWall(collidedWall, this.room);
+            newEffect = 3
           }
           if (GunHasModifier("DestroyWalls(DestroyBullet)", this.room, bullet.modifiers)) {
-            toRemove.push([playerId, id]);
+            toRemove.push(id);
             DestroyWall(collidedWall, this.room);
+            newEffect = 3
             continue;
           }
           if (GunHasModifier("CanBounce", this.room, bullet.modifiers)) {
             adjustBulletDirection(bullet, collidedWall, -90);
+             newEffect = 2
             continue; // Don't move bullet position this tick
           }
           toRemove.push(id);
@@ -244,13 +249,22 @@ class BulletManager {
         }
        if (hitDummy) continue;
       }
+
      bullet.position = nextPos;
+
+    if (bullet.new) bullet.effect = 1;          // just fired
+    else if (bulletEffect) bullet.effect = newEffect; // collision/bounce
+    else bullet.effect = 0;                     // nothing special this tick
+
+    bullet.new = false;
   }
+
 
    for (const id of toRemove) {
       this.killBullet(id);
     }
   }
+
 
    killBullet(bulletId) {
     const bullet = this.bullets.get(bulletId);
@@ -259,7 +273,6 @@ class BulletManager {
     this.room.bulletgrid.removeObject(bullet); 
     bullet.kill();
     this.bullets.delete(bulletId);
-    this.room.bulletsUpdates.push(`DEL:${bulletId}`);
   }
 
   isAlly(ownerId, otherPlayer) {
