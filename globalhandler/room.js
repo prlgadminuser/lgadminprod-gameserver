@@ -1065,10 +1065,10 @@ function prepareRoomMessages(room) {
   playerData[p.nmb] = [
     encodePosition(p.x),
     encodePosition(p.y),
-    p.direction2,
-    p.health,
-    p.gun,
-    p.emote,
+    Number(p.direction2),         // convert to number if it might be string
+    Number(p.health),
+    Number(p.gun),
+    Number(p.emote),
   ]
 }
 
