@@ -25,7 +25,7 @@ function HandleAfflictions(room) {
       }
       handleDummyCollision(room, aff.shootingPlayer, aff.dummykey, aff.damage);
     } else if (aff.target_type === "player") {
-      if (!aff.target.visible) {
+      if (!aff.target.alive) {
         room.activeAfflictions.splice(i, 1);
         continue;
       }

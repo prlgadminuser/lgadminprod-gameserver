@@ -72,12 +72,11 @@ function UpdatePlayerChunks(room, player) {
 
 function playerchunkrenderer(room) {
   
-  const visiblePlayers = Array.from(room.players.values()).filter(p => !p.spectating);
+  const AlivePlayers = Array.from(room.players.values()).filter(p => !p.spectating);
 
-   // const visiblePlayers = Array.from(room.players.values());
-    visiblePlayers.forEach(player => UpdatePlayerChunks(room, player));
+   AlivePlayers.forEach(player => UpdatePlayerChunks(room, player));
   
-    room.players.forEach(player => findNearestEvents(player, room));
+  room.players.forEach(player => findNearestEvents(player, room));
 }
 
 module.exports = {

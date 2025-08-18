@@ -37,7 +37,7 @@ function applyHealthRegeneration(player, currentTime) {
 function decreaseHealthForAllPlayers(room) {
   if (room.state === "playing" && room.winner === -1) {
     room.players.forEach((player) => {
-      if (player.visible !== false) {
+      if (player.alive !== false) {
         applyHealthDecrease(player, room);
       }
     });
@@ -50,7 +50,7 @@ function regenerateHealthForAllPlayers(room) {
     const currentTime = new Date().getTime();
 
     room.players.forEach((player) => {
-      if (player.visible !== false) {
+      if (player.alive !== false) {
         applyHealthRegeneration(player, currentTime);
       }
     });

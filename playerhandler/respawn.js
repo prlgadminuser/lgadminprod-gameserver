@@ -5,7 +5,7 @@ function respawnplayer(room, player) {
 
  room.realtimegrid.removeObject(player);
 
-  player.visible = false
+  player.alive = false
   player.state = 2
   player.respawns--
   player.moving = false
@@ -23,7 +23,7 @@ function respawnplayer(room, player) {
   player.timeoutIds.push(setTimeout(() =>{
      room.realtimegrid.addObject(player);
     player.spectating = false
-    player.visible = true
+    player.alive = true
     player.state = 1
     }, 5000));
 

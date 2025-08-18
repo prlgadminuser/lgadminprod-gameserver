@@ -190,7 +190,7 @@ class BulletManager {
         );
 
         for (const otherPlayer of nearbyPlayers) {
-          if (otherPlayer.playerId !== bullet.ownerId && otherPlayer.visible && !this.isAlly(bullet.ownerId, otherPlayer)) {
+          if (otherPlayer.playerId !== bullet.ownerId && otherPlayer.alive && !this.isAlly(bullet.ownerId, otherPlayer)) {
             if (isCollisionWithPlayer({x: bullet.position.x, y: bullet.position.y }, otherPlayer, bullet.height, bullet.width, bullet.direction - 90)) {
               const distTraveled = bullet.position.distanceTo(bullet.startPosition);
               const finalDamage = calculateFinalDamage(distTraveled, bullet.maxDistance, bullet.damage, bullet.damageConfig);

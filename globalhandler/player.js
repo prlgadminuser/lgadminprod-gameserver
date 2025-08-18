@@ -104,7 +104,7 @@ function handlePlayerCollision(room, shootingPlayer, targetPlayer, damage, gunid
     const ElimMessage = [ elimType, targetPlayer.nmb ];
     shootingPlayer.eliminations.push(ElimMessage)
 
-    targetPlayer.visible = false;
+    targetPlayer.alive = false;
     respawnplayer(room, targetPlayer);
     addKillToKillfeed(room, 2, shootingPlayer.nmb, targetPlayer.nmb, gunid)
 

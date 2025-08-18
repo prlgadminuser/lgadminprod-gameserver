@@ -3,7 +3,7 @@
 function hidePlayer(player) {
 
   player.health = 0; 
-  player.visible = false;
+  player.alive = false;
 }
 
 

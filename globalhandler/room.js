@@ -579,7 +579,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
       place: null,
       state: 1,
       eliminated: false,
-      visible: true,
+      alive: true,
       finalrewards_awarded: false,
       respawns: room.respawns,
       emote: 0,
@@ -633,7 +633,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
       finalrewards: [],
 
       usegadget(player) {
-        if (player && room.state === "playing" && player.visible) {
+        if (player && room.state === "playing" && player.alive) {
           gadgetdata.gadget(player, room);
         } else {
           console.error("Player not found or cannot use gadget");
@@ -653,8 +653,8 @@ async function joinRoom(ws, gamemode, playerVerified) {
 
     if (room) {
 
-      if (room.state !== "waiting" || room.players.size >= room.maxplayers)
-        return;
+      if (room.state !== "waiting" || room.players.size >= room.maxplayers) return;
+
       room.players.set(playerId, newPlayer);
 
       if (newPlayer.wsReadyState() === ws.CLOSED) {
@@ -664,6 +664,12 @@ async function joinRoom(ws, gamemode, playerVerified) {
     }
 
     if (room.players.size >= room.maxplayers && room.state === "waiting") {
+
+    const allAlive = room.players.every(p => p.wsReadyState() === ws.OPEN);
+
+    if (!allAlive) return
+
+
       room.state = "await";
       clearTimeout(room.matchmaketimeout);
       await startMatch(room, roomId);
@@ -1060,7 +1066,7 @@ function prepareRoomMessages(room) {
   const finalBullets = Object.keys(formattedBullets).length > 0 ? formattedBullets : undefined;
   p.finalbullets = finalBullets;
 
-  if (!p.visible) continue;
+  if (!p.alive) continue;
 //  Math.floor(p.x / 10)
   playerData[p.nmb] = [
     encodePosition(p.x),
@@ -1204,7 +1210,7 @@ function handleRequest(result, message) {
 
   if (
     result.room.state !== "playing" ||
-    player.visible === false ||
+    player.alive === false ||
     player.eliminated ||
     !result.room.winner === -1
   )

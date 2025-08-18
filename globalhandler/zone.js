@@ -107,7 +107,7 @@ function pingPlayers(room) {
   room.timeoutIds.push(
     setTimeout(() => {
       room.players.forEach((player) => {
-        if (player.visible !== false) {
+        if (player.alive !== false) {
           player.lastping = new Date().getTime();
         }
       });

@@ -41,7 +41,7 @@ function handleElimination(room, team) {
         const playerObj = room.players.get(player.playerId);
         if (playerObj && !playerObj.eliminated) {
             playerObj.eliminated = true;
-            playerObj.visible = false;
+            playerObj.alive = false;
             playerObj.state = 3;
             playerObj.moving = false; // Mark as eliminated (spectator state)
             room.realtimegrid.removeObject(playerObj);
@@ -71,13 +71,13 @@ function handleElimination(room, team) {
       const allTeamsCleared = room.teams.every(t =>
         t.players.every(player => {
           const playerData = room.players.get(player.playerId);
-          return !playerData || playerData.eliminated || !playerData.visible;
+          return !playerData || playerData.eliminated || !playerData.alive;
         })
       );
       
    
 
-    // Check if the game should end (all players from all teams are either eliminated or invisible)
+    // Check if the game should end (all players from all teams are either eliminated or not alive)
     if (allTeamsCleared) {
         room.timeoutIds.push(setTimeout(() => {
             closeRoom(room.roomId); // End the game after a short delay
