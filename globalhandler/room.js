@@ -24,7 +24,7 @@ const {
   initializeHealingCircles,
 } = require("./../gameObjectEvents/healingcircle");
 const { initializeAnimations } = require("./../gameObjectEvents/deathrespawn");
-const { playerchunkrenderer } = require("./../playerhandler/playerchunks");
+const { playerchunkrenderer, UpdatePlayerChunks} = require("./../playerhandler/playerchunks");
 const { handleSpectatorMode } = require("./../playerhandler/spectating");
 const { SpatialGrid, RealTimeObjectGrid, gridcellsize } = require("./config.js");
 const { increasePlayerKillsAndDamage } = require("./dbrequests.js");
@@ -164,7 +164,7 @@ function cloneSpatialGrid(original) {
 }
 
 function createRateLimiter() {
-  const rate = 30; // Allow one request every 50 milliseconds
+  const rate = 20; // Allow one request every 50 milliseconds
   return new Limiter({
     tokensPerInterval: rate,
     interval: 1000, // milliseconds
@@ -336,7 +336,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
   if (!mapdata) console.error("map does not exist");
 
   const itemgrid = new SpatialGrid(gridcellsize); // grid system for items
-  const realtimegrid = new RealTimeObjectGrid(300)
+  const realtimegrid = new RealTimeObjectGrid(200)
   const bulletgrid = new RealTimeObjectGrid(50)
 
   const roomgrid = cloneSpatialGrid(mapdata.grid);
@@ -993,6 +993,7 @@ function prepareRoomMessages(room) {
   
   // PLAYING STATE
   const aliveCount = players.reduce((c, p) => c + !p.eliminated, 0);
+  playerchunkrenderer(room);
   handlePlayerMoveIntervalAll(room);
   HandleAfflictions(room);
 
@@ -1041,7 +1042,7 @@ function prepareRoomMessages(room) {
   const centerX = p.x
   const centerY = p.y
   const xThreshold = 300
-  const yThreshold = 170
+  const yThreshold = 180
 
   const nearbyBullets = room.bulletgrid.getObjectsInArea(centerX - xThreshold, centerX + xThreshold, centerY - yThreshold, centerY + yThreshold);
 
