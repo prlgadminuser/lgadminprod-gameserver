@@ -3,41 +3,40 @@
 
 // Function to handle spectating logic for eliminated players
 function handleSpectatorMode(player, room) {
-  // Only start spectating logic if the player is eliminated
-  if (player.eliminated) {
-    const now = Date.now();
-    if (player.spectatingTarget) {
-      const currentTarget = player.spectatingTarget
-      if (currentTarget && !currentTarget.eliminated) {
-        // Stick with the current target if it's valid
-       updateSpectatingPlayer(player, currentTarget);
-        return;
-      } else {
-        player.spectatingTarget = null;
-        player.lastSpectateSwitch = now; 
-      }
-    }
-    // Check if the cooldown period has passed before switching
-    if (!player.lastSpectateSwitch || now - player.lastSpectateSwitch >= 2000) {
-      // Find the next nearest non-eliminated player
-      const nearestNonEliminatedPlayer = findNearestPlayer(
-        player,
-        Array.from(room.players.values()).filter(
-          (p) => !p.eliminated && p !== player
-        )
-      );
-
-      if (nearestNonEliminatedPlayer) {
-        player.spectatingTarget = nearestNonEliminatedPlayer; // Set new target
-        player.lastSpectateSwitch = now; // Reset cooldown timer
-
-        updateSpectatingPlayer(player, nearestNonEliminatedPlayer);
-      }
-    }
-  } else {
-    // If the player is no longer eliminated, clear spectating state
+  if (!player.eliminated) {
+    // No longer eliminated: stop spectating
+    player.spectating = false;
     player.spectatingTarget = null;
-    player.lastSpectateSwitch = null; // Reset cooldown timer
+    player.lastSpectateSwitch = null;
+    return;
+  }
+
+  // Immediately enable spectating if not already
+  if (!player.spectating) {
+    player.spectating = true;
+    player.lastSpectateSwitch = Date.now();
+  }
+
+  const now = Date.now();
+  const currentTarget = player.spectatingTarget;
+
+  // Always update view if there is a target
+  if (currentTarget) {
+    updateSpectatingPlayer(player, currentTarget);
+  }
+
+  // Only switch target if cooldown passed OR no target
+  if (!currentTarget || now - player.lastSpectateSwitch >= 2000 || currentTarget.eliminated) {
+    const nearestNonEliminated = findNearestPlayer(
+      player,
+      Array.from(room.players.values()).filter(p => !p.eliminated && p !== player)
+    );
+
+    if (nearestNonEliminated) {
+      player.spectatingTarget = nearestNonEliminated;
+      player.lastSpectateSwitch = now;
+      updateSpectatingPlayer(player, nearestNonEliminated);
+    }
   }
 }
 

@@ -24,7 +24,7 @@ const {
   initializeHealingCircles,
 } = require("./../gameObjectEvents/healingcircle");
 const { initializeAnimations } = require("./../gameObjectEvents/deathrespawn");
-const { playerchunkrenderer, UpdatePlayerChunks} = require("./../playerhandler/playerchunks");
+const { playerchunkrenderer} = require("./../playerhandler/playerchunks");
 const { handleSpectatorMode } = require("./../playerhandler/spectating");
 const { SpatialGrid, RealTimeObjectGrid, gridcellsize } = require("./config.js");
 const { increasePlayerKillsAndDamage } = require("./dbrequests.js");
@@ -663,7 +663,9 @@ async function joinRoom(ws, gamemode, playerVerified) {
       }
     }
 
-    if (room.state === "waiting" && room.players.size >= room.maxplayers) {
+    if (room.players.size >= room.maxplayers && room.state === "waiting") {
+      room.state = "await";
+      clearTimeout(room.matchmaketimeout);
       await startMatch(room, roomId);
     }
 
@@ -676,8 +678,6 @@ async function joinRoom(ws, gamemode, playerVerified) {
 }
 
 async function startMatch(room, roomId) {
-  clearTimeout(room.matchmaketimeout);
-  room.state = "await";
 
   room.maxopentimeout = setTimeout(() => {
     closeRoom(roomId);
