@@ -35,14 +35,16 @@ const yThreshold = 190
 
 function getPlayersInRange(room, centerX, centerY, excludePlayer) {
 
-  const nearbyPlayers = room.realtimegrid.getObjectsInArea(
-  centerX - xThreshold,
-  centerX + xThreshold,
-  centerY - yThreshold,
-  centerY + yThreshold,
-);
+  const xMin = centerX - xThreshold;
+  const xMax = centerX + xThreshold;
+  const yMin = centerY - yThreshold;
+  const yMax = centerY + yThreshold;
 
- const others = nearbyPlayers.filter(p =>
+   const nearbyPlayers = room.realtimegrid.getObjectsInArea(xMin, xMax, yMin, yMax);
+
+  // Filter out the excluded player and non-player objects,
+  // and ensure they are actually within the rectangle
+  const others = nearbyPlayers.filter(p =>
     p !== excludePlayer &&
     p.isPlayer &&
     p.x >= xMin &&
@@ -51,8 +53,7 @@ function getPlayersInRange(room, centerX, centerY, excludePlayer) {
     p.y <= yMax
   );
 
-
-return others
+  return others;
 }
 
 function UpdatePlayerChunks(room, player) {
