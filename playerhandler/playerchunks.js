@@ -42,7 +42,15 @@ function getPlayersInRange(room, centerX, centerY, excludePlayer) {
   centerY + yThreshold,
 );
 
-const others = nearbyPlayers.filter(p => p !== excludePlayer && p.isPlayer);
+ const others = nearbyPlayers.filter(p =>
+    p !== excludePlayer &&
+    p.isPlayer &&
+    p.x >= xMin &&
+    p.x <= xMax &&
+    p.y >= yMin &&
+    p.y <= yMax
+  );
+
 
 return others
 }

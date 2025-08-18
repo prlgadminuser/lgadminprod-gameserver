@@ -33,7 +33,7 @@ const tokenList = [
 
 
 function randomCommand() {
-  const commandTypes = ['move', 'stop', 'changeWeapon'];
+  const commandTypes = ['move', 'stop', "shoot", 'changeWeapon', 'emote'];
 
   const type = commandTypes[Math.floor(Math.random() * commandTypes.length)];
 
@@ -42,6 +42,8 @@ function randomCommand() {
       // 8 possible movement directions
       const directions = [-180, -135, -90, -45, 0, 45, 90, 135, 180];
       const dir = directions[Math.floor(Math.random() * directions.length)];
+     
+
       return `3:${dir}:1`; // move command
     case 'stop':
       return '2'; // stop movement
@@ -52,6 +54,10 @@ function randomCommand() {
     case 'changeWeapon':
       const weaponId = Math.floor(Math.random() * 5); // example: 5 weapons
       return `5:${weaponId}`;
+      
+    case 'emote':
+       const num = Math.floor(Math.random() * 4) + 1;
+      return `6:${num}`;
   }
 }
 
