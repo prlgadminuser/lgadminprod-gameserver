@@ -337,7 +337,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
   const itemgrid = new SpatialGrid(gridcellsize); // grid system for items
   const realtimegrid = new RealTimeObjectGrid(200)
-  const bulletgrid = new RealTimeObjectGrid(50)
+  const bulletgrid = new RealTimeObjectGrid(200)
 
   const roomgrid = cloneSpatialGrid(mapdata.grid);
 
@@ -860,31 +860,33 @@ function hashString(str) {
 
 
 function BuildSelfData(p) {
- const selfdata = {
-      state: p.state,
-      h: p.health,
-      sh: p.starthealth,
-      s: +p.shooting,
-      g: p.gun,
-      kil: p.kills,
-      dmg: p.damage,
-      rwds: p.finalrewards.length > 0 ? p.finalrewards : undefined,
-      killer: p.eliminator,
-      cg: +p.canusegadget,
-      lg: p.gadgetuselimit,
-      ag: +p.gadgetactive,
-      x: encodePosition(p.x),
-      y: encodePosition(p.y),
-      el: p.eliminations.length > 0 ? p.eliminations : undefined,
-      em: p.emote,
-      spc: p.spectatingPlayerId,
-      guns: p.loadout_formatted,
-      np: JSON.stringify(Array.from(p.nearbyfinalids)),
-      ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
- 
-}
+    const selfdata = {
+        state: p.state,
+        h: p.health,
+        sh: p.starthealth,
+        s: +p.shooting,
+        g: p.gun,
+        kil: p.kills,
+        dmg: p.damage,
+        rwds: p.finalrewards.length > 0 ? p.finalrewards : undefined,
+        killer: p.eliminator,
+        cg: +p.canusegadget,
+        lg: p.gadgetuselimit,
+        ag: +p.gadgetactive,
+        el: p.eliminations.length > 0 ? p.eliminations : undefined,
+        em: p.emote,
+        spc: p.spectatingPlayerId,
+        guns: p.loadout_formatted,
+        np: JSON.stringify(Array.from(p.nearbyfinalids)),
+        ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined
+    };
 
-return selfdata
+    if (!p.spectating) {
+        selfdata.x = encodePosition(p.x);
+        selfdata.y = encodePosition(p.y);
+    }
+
+    return selfdata;
 }
 
 function SendPreStartMessage(room) {
