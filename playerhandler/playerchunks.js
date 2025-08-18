@@ -30,8 +30,8 @@ function findNearestEvents(player, room) {
 
 }
 
-const xThreshold = 330
-const yThreshold = 190
+const xThreshold = 360
+const yThreshold = 230
 
 function getPlayersInRange(room, centerX, centerY, excludePlayer) {
 
