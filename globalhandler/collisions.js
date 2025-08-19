@@ -9,33 +9,6 @@ const {
 const wallblocksize = 40;
 const halfBlockSize = wallblocksize / 2;
 
-function isCollisionWithWalls(grid, x, y) {
-  const xMin = x - 20;
-  const xMax = x + 20;
-  const yMin = y - 45;
-  const yMax = y + 45;
-
-  const nearbyWalls = grid.getObjectsInArea(xMin, xMax, yMin, yMax);
-
-  for (const wall of nearbyWalls) {
-    const wallLeft = wall.x - halfBlockSize;
-    const wallRight = wall.x + halfBlockSize;
-    const wallTop = wall.y - halfBlockSize;
-    const wallBottom = wall.y + halfBlockSize;
-
-    if (
-      xMax > wallLeft &&
-      xMin < wallRight &&
-      yMax > wallTop &&
-      yMin < wallBottom
-    ) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 function isCollisionWithCachedWalls(walls, x, y) {
   const xMin = x - playerhitbox.xMin;
   const xMax = x + playerhitbox.xMax;
@@ -304,7 +277,6 @@ function dotProduct(point, axis) {
 }
 
 module.exports = {
-  isCollisionWithWalls,
   isCollisionWithBullet,
   isCollisionWithCachedWalls,
   wallblocksize,

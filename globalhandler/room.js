@@ -1079,6 +1079,7 @@ function prepareRoomMessages(room) {
   if (!p.alive) continue;
 //  Math.floor(p.x / 10)
   playerData[p.nmb] = [
+    p.nmb,
     encodePosition(p.x),
     encodePosition(p.y),
     Number(p.direction2),         // convert to number if it might be string
@@ -1110,72 +1111,73 @@ function prepareRoomMessages(room) {
 
   if (!p.spectating)  {
     p.nearbyids.clear();
-    let filteredplayers = {};
+    
+    let filteredPlayers = [];
+    let selfIndex = -1;
 
     const playersInRange = p.nearbyplayers;
     const previousData = p.pdHashes || {};
     const currentData = {};
 
     for (const nearbyId of playersInRange) {
-
- //   if (nearbyId === p.nmb) continue; 
-       const data = playerData[nearbyId];
+        const data = playerData[nearbyId];
         if (!data) continue; 
 
-       
-      if (!arraysEqual(previousData[nearbyId], data)) {
-          filteredplayers[nearbyId] = data
+        if (nearbyId === p.nmb) selfIndex = filteredPlayers.length;
+
+        if (!arraysEqual(previousData[nearbyId], data)) {
+            filteredPlayers.push(data);
         }
-      currentData[nearbyId] = data
-      p.nearbyids.add(nearbyId);
+        currentData[nearbyId] = data;
+        p.nearbyids.add(nearbyId);
+    }
 
 
-    p.pd = filteredplayers;
+
+    // Update player properties
+    p.pd = filteredPlayers;
     p.nearbyfinalids = p.nearbyids;
     p.pdHashes = currentData;
 
-     }
-    }
-    //const pdToSend = { ...p.pd };
-    //delete pdToSend[p.nmb];
-    // const pdToSend = p.pd;
-  const { [p.nmb]: _, ...pdToSend } = p.pd;
+    // Assign pdToSend for message
+    const pdToSend = filteredPlayers.splice(selfIndex, 1);
 
     // Message assembly
     const msg = {
-      r: finalroomdata,
-      dm: dummiesFiltered,
-      kf: room.killfeed,
-      sb: room.scoreboard,
-      sd: Object.keys(changes).length ? changes : undefined,
-      WLD: room.destroyedWalls,
-      cl: p.nearbycircles,
-      an: p.nearbyanimations,
-      b: p.finalbullets,
-      pd: pdToSend,
+        r: finalroomdata,
+        dm: dummiesFiltered,
+        kf: room.killfeed,
+        sb: room.scoreboard,
+        sd: Object.keys(changes).length ? changes : undefined,
+        WLD: room.destroyedWalls,
+        cl: p.nearbycircles,
+        an: p.nearbyanimations,
+        b: p.finalbullets,
+        pd: pdToSend,
     };
 
     // Remove empty keys
     for (const key in msg) {
-      if (
-        !msg[key] ||
-        (Array.isArray(msg[key]) && !msg[key].length) ||
-        (typeof msg[key] === "object" && !Object.keys(msg[key]).length)
-      ) {
-        delete msg[key];
-      }
+        if (
+            !msg[key] ||
+            (Array.isArray(msg[key]) && !msg[key].length) ||
+            (typeof msg[key] === "object" && !Object.keys(msg[key]).length)
+        ) {
+            delete msg[key];
+        }
     }
 
     // Send if changed
     const hash = generateHash(msg);
     if (hash !== p.lastMessageHash) {
-      p.lastcompressedmessage = compressMessage(msg);
-      p.lastMessageHash = hash;
-      p.tick_send_allow = true;
+        p.lastcompressedmessage = compressMessage(msg);
+        p.lastMessageHash = hash;
+        p.tick_send_allow = true;
     } else {
-      p.tick_send_allow = false;
+        p.tick_send_allow = false;
     }
-  }
+}
+}
 
   // CLEANUP
   room.killfeed = [];
