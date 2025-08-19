@@ -59,7 +59,7 @@ const gamemodeconfig = {
 
     maxplayers: 4,
     teamsize: 1,
-    respawns_allowed: 0,
+    respawns_allowed: 1,
 
     playerhealth: 77,
     playerspeed: 1.6,
@@ -190,3 +190,4 @@ module.exports = {
   gamemodeconfig: new Map(Object.entries(gamemodeconfig)),
   allowed_gamemodes,
 };
+
