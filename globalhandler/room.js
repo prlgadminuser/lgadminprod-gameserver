@@ -1,3 +1,4 @@
+
 const { Limiter, compressMessage } = require("./..//index.js");
 const {
   matchmaking_timeout,
@@ -1113,7 +1114,6 @@ function prepareRoomMessages(room) {
     p.nearbyids.clear();
     
     let filteredPlayers = []
-    let selfIndex = -1
 
     const playersInRange = p.nearbyplayers;
     const previousData = p.pdHashes || {};
@@ -1126,8 +1126,6 @@ function prepareRoomMessages(room) {
 
        const data = playerData[nearbyId];
         if (!data) continue; 
-
-         if (nearbyId === p.nmb) selfIndex = filteredPlayers.length;
        
       if (!arraysEqual(previousData[nearbyId], data)) {
           filteredPlayers.push(data);
@@ -1140,6 +1138,8 @@ function prepareRoomMessages(room) {
     p.nearbyfinalids = p.nearbyids;
     p.pdHashes = currentData;
 
+     
+
      }
     }
     //const pdToSend = { ...p.pd };
@@ -1147,7 +1147,7 @@ function prepareRoomMessages(room) {
     // const pdToSend = p.pd;
     
   //const pdToSend = p.pd;
-  const pdToSend = selfindex !== -1 ? filteredPlayers.splice(selfIndex, 1) : filteredPlayers;
+ const pdToSend = p.pd;
 
     // Message assembly
     const msg = {
@@ -1184,7 +1184,6 @@ function prepareRoomMessages(room) {
       p.tick_send_allow = false;
     }
   }
-
   // CLEANUP
   room.killfeed = [];
   room.destroyedWalls = [];
