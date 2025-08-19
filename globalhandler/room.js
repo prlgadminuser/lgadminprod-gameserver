@@ -1141,7 +1141,7 @@ function prepareRoomMessages(room) {
     //const pdToSend = { ...p.pd };
     //delete pdToSend[p.nmb];
     // const pdToSend = p.pd;
-  const { [p.nmb]: _, ...pdToSend } = p.pd;
+  const pdToSend = p.pd;
 
     // Message assembly
     const msg = {
