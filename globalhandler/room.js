@@ -181,7 +181,7 @@ async function setupRoomPlayers(room) {
   room.players.forEach((player) => {
 
     // Set the player's unique number (nmb)
-    player.nmb = playerNumberID;
+    player.nmb = Number(playerNumberID);
 
     const spawnPositions = room.spawns;
     const spawnIndex = playerNumberID % spawnPositions.length; // Distribute players across spawn positions
