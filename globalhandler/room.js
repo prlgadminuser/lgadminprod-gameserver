@@ -1112,7 +1112,8 @@ function prepareRoomMessages(room) {
   if (!p.spectating)  {
     p.nearbyids.clear();
     
-    let filteredPlayers = [];
+    let filteredPlayers = []
+    let selfIndex = -1
 
     const playersInRange = p.nearbyplayers;
     const previousData = p.pdHashes || {};
@@ -1121,9 +1122,12 @@ function prepareRoomMessages(room) {
     for (const nearbyId of playersInRange) {
 
  //   if (nearbyId === p.nmb) continue; 
+
+
        const data = playerData[nearbyId];
         if (!data) continue; 
 
+         if (nearbyId === p.nmb) selfIndex = filteredPlayers.length;
        
       if (!arraysEqual(previousData[nearbyId], data)) {
           filteredPlayers.push(data);
@@ -1141,7 +1145,9 @@ function prepareRoomMessages(room) {
     //const pdToSend = { ...p.pd };
     //delete pdToSend[p.nmb];
     // const pdToSend = p.pd;
-  const pdToSend = p.pd;
+    
+  //const pdToSend = p.pd;
+  const pdToSend = selfindex !== -1 ? filteredPlayers.splice(selfIndex, 1) : filteredPlayers;
 
     // Message assembly
     const msg = {
