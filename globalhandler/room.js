@@ -1074,7 +1074,7 @@ function prepareRoomMessages(room) {
   }
 }
 
-  p.finalbullets = Object.keys(formattedBullets).length > 0 ? formattedBullets : undefined;
+ p.finalbullets = finalBullets.length > 0 ? finalBullets : undefined;
 
   if (!p.alive) continue;
 //  Math.floor(p.x / 10)
