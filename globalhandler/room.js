@@ -1,5 +1,3 @@
-
-
 const { Limiter, compressMessage } = require("./..//index.js");
 const {
   matchmaking_timeout,
@@ -1148,7 +1146,7 @@ function prepareRoomMessages(room) {
     
   //const pdToSend = p.pd;
    const pdToSend = p.pd.slice();  // shallow copy
-if (pd.removeindex !== -1) pdToSend.splice(pdremoveindex, 1);
+if (p.pd.removeindex !== -1) pdToSend.splice(pdremoveindex, 1);
 
     // Message assembly
     const msg = {
