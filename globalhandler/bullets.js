@@ -92,10 +92,15 @@ class BulletManager {
     this.room = room;
     this.bullets = room.bullets // id => Bullet
     this.scheduledBullets = [];
+    this.nextBulletId = 1;
   }
 
   generateBulletId() {
-  return Math.random().toString(36).substring(2, 5); // 3 characters
+   const id = this.nextBulletId;
+    this.nextBulletId += 1;
+    // wrap around if very large
+    if (this.nextBulletId > 655) this.nextBulletId = 1; 
+    return id;
 }
 
     spawnBullet(player, bulletData) {
