@@ -1078,7 +1078,7 @@ function prepareRoomMessages(room) {
 
   if (!p.alive) continue;
 //  Math.floor(p.x / 10)
-  playerData[p.nmb] = [
+  playerData[Number(p.nmb)] = [
     encodePosition(p.x),
     encodePosition(p.y),
     Number(p.direction2),         // convert to number if it might be string
