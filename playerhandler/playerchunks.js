@@ -57,7 +57,7 @@ function getPlayersInRange(room, centerX, centerY, excludePlayer) {
 }
 
 function UpdatePlayerChunks(room, player) {
-  const nearbyIds = getPlayersInRange(room, player.x, player.y)
+  const nearbyIds = getPlayersInRange(room, player.x, player.y, player.nmb)
     .map(p => p.nmb);
 
   const nearbySet = player.nearbyplayers;

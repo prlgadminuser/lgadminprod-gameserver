@@ -1120,15 +1120,13 @@ function prepareRoomMessages(room) {
 
     for (const nearbyId of playersInRange) {
 
- //   if (nearbyId === p.nmb) continue; 
-
        
        const data = playerData[nearbyId];
         if (!data) continue; 
 
        
       if (!arraysEqual(previousData[nearbyId], data)) {
-          filteredPlayers.push(data);
+        filteredPlayers.push(data);   p.mypd = data
         }
       currentData[nearbyId] = data
       p.nearbyids.add(nearbyId);
@@ -1139,11 +1137,8 @@ function prepareRoomMessages(room) {
 
      }
     }
-    //const pdToSend = { ...p.pd };
-    //delete pdToSend[p.nmb];
-    // const pdToSend = p.pd;
-    
 
+  
 
     // Message assembly
     const msg = {
