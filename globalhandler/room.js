@@ -1145,7 +1145,8 @@ function prepareRoomMessages(room) {
     // const pdToSend = p.pd;
     
   //const pdToSend = p.pd;
- const pdToSend = filteredPlayers.splice(pdremoveindex, 1);
+   const pdToSend = p.pd.slice();  // shallow copy
+if (pdremoveindex !== -1) pdToSend.splice(pdremoveindex, 1);
 
     // Message assembly
     const msg = {
