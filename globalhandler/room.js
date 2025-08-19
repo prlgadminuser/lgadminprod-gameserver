@@ -319,6 +319,16 @@ function setRoomInterval(room, fn, ms) {
   return id;
 }
 
+async function SetupRoomStartGameData(room) {
+
+  
+  room.itemgrid = new SpatialGrid(gridcellsize); // grid system for items
+  room.realtimegrid = new RealTimeObjectGrid(200)
+  room.bulletgrid = new RealTimeObjectGrid(200)
+
+  room.grid = cloneSpatialGrid(room.mapdata.grid);
+
+}
 
 
 
@@ -335,51 +345,40 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
   if (!mapdata) console.error("map does not exist");
 
-  const itemgrid = new SpatialGrid(gridcellsize); // grid system for items
-  const realtimegrid = new RealTimeObjectGrid(200)
-  const bulletgrid = new RealTimeObjectGrid(200)
-
-  const roomgrid = cloneSpatialGrid(mapdata.grid);
-
 
 
   const room = {
     // Game State
-    currentplayerid: 0,
-    eliminatedTeams: [],
+    roomId: roomId,
+    state: "waiting", 
+    sp_level: splevel,
+    maxplayers: gmconfig.maxplayers,
     gamemode: gamemode,
-    intervalIds: [],
-    killfeed: [],
     matchtype: gmconfig.matchtype,
-    objects: [],
-    destroyedWalls: [],
-    activeAfflictions: [],
     players: new Map(),
-    snap: [],
-    state: "waiting", // Possible values: "waiting", "playing", "countdown"
-    timeoutIds: [],
-    winner: -1,
+    eliminatedTeams: [],
+    currentplayerid: 0, // for creating playerids start at 0
+    
+    killfeed: [],
+    objects: [],
 
+    winner: -1,
     countdown: 0,
 
     // bullets handler
     bullets: new Map(),
-    bulletgrid: bulletgrid,
+    activeAfflictions: [],
 
     // Game Configuration
-    itemgrid: itemgrid,
-    realtimegrid: realtimegrid,
-    maxplayers: gmconfig.maxplayers,
     modifiers: gmconfig.modifiers,
     respawns: gmconfig.respawns_allowed,
-    sp_level: splevel,
     place_counts: gmconfig.placereward,
     ss_counts: gmconfig.seasoncoinsreward,
     teamsize: gmconfig.teamsize,
     weapons_modifiers_override: gmconfig.weapons_modifiers_override,
 
     // Map Configuration
-    grid: roomgrid,
+    mapdata: mapdata,
     map: mapid,
     mapHeight: mapdata.height,
     mapWidth: mapdata.width,
@@ -389,9 +388,14 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     zoneStartY: -mapdata.height,
     zoneEndX: mapdata.width,
     zoneEndY: mapdata.height,
-    // Metadata
     zone: 0,
-    roomId: roomId,
+
+    // Destruction
+    destroyedWalls: [],
+
+    // clear interval ids
+    intervalIds: [],
+    timeoutIds: [],
   };
 
   if (gmconfig.can_hit_dummies && mapdata.dummies) {
@@ -409,6 +413,8 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
   addRoomToIndex(room);
   rooms.set(roomId, room);
+
+  
 
   
 room.intervalIds.push(setInterval(() => {
@@ -475,7 +481,7 @@ room.intervalIds.push(setInterval(() => {
 
       setTimeout(() => {
         sendRoomMessages(room);
-      }, 3);
+      }, 4);
     }, server_tick_rate)
   );
 
@@ -689,6 +695,8 @@ async function startMatch(room, roomId) {
     closeRoom(roomId);
   }, room_max_open_time);
 
+  await SetupRoomStartGameData(room)
+
   await setupRoomPlayers(room);
   await CreateTeams(room);
 
@@ -881,13 +889,14 @@ function BuildSelfData(p) {
         ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined
     };
 
-    if (p.allowweridsend) {
+   /*  if (p.allowweridsend) {
         selfdata.x = encodePosition(p.x);
         selfdata.y = encodePosition(p.y);
         selfdata.h = p.health
         selfdata.g = p.gun
         selfdata.em = p.emote
     }
+    */
 
     return selfdata;
 }

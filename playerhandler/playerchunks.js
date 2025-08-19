@@ -33,7 +33,7 @@ function findNearestEvents(player, room) {
 const xThreshold = 380
 const yThreshold = 300
 
-function getPlayersInRange(room, centerX, centerY, excludePlayer) {
+function getPlayersInRange(room, centerX, centerY) {
 
   const xMin = centerX - xThreshold;
   const xMax = centerX + xThreshold;
@@ -45,7 +45,6 @@ function getPlayersInRange(room, centerX, centerY, excludePlayer) {
   // Filter out the excluded player and non-player objects,
   // and ensure they are actually within the rectangle
   const others = nearbyPlayers.filter(p =>
-    p !== excludePlayer &&
     p.isPlayer &&
     p.x >= xMin &&
     p.x <= xMax &&

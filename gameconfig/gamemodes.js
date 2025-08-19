@@ -118,6 +118,7 @@ const gamemodeconfig = {
       //  "UseZone",
       // AutoHealthRestore,
       //"HealingCircles",
+      "countdown"
     ]),
 
     weapons_modifiers_override: new Set(["CanBounce"]),
