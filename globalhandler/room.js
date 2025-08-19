@@ -181,7 +181,7 @@ async function setupRoomPlayers(room) {
   room.players.forEach((player) => {
 
     // Set the player's unique number (nmb)
-    player.nmb = Number(playerNumberID);
+    player.nmb = playerNumberID;
 
     const spawnPositions = room.spawns;
     const spawnIndex = playerNumberID % spawnPositions.length; // Distribute players across spawn positions
@@ -192,7 +192,7 @@ async function setupRoomPlayers(room) {
       (player.startspawn = {
         x: spawnPositions[spawnIndex].x,
         y: spawnPositions[spawnIndex].y,
-      });
+      }); 
 
     // Increment the player number for the next player
     playerNumberID++;
@@ -1050,7 +1050,7 @@ function prepareRoomMessages(room) {
 
   if (p.spectating) continue
   
-  const formattedBullets = {};
+
 
   const centerX = p.x
   const centerY = p.y
@@ -1058,27 +1058,27 @@ function prepareRoomMessages(room) {
   const yThreshold = 180
 
   const nearbyBullets = room.bulletgrid.getObjectsInArea(centerX - xThreshold, centerX + xThreshold, centerY - yThreshold, centerY + yThreshold);
+  
+  const finalBullets = [];
 
   if (nearbyBullets) {
-    for (const bullet of nearbyBullets.values()) {
-    formattedBullets[bullet.id] = [
-    Math.round(bullet.position.x),
-    Math.round(bullet.position.y),
-    Math.round(bullet.direction),
-    bullet.gunId,
-    bullet.effect,
-    ]
-    } 
+  for (const bullet of nearbyBullets.values()) {
+    finalBullets.push([
+      bullet.id,
+      Math.round(bullet.position.x),
+      Math.round(bullet.position.y),
+      Math.round(bullet.direction),
+      bullet.gunId,
+      bullet.effect,
+    ]);
   }
+}
 
-  //console.log(formattedBullets)
-
-  const finalBullets = Object.keys(formattedBullets).length > 0 ? formattedBullets : undefined;
-  p.finalbullets = finalBullets;
+  p.finalbullets = Object.keys(formattedBullets).length > 0 ? formattedBullets : undefined;
 
   if (!p.alive) continue;
 //  Math.floor(p.x / 10)
-  playerData[Number(p.nmb)] = [
+  playerData[p.nmb] = [
     encodePosition(p.x),
     encodePosition(p.y),
     Number(p.direction2),         // convert to number if it might be string
