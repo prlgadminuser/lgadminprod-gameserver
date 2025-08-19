@@ -1044,7 +1044,7 @@ function prepareRoomMessages(room) {
       finalroomdata = undefined;
   }
 
-  const playerData = {};
+  const playerData = [];
 
   for (const p of players) {
 
@@ -1078,7 +1078,7 @@ function prepareRoomMessages(room) {
 
   if (!p.alive) continue;
 //  Math.floor(p.x / 10)
-  playerData[p.nmb] = [
+  playerData.push(
     p.nmb,
     encodePosition(p.x),
     encodePosition(p.y),
@@ -1086,8 +1086,8 @@ function prepareRoomMessages(room) {
     Number(p.health),
     Number(p.gun),
     Number(p.emote),
-  ]
-}
+  )
+  }
 
   // ONE PASS: Build, hash, compress, send
   for (const p of players) {
