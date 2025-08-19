@@ -865,10 +865,8 @@ function hashString(str) {
 function BuildSelfData(p) {
     const selfdata = {
         state: p.state,
-        h: p.health,
         sh: p.starthealth,
         s: +p.shooting,
-        g: p.gun,
         kil: p.kills,
         dmg: p.damage,
         rwds: p.finalrewards.length > 0 ? p.finalrewards : undefined,
@@ -877,16 +875,18 @@ function BuildSelfData(p) {
         lg: p.gadgetuselimit,
         ag: +p.gadgetactive,
         el: p.eliminations.length > 0 ? p.eliminations : undefined,
-        em: p.emote,
         spc: p.spectatingPlayerId,
         guns: p.loadout_formatted,
         np: JSON.stringify(Array.from(p.nearbyfinalids)),
         ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined
     };
 
-    if (!p.spectating) {
+    if (p.allowweridsend) {
         selfdata.x = encodePosition(p.x);
         selfdata.y = encodePosition(p.y);
+        selfdata.h = p.health
+        selfdata.g = p.gun
+        selfdata.em = p.emote
     }
 
     return selfdata;
