@@ -1126,7 +1126,6 @@ function prepareRoomMessages(room) {
        const data = playerData[nearbyId];
         if (!data) continue; 
 
-          p.pdremoveindex = filteredPlayers.length;
        
       if (!arraysEqual(previousData[nearbyId], data)) {
           filteredPlayers.push(data);
@@ -1144,9 +1143,7 @@ function prepareRoomMessages(room) {
     //delete pdToSend[p.nmb];
     // const pdToSend = p.pd;
     
-  //const pdToSend = p.pd;
-   const pdToSend = p.pd.slice();  // shallow copy
-if (p.pd.removeindex !== -1) pdToSend.splice(p.pd.removeindex, 1);
+
 
     // Message assembly
     const msg = {
@@ -1159,7 +1156,7 @@ if (p.pd.removeindex !== -1) pdToSend.splice(p.pd.removeindex, 1);
       cl: p.nearbycircles,
       an: p.nearbyanimations,
       b: p.finalbullets,
-      pd: pdToSend,
+      pd: p.pd,
     };
 
     // Remove empty keys
