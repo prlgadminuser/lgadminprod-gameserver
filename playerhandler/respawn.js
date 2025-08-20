@@ -1,5 +1,7 @@
 "use strict";
+
 const UseStartRespawnPoint = false
+const { spawnAnimation } = require('./../gameObjectEvents/animations')
 
 function respawnplayer(room, player) {
 

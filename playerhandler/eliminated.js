@@ -7,6 +7,7 @@ const {
 const { game_win_rest_time } = require("./../globalhandler/config");
 const { startSpectatingLogic } = require("./spectating");
 const { closeRoom } = require("./../roomhandler/manager");
+const { spawnAnimation } = require('./../gameObjectEvents/animations')
 
 // playerstates: 1:alive 2:respawning 3:eliminated
 function handleElimination(room, target) {
