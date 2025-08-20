@@ -111,4 +111,4 @@ function checkGameEndCondition(room) {
   }
 }
 
-module.exports = { handleElimination };
+module.exports = { handleElimination, checkGameEndCondition };

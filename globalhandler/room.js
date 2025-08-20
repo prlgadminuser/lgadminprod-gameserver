@@ -205,7 +205,7 @@ async function CreateTeams(room) {
     const teamIDs = ['Red', 'Blue', 'Green', 'Yellow', 'Cyan', 'Pink', 'Purple', 'Orange'];
 
     room.teams = new Map();
-    
+
     let teamIndex = 0;
     room.players.forEach(player => {
         // Find or create the team.
@@ -246,6 +246,21 @@ async function CreateTeams(room) {
             tid: playerTeamId,     // The player's team ID
         };
     });
+}
+
+function getTeamIds(room, player) {
+    // 1. Get the player's team object from the room's teams map.
+    const playerTeam = room.teams.get(player.teamId);
+
+    if (!playerTeam) {
+        // Handle cases where the team doesn't exist (e.g., player is not in a team yet).
+        return [];
+    }
+
+    // 2. Map the players array to get their IDs.
+    const teammateIds = playerTeam.players.map(p => p.nmb);
+
+    return teammateIds;
 }
 
 
@@ -927,7 +942,7 @@ function SendPreStartMessage(room) {
     const MessageToSend = {
       AllData,
       SelfData: {
-        teamdata: player.teamdata,
+        allies: getTeamIds(room, player),
         pid: player.nmb,
         self_info,
         dummies: dummiesFiltered,
