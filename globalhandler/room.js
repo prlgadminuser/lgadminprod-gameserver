@@ -585,6 +585,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
       can_bullets_bounce: false,
       nearbyplayers: [],
       nearbyplayersids: [],
+      lastplayerids: [],
       // movement
       moving: false,
       direction: null,
@@ -859,9 +860,11 @@ function BuildSelfData(p) {
     el: p.eliminations.length > 0 ? p.eliminations : undefined,
     spc: p.spectatingPlayerId,
     guns: p.loadout_formatted,
-    np: JSON.stringify(p.nearbyplayersids),
+    np: !arraysEqual(p.nearbyplayersids, p.lnp) ? p.nearbyplayersids : undefined,
     ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
   };
+
+  p.lastplayerids = p.nearbyplayersids
 
   /*  if (p.allowweridsend) {
         selfdata.x = encodePosition(p.x);
@@ -925,6 +928,7 @@ function SendPreStartMessage(room) {
       em: player.emote,
       spc: player.spectatingPlayerId,
       guns: player.loadout_formatted,
+      np: JSON.stringify(p.nearbyplayersids),
       ht: [],
     };
 
