@@ -13,7 +13,6 @@ function findNearestEvents(player, room) {
 
   const objectsInArea = grid.getObjectsInArea(xMin, xMax, yMin, yMax);
 
-  // Single pass through objectsInArea
   const circles = [];
 
   for (const obj of objectsInArea) {
@@ -23,8 +22,6 @@ function findNearestEvents(player, room) {
   }
   
    player.nearbycircles = circles;
-  player.nearbyanimations = animations;
-
 }
 
 const xThreshold = 380
