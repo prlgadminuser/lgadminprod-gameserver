@@ -91,7 +91,8 @@ function dealDamage(room) {
           const teamActivePlayers = TeamPlayersActive(room, player);
 
           if (player.respawns <= 0 && teamActivePlayers <= 1) {
-            handleElimination(room, player.team.players);
+            handleElimination(room, player);
+
             addKillToKillfeed(room, 3, null, player.nmb, null);
           } else {
             respawnplayer(room, player);
@@ -149,9 +150,6 @@ function UseZone(room) {
   room.zoneStartY -= room.mapHeight / 2;
   room.zoneEndX += room.mapWidth / 2;
   room.zoneEndY += room.mapHeight / 2;
-
-  const initialWidth = room.zoneEndX - room.zoneStartX;
-  const initialHeight = room.zoneEndY - room.zoneStartY;
 
   const baseZone = {
     zoneStartX: room.zoneStartX,

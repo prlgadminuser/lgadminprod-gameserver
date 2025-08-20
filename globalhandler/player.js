@@ -93,7 +93,6 @@ function handlePlayerCollision(room, shootingPlayer, targetPlayer, damage, gunid
 
     handleElimination(room, targetPlayer.team.players);
     addKillToKillfeed(room, 1, shootingPlayer.nmb, targetPlayer.nmb, gunid)
-    spawnAnimation(room, targetPlayer, "eliminated");
     targetPlayer.eliminator = shootingPlayer.nmb;
     targetPlayer.spectatingTarget = shootingPlayer;
     shootingPlayer.kills += 1;
@@ -112,7 +111,6 @@ function handlePlayerCollision(room, shootingPlayer, targetPlayer, damage, gunid
       updateTeamScore(room, shootingPlayer, 1)
 
     }
-    spawnAnimation(room, targetPlayer, "respawning"); // Show respawn animation
   }
 }
 

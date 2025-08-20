@@ -50,7 +50,7 @@ function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
   if (!targetPlayer) return;
 //  spectatingPlayer.x = targetPlayer.x;
  // spectatingPlayer.y = targetPlayer.y;
-  //spectatingPlayer.nearbyfinalids = targetPlayer.nearbyfinalids;
+  spectatingPlayer.nearbyplayersids = targetPlayer.nearbyplayersids;
   spectatingPlayer.hitmarkers = targetPlayer.hitmarkers;
   spectatingPlayer.nearbycircles = targetPlayer.nearbycircles;
   spectatingPlayer.nearbyanimations = targetPlayer.nearbyanimations;

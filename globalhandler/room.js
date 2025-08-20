@@ -200,63 +200,55 @@ async function setupRoomPlayers(room) {
 }
 
 async function CreateTeams(room) {
-  if (!room.players || room.players.size === 0) return;
+    if (!room.players || room.players.size === 0) return;
 
-  // Define team IDs
-  const teamIDs = [
-    "The Tough Shells",
-    "The Jet Setters",
-    "The Highnotes",
-    "Yellow",
-    "Orange",
-    "Purple",
-    "Pink",
-    "Cyan",
-  ];
+    const teamIDs = ['Red', 'Blue', 'Green', 'Yellow', 'Cyan', 'Pink', 'Purple', 'Orange'];
 
-  let numTeams;
-  if (room.teamsize === 1) {
-    numTeams = room.players.size;
-  } else {
-    numTeams = Math.ceil(room.players.size / room.teamsize);
-  }
+    room.teams = new Map();
+    
+    let teamIndex = 0;
+    room.players.forEach(player => {
+        // Find or create the team.
+        const teamId = teamIDs[teamIndex] || `Team-${teamIndex + 1}`;
+        if (!room.teams.has(teamId)) {
+            room.teams.set(teamId, {
+                id: teamId,
+                players: [],
+                score: 0,
+            });
+        }
+        const team = room.teams.get(teamId);
 
-  const teams = Array.from({ length: numTeams }, () => []);
+        // Add the player to the team.
+        team.players.push({ playerId: player.playerId, nmb: player.nmb });
+        player.teamId = teamId; // Use a simple reference to the team.
 
-  let teamIndex = 0;
+        // Advance to the next team if the current one is full.
+        if (team.players.length >= room.teamsize) {
+            teamIndex++;
+        }
+    });
 
-  // Step 1: Assign players to teams
-  room.players.forEach((player) => {
-    if (teams[teamIndex].length >= room.teamsize) {
-      teamIndex = (teamIndex + 1) % numTeams;
-    }
-    teams[teamIndex].push({ playerId: player.playerId, nmb: player.nmb });
-    player.team = {
-      id: teamIDs[teamIndex] || `Team-${teamIndex + 1}`,
-      players: teams[teamIndex], // Reference to team
-    };
-  });
+    // Create a single teamdata object and assign it to all players.
+    // This is more efficient than creating a separate object for each player.
+    const teamDataMap = new Map();
+    room.teams.forEach(team => {
+        const teamMembers = team.players.map(p => p.nmb);
+        teamDataMap.set(team.id, teamMembers);
+    });
 
-  // Step 2: Finalize room.teams
-  room.teams = teams.map((team, index) => ({
-    id: teamIDs[index] || `Team-${index + 1}`,
-    players: team,
-    score: 0,
-  }));
-
-  // Step 3: Assign complete teamdata to each player
-  room.players.forEach((player) => {
-    const team = player.team; // Get the player's team
-    const playerIds = Object.fromEntries(
-      team.players.map((p) => [p.nmb, p.nmb]) // Extract all player IDs in the team
-    );
-
-    player.teamdata = {
-      id: playerIds, // Complete team member IDs
-      tid: team.id, // Team ID
-    };
-  });
+    // Assign the completed teamdata to each player.
+    room.players.forEach(player => {
+        const playerTeamId = player.teamId;
+        const playerTeamMembers = teamDataMap.get(playerTeamId);
+        player.teamdata = {
+            id: playerTeamMembers, // Array of team members' IDs
+            tid: playerTeamId,     // The player's team ID
+        };
+    });
 }
+
+
 
 function clearAndRemoveInactiveTimers(timerArray, clearFn) {
   return timerArray.filter((timer) => {
@@ -343,6 +335,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     sp_level: splevel,
     maxplayers: gmconfig.maxplayers,
     gamemode: gamemode,
+    IsTeamMode: gmconfig.teamsize > 1,
     matchtype: gmconfig.matchtype,
     players: new Map(),
     eliminatedTeams: [],

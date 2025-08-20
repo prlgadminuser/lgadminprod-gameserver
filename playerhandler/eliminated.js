@@ -1,125 +1,114 @@
 "use strict";
 
-
-const { increasePlayerPlace, increasePlayerWins } = require('./../globalhandler/dbrequests')
-const { game_win_rest_time } = require('./../globalhandler/config')
-const { startSpectatingLogic } = require('./spectating')
-
+const {
+  increasePlayerPlace,
+  increasePlayerWins,
+} = require("./../globalhandler/dbrequests");
+const { game_win_rest_time } = require("./../globalhandler/config");
+const { startSpectatingLogic } = require("./spectating");
 const { closeRoom } = require("./../roomhandler/manager");
 
-
-
-
 // playerstates: 1:alive 2:respawning 3:eliminated
+function handleElimination(room, target) {
+  if (room.state !== "playing" || room.winner !== -1) return;
 
-function handleElimination(room, team) {
-    if (room.state !== "playing" || room.winner !== -1) {
-        return; // Exit if the game is not in playing state or a winner is already declared
-    }
+  const eliminatedPlayer = room.players.get(target.playerId);
+  if (!eliminatedPlayer || eliminatedPlayer.eliminated) return;
 
-    // Calculate the team's place based on the remaining teams at the time of elimination
-  //  const remainingActiveTeams = room.teams.filter(t => t.players.some(player => !player.eliminated)).length;
-    const teamPlace = room.teams.length - room.eliminatedTeams.length;
+  // Execute the core elimination actions for the player.
+  eliminatePlayer(room, eliminatedPlayer);
 
-    // Ensure no duplicate places
-    let adjustedPlace = teamPlace;
-    while (room.eliminatedTeams.some(t => t.place === adjustedPlace)) {
-        adjustedPlace++;
-    }
-
-    // Set the place for all players in the team before changing their state
-    team.forEach(player => {
-        const playerObj = room.players.get(player.playerId);
-        if (playerObj && !playerObj.eliminated) {
-            playerObj.place = adjustedPlace;
-            increasePlayerPlace(playerObj, adjustedPlace, room);
-        }
+  if (room.IsTeamMode) {
+    // Check if the entire team is now eliminated.
+    const team = room.teams.get(eliminatedPlayer.teamId);
+    const isTeamEliminated = team.players.every((player) => {
+      const p = room.players.get(player.nmb);
+      return !p || p.eliminated;
     });
 
-    // Now mark all players in the team as eliminated and change their state
-    team.forEach(player => {
-        const playerObj = room.players.get(player.playerId);
-        if (playerObj && !playerObj.eliminated) {
-            playerObj.eliminated = true;
-            playerObj.alive = false;
-            playerObj.state = 3;
-            playerObj.moving = false; // Mark as eliminated (spectator state)
-            room.realtimegrid.removeObject(playerObj);
-
-            clearInterval(playerObj.moveInterval);
-            clearTimeout(playerObj.timeout);
-
-            room.timeoutIds.push(setTimeout(() => {
-                startSpectatingLogic(playerObj, room); // Start spectating after a short delay
-            }, 3000));
+    if (isTeamEliminated) {
+      // Find the place for the eliminated team.
+      const teamPlace = room.teams.size - room.eliminatedTeams.length;
+      team.players.forEach((player) => {
+        const p = room.players.get(player.nmb);
+        if (p) {
+          p.place = teamPlace;
+          increasePlayerPlace(p, teamPlace, room);
         }
-    });
-
-    // Add the eliminated team to the list with its place
-    room.eliminatedTeams.push({
-        teamId: team.id, // Using the team ID instead of player IDs for the team identifier
-        place: adjustedPlace,
-    });
-
-    const remainingTeams = room.teams.filter(team =>
-        team.players.some(playerId => {
-          const player = room.players.get(playerId.playerId);
-          return player && !player.eliminated;
-        })
-      );
-
-      const allTeamsCleared = room.teams.every(t =>
-        t.players.every(player => {
-          const playerData = room.players.get(player.playerId);
-          return !playerData || playerData.eliminated || !playerData.alive;
-        })
-      );
-      
-   
-
-    // Check if the game should end (all players from all teams are either eliminated or not alive)
-    if (allTeamsCleared) {
-        room.timeoutIds.push(setTimeout(() => {
-            closeRoom(room.roomId); // End the game after a short delay
-        }, game_win_rest_time));
+      });
+      room.eliminatedTeams.push({ id: team.id, place: teamPlace });
     }
+  } else {
+    // SOLO MODE ELIMINATION
+    const alivePlayersCount = [...room.players.values()].filter((p) => !p.eliminated).length;
+    const playerPlace = room.players.size - alivePlayersCount + 1;
+    eliminatedPlayer.place = playerPlace;
+    increasePlayerPlace(eliminatedPlayer, playerPlace, room);
+  }
 
-   
-
-    if (remainingTeams.length === 1) {
-        const winningTeam = remainingTeams[0];
-
-        // Check if the winning team has only one active player
-        const activePlayers = winningTeam.players.filter(player => !room.players.get(player.playerId).eliminated);
-        if (activePlayers.length === 1) {
-            const remainingPlayer = activePlayers[0];
-            room.winner = remainingPlayer.nmb; 
-        } else {
-            room.winner = winningTeam.id; 
-        }
-
-        // Mark the winning players with place 1
-        winningTeam.players.forEach(player => {
-            const playerObj = room.players.get(player.playerId);
-            playerObj.place = 1; // Set place to 1 for winning team players
-            increasePlayerWins(playerObj, 1);
-            increasePlayerPlace(playerObj, 1, room);
-        });
-
-        // Add the winning team to the eliminatedTeams array with place 1
-        room.eliminatedTeams.push({
-            teamId: winningTeam.id, // Use the team ID for the winner
-            place: 1,
-        });
-
-        room.timeoutIds.push(setTimeout(() => {
-            closeRoom(room.roomId); // End the game after a short delay
-        }, game_win_rest_time));
-    }
+  // Final check for a winner or end-of-game condition.
+  checkGameEndCondition(room);
 }
 
-
-module.exports = {
-    handleElimination,
-  };
+// Helper function to handle the core elimination actions for a single player.
+function eliminatePlayer(room, player) {
+  spawnAnimation(room, player, "eliminated");
+  room.realtimegrid.removeObject(player);
+  player.eliminated = true;
+  player.alive = false;
+  player.state = 3;
+  player.moving = false;
   
+  // Clear any active intervals/timeouts for the player.
+  if (player.moveInterval) {
+    clearInterval(player.moveInterval);
+  }
+  if (player.timeout) {
+    clearTimeout(player.timeout);
+  }
+
+  room.timeoutIds.push(
+    setTimeout(() => {
+      startSpectatingLogic(player, room);
+    }, 3000)
+  );
+}
+
+// Helper function to check for the final win/end condition.
+function checkGameEndCondition(room) {
+  let remainingTeamsOrPlayers;
+  if (room.IsTeamMode) {
+    remainingTeamsOrPlayers = [...room.teams.values()].filter(
+      (team) => team.players.some(player => !room.players.get(player.nmb).eliminated)
+    );
+  } else {
+    remainingTeamsOrPlayers = [...room.players.values()].filter((p) => !p.eliminated);
+  }
+
+  // Check if a single winner remains.
+  if (remainingTeamsOrPlayers.length === 1) {
+    const winner = remainingTeamsOrPlayers[0];
+    if (room.IsTeamMode) {
+      room.winner = winner.id;
+      winner.players.forEach((player) => {
+        const p = room.players.get(player.nmb);
+        p.place = 1;
+        increasePlayerWins(p, 1);
+        increasePlayerPlace(p, 1, room);
+      });
+    } else {
+      room.winner = winner.nmb;
+      winner.place = 1;
+      increasePlayerWins(winner, 1);
+      increasePlayerPlace(winner, 1, room);
+    }
+    // Set a timeout to close the room after a win.
+    room.timeoutIds.push(setTimeout(() => closeRoom(room.roomId), game_win_rest_time));
+  } 
+  // If no one is left, also close the room.
+  else if (remainingTeamsOrPlayers.length === 0) {
+    room.timeoutIds.push(setTimeout(() => closeRoom(room.roomId), game_win_rest_time));
+  }
+}
+
+module.exports = { handleElimination };

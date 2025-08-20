@@ -3,15 +3,14 @@ const UseStartRespawnPoint = false
 
 function respawnplayer(room, player) {
 
- room.realtimegrid.removeObject(player);
-
+  spawnAnimation(room, player, "respawning");
+  room.realtimegrid.removeObject(player);
   player.alive = false
   player.state = 2
-  player.respawns--
   player.moving = false
 
+  player.respawns--
   player.health = player.starthealth
-
 
   if (UseStartRespawnPoint) {
   player.timeoutIds.push(setTimeout(() =>{
@@ -25,12 +24,8 @@ function respawnplayer(room, player) {
     player.spectating = false
     player.alive = true
     player.state = 1
-    }, 5000));
-
-
-    
+    }, 5000)); 
  }
-
 
  module.exports = {
   respawnplayer,
