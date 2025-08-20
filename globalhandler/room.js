@@ -516,7 +516,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
     const min_length = 4;
     const gadgetselected = gadget || 1;
     const fallbackloadout = { 1: "1", 2: "2", 3: "3" };
-    const finalskillpoints = skillpoints || 0;
+    const finalskillpoints = SkillbasedMatchmakingEnabled ? skillpoints || 0 : 0;
 
     if (
       nickname.length < min_length ||
