@@ -1242,8 +1242,7 @@ function handleSwitchGun(data, player) {
   if (
     GunID !== player.gun &&
     !player.shooting &&
-    GunID >= 1 &&
-    GunID <= 3 &&
+    player.loadout[GunID] &&
     GunID in gunsconfig
   ) {
     player.gun = player.loadout[GunID];
