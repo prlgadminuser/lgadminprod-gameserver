@@ -51,7 +51,6 @@ function closeRoom(roomId) {
     player.intervalIds?.forEach(clearInterval);
     try { player.wsClose(); } catch {}
     player.bullets?.clear();
-    player.nearbyids?.clear();
     player.nearbyplayers = []; 
 
      if (player.kills > 0 || player.damage > 0)

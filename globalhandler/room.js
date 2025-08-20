@@ -288,7 +288,6 @@ function RemoveRoomPlayer(room, player, type) {
   try {
     player.wsClose();
   } catch {}
-  player.nearbyids?.clear();
   player.nearbyplayers = [];
 
   if (player.kills > 0 || player.damage > 0)
@@ -584,9 +583,8 @@ async function joinRoom(ws, gamemode, playerVerified) {
       eliminations: [],
       nearbyanimations: [],
       can_bullets_bounce: false,
-      nearbyids: new Set(),
-      nearbyplayers: new Set(),
-      nearbyfinalids: [],
+      nearbyplayers: [],
+      nearbyplayersids: [],
       // movement
       moving: false,
       direction: null,
@@ -861,7 +859,7 @@ function BuildSelfData(p) {
     el: p.eliminations.length > 0 ? p.eliminations : undefined,
     spc: p.spectatingPlayerId,
     guns: p.loadout_formatted,
-    np: JSON.stringify(Array.from(p.nearbyfinalids)),
+    np: JSON.stringify(p.nearbyplayersids),
     ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
   };
 
@@ -927,7 +925,6 @@ function SendPreStartMessage(room) {
       em: player.emote,
       spc: player.spectatingPlayerId,
       guns: player.loadout_formatted,
-      np: JSON.stringify(Array.from(player.nearbyfinalids)),
       ht: [],
     };
 
@@ -1076,14 +1073,10 @@ function prepareRoomMessages(room) {
     if (Object.keys(changes).length)
       p.selflastmsg = { ...lastSelf, ...changes };
 
-    //    if (!p.nearbyids) {
-    //      p.nearbyids = new Set();
-    //  }
 
     if (p.spectating) handleSpectatorMode(p, room);
 
     if (!p.spectating) {
-      p.nearbyids.clear();
 
       let filteredPlayers = [];
 
@@ -1097,13 +1090,11 @@ function prepareRoomMessages(room) {
 
         if (!arraysEqual(previousData[nearbyId], data)) {
           filteredPlayers.push(data);
-          p.mypd = data;
         }
+
         currentData[nearbyId] = data;
-        p.nearbyids.add(nearbyId);
 
         p.pd = filteredPlayers;
-        p.nearbyfinalids = p.nearbyids;
         p.pdHashes = currentData;
       }
     }

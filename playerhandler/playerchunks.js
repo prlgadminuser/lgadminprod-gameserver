@@ -55,15 +55,13 @@ function getPlayersInRange(room, centerX, centerY) {
   return others;
 }
 
+
 function UpdatePlayerChunks(room, player) {
-  const nearbyIds = getPlayersInRange(room, player.x, player.y)
+const nearbyPlayersIdsArray = getPlayersInRange(room, player.x, player.y)
     .map(p => p.nmb);
 
-  const nearbySet = player.nearbyplayers;
-  nearbySet.clear();       // remove all old IDs
-  for (const id of nearbyIds) {
-    nearbySet.add(id);     // add current nearby IDs
-  }
+ player.nearbyplayers = nearbyPlayersIdsArray
+ player.nearbyplayersids = nearbyPlayersIdsArray
 }
 
 
