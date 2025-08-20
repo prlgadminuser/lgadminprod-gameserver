@@ -1238,14 +1238,14 @@ function handleShoot(data, player, room) {
 }
 
 function handleSwitchGun(data, player) {
-  const GunID = data[1];
+  const GunSlot = data[1];
   if (
-    GunID !== player.gun &&
     !player.shooting &&
-    player.loadout[GunID] &&
-    GunID in gunsconfig
+    GunID >= 1 &&
+    GunID <= 3 &&
+     player.loadout[GunSlot] !== player.gun
   ) {
-    player.gun = player.loadout[GunID];
+    player.gun = player.loadout[GunSlot];
   }
 }
 
