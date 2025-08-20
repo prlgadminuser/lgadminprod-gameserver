@@ -1241,8 +1241,8 @@ function handleSwitchGun(data, player) {
   const GunSlot = data[1];
   if (
     !player.shooting &&
-    GunID >= 1 &&
-    GunID <= 3 &&
+    GunSlot >= 1 &&
+    GunSlot <= 3 &&
      player.loadout[GunSlot] !== player.gun
   ) {
     player.gun = player.loadout[GunSlot];
