@@ -7,6 +7,8 @@ const matchmaking = {
   }
 }
 
+const SkillbasedMatchmakingEnabled = false
+
 function matchmakingsp(target) {
     // Convert the nested object into an array of values and sort them
     const values = Object.values(matchmaking[1]).sort((a, b) => a - b);
@@ -28,5 +30,6 @@ function matchmakingsp(target) {
   
 module.exports = {
     matchmaking,
-    matchmakingsp
+    matchmakingsp,
+    SkillbasedMatchmakingEnabled,
 }
