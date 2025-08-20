@@ -283,7 +283,7 @@ class BulletManager {
   isAlly(ownerId, otherPlayer) {
     const owner = this.room.players.get(ownerId);
     if (!owner) return false;
-    return owner.team.players.some(p => p.nmb === otherPlayer.nmb);
+    return owner.team.players.some(p => p.id === otherPlayer.id);
   }
 
   processScheduledBullets() {

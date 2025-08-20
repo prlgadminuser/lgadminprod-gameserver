@@ -22,7 +22,7 @@ function handleElimination(room, target) {
     // Check if the entire team is now eliminated.
     const team = room.teams.get(eliminatedPlayer.teamId);
     const isTeamEliminated = team.players.every((player) => {
-      const p = room.players.get(player.nmb);
+      const p = room.players.get(player.id);
       return !p || p.eliminated;
     });
 
@@ -30,7 +30,7 @@ function handleElimination(room, target) {
       // Find the place for the eliminated team.
       const teamPlace = room.teams.size - room.eliminatedTeams.length;
       team.players.forEach((player) => {
-        const p = room.players.get(player.nmb);
+        const p = room.players.get(player.id);
         if (p) {
           p.place = teamPlace;
           increasePlayerPlace(p, teamPlace, room);
@@ -79,7 +79,7 @@ function checkGameEndCondition(room) {
   let remainingTeamsOrPlayers;
   if (room.IsTeamMode) {
     remainingTeamsOrPlayers = [...room.teams.values()].filter(
-      (team) => team.players.some(player => !room.players.get(player.nmb).eliminated)
+      (team) => team.players.some(player => !room.players.get(player.id).eliminated)
     );
   } else {
     remainingTeamsOrPlayers = [...room.players.values()].filter((p) => !p.eliminated);
@@ -91,13 +91,13 @@ function checkGameEndCondition(room) {
     if (room.IsTeamMode) {
       room.winner = winner.id;
       winner.players.forEach((player) => {
-        const p = room.players.get(player.nmb);
+        const p = room.players.get(player.id);
         p.place = 1;
         increasePlayerWins(p, 1);
         increasePlayerPlace(p, 1, room);
       });
     } else {
-      room.winner = winner.nmb;
+      room.winner = winner.id;
       winner.place = 1;
       increasePlayerWins(winner, 1);
       increasePlayerPlace(winner, 1, room);

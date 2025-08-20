@@ -57,7 +57,7 @@ function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
   spectatingPlayer.finalbullets = targetPlayer.finalbullets;
   spectatingPlayer.pd = targetPlayer.pd;
 
-  spectatingPlayer.spectatingPlayerId = targetPlayer.nmb;
+  spectatingPlayer.spectatingPlayerId = targetPlayer.id;
   spectatingPlayer.spectatingTarget = targetPlayer;
 }
 

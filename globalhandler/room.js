@@ -178,8 +178,8 @@ async function setupRoomPlayers(room) {
 
   // Iterate over each player in the room's players collection
   room.players.forEach((player) => {
-    // Set the player's unique number (nmb)
-    player.nmb = playerNumberID;
+ 
+    player.id = playerNumberID;
 
     const spawnPositions = room.spawns;
     const spawnIndex = playerNumberID % spawnPositions.length; // Distribute players across spawn positions
@@ -220,7 +220,7 @@ async function CreateTeams(room) {
         const team = room.teams.get(teamId);
 
         // Add the player to the team.
-        team.players.push({ playerId: player.playerId, nmb: player.nmb });
+        team.players.push({ playerId: player.playerId, id: player.id });
         player.teamId = teamId; // Use a simple reference to the team.
 
         // Advance to the next team if the current one is full.
@@ -233,7 +233,7 @@ async function CreateTeams(room) {
     // This is more efficient than creating a separate object for each player.
     const teamDataMap = new Map();
     room.teams.forEach(team => {
-        const teamMembers = team.players.map(p => p.nmb);
+        const teamMembers = team.players.map(p => p.id);
         teamDataMap.set(team.id, teamMembers);
     });
 
@@ -258,7 +258,7 @@ function getTeamIds(room, player) {
     }
 
     // 2. Map the players array to get their IDs.
-    const teammateIds = playerTeam.players.map(p => p.nmb);
+    const teammateIds = playerTeam.players.map(p => p.id);
 
     return teammateIds;
 }
@@ -305,7 +305,6 @@ function RemoveRoomPlayer(room, player, type) {
     // ignore errors or log if necessary
   }
 
-  //  addKillToKillfeed(room, 5, null, player.nmb, null);
   room.players.delete(player.playerId);
 }
 
@@ -890,7 +889,7 @@ function SendPreStartMessage(room) {
 
   const AllData = {};
   for (const p of players) {
-    AllData[p.nmb] = [
+    AllData[p.id] = [
       p.hat || 0,
       p.top || 0,
       p.player_color,
@@ -914,7 +913,7 @@ function SendPreStartMessage(room) {
 
   for (const player of players) {
     const self_info = {
-      id: player.nmb,
+      id: player.id,
       state: player.state,
       h: player.health,
       sh: player.starthealth,
@@ -943,7 +942,7 @@ function SendPreStartMessage(room) {
       AllData,
       SelfData: {
         allies: getTeamIds(room, player),
-        pid: player.nmb,
+        pid: player.id,
         self_info,
         dummies: dummiesFiltered,
         gadget: player.gadgetid,
@@ -1057,8 +1056,8 @@ function prepareRoomMessages(room) {
 
     if (!p.alive) continue;
     //  Math.floor(p.x / 10)
-    playerData[p.nmb] = [
-      p.nmb,
+    playerData[p.id] = [
+      p.id,
       encodePosition(p.x),
       encodePosition(p.y),
       Number(p.direction2), // convert to number if it might be string

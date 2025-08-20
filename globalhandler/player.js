@@ -88,24 +88,24 @@ function handlePlayerCollision(room, shootingPlayer, targetPlayer, damage, gunid
   if (targetPlayer.health <= 0 && targetPlayer.respawns <= 0 && teamActivePlayers <= 1) {
 
     const elimType = 2; // Type 2 for complete elimination
-    const ElimMessage = [ elimType, targetPlayer.nmb ];
+    const ElimMessage = [ elimType, targetPlayer.id ];
     shootingPlayer.eliminations.push(ElimMessage)
 
     handleElimination(room, targetPlayer.team.players);
-    addKillToKillfeed(room, 1, shootingPlayer.nmb, targetPlayer.nmb, gunid)
-    targetPlayer.eliminator = shootingPlayer.nmb;
+    addKillToKillfeed(room, 1, shootingPlayer.id, targetPlayer.id, gunid)
+    targetPlayer.eliminator = shootingPlayer.id;
     targetPlayer.spectatingTarget = shootingPlayer;
     shootingPlayer.kills += 1;
 
   } else if (targetPlayer.health < 1 && targetPlayer.respawns > 0) {
 
     const elimType = 1; // Type 1 for respawnable elimination
-    const ElimMessage = [ elimType, targetPlayer.nmb ];
+    const ElimMessage = [ elimType, targetPlayer.id ];
     shootingPlayer.eliminations.push(ElimMessage)
 
     targetPlayer.alive = false;
     respawnplayer(room, targetPlayer);
-    addKillToKillfeed(room, 2, shootingPlayer.nmb, targetPlayer.nmb, gunid)
+    addKillToKillfeed(room, 2, shootingPlayer.id, targetPlayer.id, gunid)
 
     if (room.matchtype === "td") {
       updateTeamScore(room, shootingPlayer, 1)
