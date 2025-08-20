@@ -342,7 +342,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     // Game State
     roomId: roomId,
     state: "waiting",
-    sp_level: SkillbasedMatchmakingEnabled ? splevel : "0",
+    sp_level: splevel,
     maxplayers: gmconfig.maxplayers,
     gamemode: gamemode,
     matchtype: gmconfig.matchtype,
