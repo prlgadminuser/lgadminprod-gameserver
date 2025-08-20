@@ -91,7 +91,7 @@ function handlePlayerCollision(room, shootingPlayer, targetPlayer, damage, gunid
     const ElimMessage = [ elimType, targetPlayer.id ];
     shootingPlayer.eliminations.push(ElimMessage)
 
-    handleElimination(room, targetPlayer.team.players);
+    handleElimination(room, targetPlayer);
     addKillToKillfeed(room, 1, shootingPlayer.id, targetPlayer.id, gunid)
     targetPlayer.eliminator = shootingPlayer.id;
     targetPlayer.spectatingTarget = shootingPlayer;

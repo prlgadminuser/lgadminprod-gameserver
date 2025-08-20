@@ -16,7 +16,7 @@ function applyHealthDecrease(player, room) {
       if (player.respawns > 0 || teamactiveplayers > 1) {
         respawnplayer(room, player);
       } else {
-        handleElimination(room, player.team.players);
+        handleElimination(room, player);
       }
     }
   }
