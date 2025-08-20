@@ -488,12 +488,14 @@ wss.on("connection", async (ws, req) => {
       if (player) {
         RemoveRoomPlayer(joinResult.room, player);
 
-        checkGameEndCondition(room);
-
-        if (joinResult.room.players.size < 1) {
+          if (joinResult.room.players.size < 1) {
           closeRoom(joinResult.roomId);
           return;
         }
+
+        checkGameEndCondition(joinResult.room);
+
+      
       }
     });
   } catch (error) {
@@ -512,7 +514,7 @@ server.on("upgrade", (request, socket, head) => {
       request.socket.remoteAddress;
 
     try {
-   //   await rateLimiterConnection.consume(ip);
+     // await rateLimiterConnection.consume(ip);
 
       const origin =
         request.headers["sec-websocket-origin"] || request.headers.origin;
