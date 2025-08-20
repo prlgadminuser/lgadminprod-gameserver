@@ -280,11 +280,28 @@ class BulletManager {
     this.bullets.delete(bulletId);
   }
 
-  isAlly(ownerId, otherPlayer) {
+  isAlly(ownerId, otherPlayerId) {
     const owner = this.room.players.get(ownerId);
-    if (!owner) return false;
-    return owner.team.players.some(p => p.id === otherPlayer.id);
-  }
+    const other = this.room.players.get(otherPlayerId);
+
+    // If either player doesn't exist, they can't be allies.
+    if (!owner || !other) {
+        return false;
+    }
+
+    // A player is not their own ally unless the game mode is solo.
+    if (owner.nmb === other.nmb) {
+        return false;
+    }
+
+    // If the game is not in team mode, there are no allies.
+    if (!this.room.IsTeamMode) {
+        return false;
+    }
+
+    // In team mode, players are allies if they have the same teamId.
+    return owner.teamId === other.teamId;
+}
 
   processScheduledBullets() {
   const now = Date.now();
