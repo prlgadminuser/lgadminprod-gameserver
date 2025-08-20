@@ -512,7 +512,7 @@ server.on("upgrade", (request, socket, head) => {
       request.socket.remoteAddress;
 
     try {
-      await rateLimiterConnection.consume(ip);
+   //   await rateLimiterConnection.consume(ip);
 
       const origin =
         request.headers["sec-websocket-origin"] || request.headers.origin;
