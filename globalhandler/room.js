@@ -24,7 +24,6 @@ const { UseZone } = require("./zone");
 const {
   initializeHealingCircles,
 } = require("./../gameObjectEvents/healingcircle");
-const { initializeAnimations } = require("./../gameObjectEvents/deathrespawn");
 const { playerchunkrenderer } = require("./../playerhandler/playerchunks");
 const { handleSpectatorMode } = require("./../playerhandler/spectating");
 const {
@@ -729,8 +728,6 @@ async function startMatch(room, roomId) {
 
               room.intervalIds.push(room.countdownInterval);
             }
-
-            initializeAnimations(room);
 
             if (room.modifiers.has("HealingCircles"))
               initializeHealingCircles(room);
