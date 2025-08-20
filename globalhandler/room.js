@@ -860,7 +860,7 @@ function BuildSelfData(p) {
     el: p.eliminations.length > 0 ? p.eliminations : undefined,
     spc: p.spectatingPlayerId,
     guns: p.loadout_formatted,
-    np: !arraysEqual(p.nearbyplayersids, p.lnp) ? p.nearbyplayersids : undefined,
+    np: !arraysEqual(p.nearbyplayersids, p.lastplayerids) ? p.nearbyplayersids : undefined,
     ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
   };
 
@@ -928,7 +928,7 @@ function SendPreStartMessage(room) {
       em: player.emote,
       spc: player.spectatingPlayerId,
       guns: player.loadout_formatted,
-      np: player.nearbyplayersids,
+      //np: player.nearbyplayersids,
       ht: [],
     };
 
