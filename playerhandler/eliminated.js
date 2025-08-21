@@ -41,8 +41,8 @@ function handleElimination(room, target) {
     }
   } else {
     // SOLO MODE ELIMINATION
-    const alivePlayersCount = [...room.players.values()].filter((p) => !p.eliminated).length;
-    const playerPlace = room.players.size - alivePlayersCount + 1;
+    const eliminatedCount = [...room.players.values()].filter((p) => p.eliminated).length;
+    const playerPlace = room.players.size - eliminatedCount;
     eliminatedPlayer.place = playerPlace;
     increasePlayerPlace(eliminatedPlayer, playerPlace, room);
   }
