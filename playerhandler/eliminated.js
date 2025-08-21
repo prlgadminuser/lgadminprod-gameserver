@@ -42,7 +42,7 @@ function handleElimination(room, target) {
   } else {
     // SOLO MODE ELIMINATION
     const eliminatedCount = [...room.players.values()].filter((p) => p.eliminated).length;
-    const playerPlace = room.players.size - eliminatedCount;
+    const playerPlace = room.players.size - eliminatedCount + 1;
     eliminatedPlayer.place = playerPlace;
     increasePlayerPlace(eliminatedPlayer, playerPlace, room);
   }
@@ -113,3 +113,4 @@ function checkGameEndCondition(room) {
 }
 
 module.exports = { handleElimination, checkGameEndCondition };
+
