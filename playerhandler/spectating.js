@@ -1,6 +1,6 @@
 
-
 "use strict";
+
 
 function handleSpectatorMode(player, room) {
   if (!player.eliminated) {
@@ -38,6 +38,7 @@ function handleSpectatorMode(player, room) {
     );
 
     if (nearestNonEliminated) {
+     //player.send(serializePlayerData(nearestNonEliminated))
       player.spectatingTarget = nearestNonEliminated;
       player.lastSpectateSwitch = now;
       player.pendingSwitchAt = null; // reset
@@ -55,8 +56,7 @@ function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
   spectatingPlayer.nearbycircles = targetPlayer.nearbycircles;
   spectatingPlayer.nearbyanimations = targetPlayer.nearbyanimations;
   spectatingPlayer.finalbullets = targetPlayer.finalbullets;
-  spectatingPlayer.pd = targetPlayer.pd;
-  spectatingPlayer.pdHashes = targetPlayer.pdHashes
+ // spectatingPlayer.pd = targetPlayer.pd;
 
   spectatingPlayer.spectatingPlayerId = targetPlayer.id;
   spectatingPlayer.spectatingTarget = targetPlayer;
@@ -89,4 +89,3 @@ module.exports = {
   startSpectatingLogic,
   handleSpectatorMode,
 };
-

@@ -1,4 +1,4 @@
-const { Limiter, compressMessage } = require("./..//index.js");
+const { Limiter } = require("./..//index.js");
 const {
   matchmaking_timeout,
   server_tick_rate,
@@ -48,23 +48,16 @@ function generateUUID() {
   });
 }
 
+const msgpack = require("msgpack-lite");
+
+function compressMessage(msg) {
+  return msgpack.encode(msg);
+}
+
 //
 
 function generateHash(message) {
-  let hash = 2166136261;
-  for (let i = 0; i < message.length; i++) {
-    let val = message[i];
-    if (typeof val === "string") {
-      for (let j = 0; j < val.length; j++) {
-        hash ^= val.charCodeAt(j);
-        hash = (hash * 16777619) >>> 0;
-      }
-    } else {
-      hash ^= val;
-      hash = (hash * 16777619) >>> 0;
-    }
-  }
-  return hash >>> 0;
+  return JSON.stringify(message)
 }
 
 function generateHash2(message) {
@@ -954,6 +947,8 @@ function SendPreStartMessage(room) {
   }
 }
 
+
+
 function prepareRoomMessages(room) {
   //console.time()
 
@@ -1056,7 +1051,7 @@ function prepareRoomMessages(room) {
 
     if (!p.alive) continue;
     //  Math.floor(p.x / 10)
-    playerData[p.id] = [
+    const playerSerialized = [
       p.id,
       encodePosition(p.x),
       encodePosition(p.y),
@@ -1065,6 +1060,10 @@ function prepareRoomMessages(room) {
       Number(p.gun),
       Number(p.emote),
     ];
+
+   // p.mypd = playerSerialized
+
+    playerData[p.id] = playerSerialized
   }
 
   // ONE PASS: Build, hash, compress, send
@@ -1084,7 +1083,7 @@ function prepareRoomMessages(room) {
 
     if (p.spectating) handleSpectatorMode(p, room);
 
-    if (!p.spectating) {
+    if (!p.spectating && p.disabled) {
 
       let filteredPlayers = [];
 
@@ -1096,6 +1095,8 @@ function prepareRoomMessages(room) {
         const data = playerData[nearbyId];
         if (!data) continue;
 
+        if (nearbyId === p.id) //p.mypd = data
+
         if (!arraysEqual(previousData[nearbyId], data)) {
           filteredPlayers.push(data);
         }
@@ -1105,7 +1106,7 @@ function prepareRoomMessages(room) {
         p.pd = filteredPlayers;
         p.pdHashes = currentData;
       }
-    }
+   }
 
     // Message assembly
     const msg = {
@@ -1305,7 +1306,8 @@ async function handlePlayerMoveIntervalAll(room) {
 }
 
 module.exports = {
-  // compressMessage,
+  compressMessage,
+  
   joinRoom,
   createRoom,
   handleRequest,

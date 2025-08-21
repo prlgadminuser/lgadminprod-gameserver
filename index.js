@@ -14,7 +14,6 @@ const { MongoClient, ServerApiVersion } = require("mongodb");
 const jwt = require("jsonwebtoken");
 const { RateLimiterMemory } = require("rate-limiter-flexible");
 const { uri, rediskey } = require("./idbconfig");
-const msgpack = require("msgpack-lite");
 const Redis = require("ioredis");
 
 const SERVER_INSTANCE_ID = "xxxxxxxxxx".replace(/[xy]/g, function (c) {
@@ -39,10 +38,6 @@ const HEARTBEAT_TTL_SECONDS = (30000 * multiplier) / 1000; // Heartbeat expires 
 const CLEANUP_INTERVAL_MS = 60000 * multiplier; // Run stale session cleanup periodically
 
 const redisClient = new Redis(rediskey);
-
-function compressMessage(msg) {
-  return msgpack.encode(msg);
-}
 
 const ConnectionOptionsRateLimit = {
   points: 1, // Number of points
@@ -292,9 +287,7 @@ module.exports = {
   battlePassCollection,
   shopcollection,
   jwt,
-  msgpack,
   LZString,
-  compressMessage,
 };
 
 const {
