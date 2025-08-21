@@ -1083,7 +1083,7 @@ function prepareRoomMessages(room) {
 
     if (p.spectating) handleSpectatorMode(p, room);
 
-    if (!p.spectating && p.disabled) {
+    //if (!p.spectating && p.disabled) {
 
       let filteredPlayers = [];
 
@@ -1105,7 +1105,7 @@ function prepareRoomMessages(room) {
 
         p.pd = filteredPlayers;
         p.pdHashes = currentData;
-      }
+    //  }
    }
 
     // Message assembly
