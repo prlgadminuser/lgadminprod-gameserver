@@ -33,9 +33,7 @@ function handleSpectatorMode(player, room) {
 
   // Check if it's time to switch
   if (!currentTarget || (player.pendingSwitchAt && now >= player.pendingSwitchAt)) {
-    const nearestNonEliminated = player.spectatingTargetPrefer && player.spectatingTargetPrefer.alive ? player.spectatingTargetPrefer :
-    
-    findNearestPlayer(
+    const nearestNonEliminated = findNearestPlayer(
       player,
       Array.from(room.players.values()).filter(p => !p.eliminated && p !== player)
     );
@@ -44,8 +42,7 @@ function handleSpectatorMode(player, room) {
       player.spectatingTarget = nearestNonEliminated;
       player.lastSpectateSwitch = now;
       player.pendingSwitchAt = null; // reset
-      player.pd = nearestNonEliminated.latestnozeropd
-      player.tick_send_allow = true
+    //  player.tick_send_allow = true
       updateSpectatingPlayer(player, nearestNonEliminated);
       
     }
@@ -54,16 +51,17 @@ function handleSpectatorMode(player, room) {
 
 function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
   if (!targetPlayer) return;
-//  spectatingPlayer.x = targetPlayer.x;
- // spectatingPlayer.y = targetPlayer.y;
+  spectatingPlayer.x = targetPlayer.x;
+  spectatingPlayer.y = targetPlayer.y;
+  spectatingPlayer.spectatingPlayerId = targetPlayer.id;
+  spectatingPlayer.spectatingTarget = targetPlayer;
+  spectatingPlayer.pd = targetPlayer.pd;
   spectatingPlayer.nearbyplayersids = targetPlayer.nearbyplayersids;
   spectatingPlayer.hitmarkers = targetPlayer.hitmarkers;
   spectatingPlayer.nearbycircles = targetPlayer.nearbycircles;
   spectatingPlayer.nearbyanimations = targetPlayer.nearbyanimations;
   spectatingPlayer.finalbullets = targetPlayer.finalbullets;
-  spectatingPlayer.pd = targetPlayer.pd;
-  spectatingPlayer.spectatingPlayerId = targetPlayer.id;
-  spectatingPlayer.spectatingTarget = targetPlayer;
+
 }
 
 function findNearestPlayer(eliminatedPlayer, players) {
@@ -93,4 +91,3 @@ module.exports = {
   startSpectatingLogic,
   handleSpectatorMode,
 };
-
