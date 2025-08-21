@@ -42,6 +42,7 @@ function handleSpectatorMode(player, room) {
       player.lastSpectateSwitch = now;
       player.pendingSwitchAt = null; // reset
       player.pd = nearestNonEliminated.latestnozeropd
+      p.tick_send_allow = true;
       updateSpectatingPlayer(player, nearestNonEliminated);
       
     }
