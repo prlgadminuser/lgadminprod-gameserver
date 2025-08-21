@@ -12,6 +12,7 @@ function handleSpectatorMode(player, room) {
     return;
   }
 
+
   // Immediately enable spectating if not already
   if (!player.spectating) {
     player.spectating = true;
@@ -32,7 +33,9 @@ function handleSpectatorMode(player, room) {
 
   // Check if it's time to switch
   if (!currentTarget || (player.pendingSwitchAt && now >= player.pendingSwitchAt)) {
-    const nearestNonEliminated = findNearestPlayer(
+    const nearestNonEliminated = player.spectatingTargetPrefer && player.spectatingTargetPrefer.alive ? player.spectatingTargetPrefer :
+    
+    findNearestPlayer(
       player,
       Array.from(room.players.values()).filter(p => !p.eliminated && p !== player)
     );
@@ -42,7 +45,6 @@ function handleSpectatorMode(player, room) {
       player.lastSpectateSwitch = now;
       player.pendingSwitchAt = null; // reset
       player.pd = nearestNonEliminated.latestnozeropd
-      p.tick_send_allow = true;
       updateSpectatingPlayer(player, nearestNonEliminated);
       
     }

@@ -94,7 +94,7 @@ function handlePlayerCollision(room, shootingPlayer, targetPlayer, damage, gunid
     handleElimination(room, targetPlayer);
     addKillToKillfeed(room, 1, shootingPlayer.id, targetPlayer.id, gunid)
     targetPlayer.eliminator = shootingPlayer.id;
-    targetPlayer.spectatingTarget = shootingPlayer;
+    targetPlayer.spectatingTargetPrefer = shootingPlayer;
     shootingPlayer.kills += 1;
 
   } else if (targetPlayer.health < 1 && targetPlayer.respawns > 0) {
