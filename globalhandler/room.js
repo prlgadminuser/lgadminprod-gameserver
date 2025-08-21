@@ -1051,7 +1051,8 @@ function prepareRoomMessages(room) {
 
     if (!p.alive) continue;
     //  Math.floor(p.x / 10)
-    const playerSerialized = [
+
+    playerData[p.id] = [
       p.id,
       encodePosition(p.x),
       encodePosition(p.y),
@@ -1060,10 +1061,6 @@ function prepareRoomMessages(room) {
       Number(p.gun),
       Number(p.emote),
     ];
-
-   // p.mypd = playerSerialized
-
-    playerData[p.id] = playerSerialized
   }
 
   // ONE PASS: Build, hash, compress, send
@@ -1083,7 +1080,7 @@ function prepareRoomMessages(room) {
 
     if (p.spectating) handleSpectatorMode(p, room);
 
-    //if (!p.spectating && p.disabled) {
+    if (!p.spectating) {
 
       let filteredPlayers = [];
 
@@ -1105,7 +1102,7 @@ function prepareRoomMessages(room) {
 
         p.pd = filteredPlayers;
         p.pdHashes = currentData;
-    //  }
+      }
    }
 
     // Message assembly
