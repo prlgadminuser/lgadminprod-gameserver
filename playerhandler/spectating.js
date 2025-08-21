@@ -56,6 +56,7 @@ function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
   spectatingPlayer.nearbyanimations = targetPlayer.nearbyanimations;
   spectatingPlayer.finalbullets = targetPlayer.finalbullets;
   spectatingPlayer.pd = targetPlayer.pd;
+  spectatingPlayer.pdHashes = targetPlayer.pdHashes
 
   spectatingPlayer.spectatingPlayerId = targetPlayer.id;
   spectatingPlayer.spectatingTarget = targetPlayer;
@@ -88,3 +89,4 @@ module.exports = {
   startSpectatingLogic,
   handleSpectatorMode,
 };
+
