@@ -51,17 +51,16 @@ function handleSpectatorMode(player, room) {
 
 function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
   if (!targetPlayer) return;
-  spectatingPlayer.x = targetPlayer.x;
-  spectatingPlayer.y = targetPlayer.y;
+//  spectatingPlayer.x = targetPlayer.x;
+ // spectatingPlayer.y = targetPlayer.y;
   spectatingPlayer.spectatingPlayerId = targetPlayer.id;
   spectatingPlayer.spectatingTarget = targetPlayer;
-  spectatingPlayer.pd = targetPlayer.pd;
+  spectatingPlayer.pd = p.latestnozeropd;
   spectatingPlayer.nearbyplayersids = targetPlayer.nearbyplayersids;
   spectatingPlayer.hitmarkers = targetPlayer.hitmarkers;
   spectatingPlayer.nearbycircles = targetPlayer.nearbycircles;
   spectatingPlayer.nearbyanimations = targetPlayer.nearbyanimations;
   spectatingPlayer.finalbullets = targetPlayer.finalbullets;
-
 }
 
 function findNearestPlayer(eliminatedPlayer, players) {
