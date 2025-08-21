@@ -1099,7 +1099,7 @@ function prepareRoomMessages(room) {
 
         currentData[nearbyId] = data;
 
-        if (filteredPlayers.length > 0) p.latestnozeropd
+        if (filteredPlayers.length > 0) p.latestnozeropd = filteredPlayers
         p.pd = filteredPlayers;
         p.pdHashes = currentData;
       }
