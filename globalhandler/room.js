@@ -1106,6 +1106,9 @@ function prepareRoomMessages(room) {
    }
 
     // Message assembly
+
+    const statefrom = p.spectating && p.spectatingPlayer && p.spectatingPlayer.alive ? p.spectatingPlayer : p
+
     const msg = {
       r: finalroomdata,
       dm: dummiesFiltered,
@@ -1116,7 +1119,7 @@ function prepareRoomMessages(room) {
       cl: p.nearbycircles,
       an: p.nearbyanimations,
       b: p.finalbullets,
-      pd: p.pd,
+      pd: statefrom.pd,
     };
 
     // Remove empty keys
