@@ -1080,7 +1080,7 @@ function prepareRoomMessages(room) {
 
     if (p.spectating) handleSpectatorMode(p, room);
 
-    if (!p.spectating) {
+   // if (!p.spectating) {
 
       let filteredPlayers = [];
 
@@ -1100,12 +1100,12 @@ function prepareRoomMessages(room) {
 
         p.pd = filteredPlayers;
         p.pdHashes = currentData;
-      }
+     // }
    }
 
     // Message assembly
 
-    const statefrom = p.spectating && p.spectatingPlayer && p.spectatingPlayer.alive ? p.spectatingPlayer : p
+   // const statefrom = p.spectating && p.spectatingPlayer && p.spectatingPlayer.alive ? p.spectatingPlayer : p
 
     const msg = {
       r: finalroomdata,
@@ -1117,7 +1117,7 @@ function prepareRoomMessages(room) {
       cl: p.nearbycircles,
       an: p.nearbyanimations,
       b: p.finalbullets,
-      pd: statefrom.pd,
+      pd: p.pd,
     };
 
     // Remove empty keys

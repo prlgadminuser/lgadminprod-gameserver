@@ -55,7 +55,7 @@ function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
   spectatingPlayer.nearbycircles = targetPlayer.nearbycircles;
   spectatingPlayer.nearbyanimations = targetPlayer.nearbyanimations;
   spectatingPlayer.finalbullets = targetPlayer.finalbullets;
-  spectatingPlayer.pd = targetPlayer.pd;
+//  spectatingPlayer.pd = targetPlayer.pd;
   spectatingPlayer.spectatingPlayerId = targetPlayer.id;
   spectatingPlayer.spectatingTarget = targetPlayer;
 }
