@@ -78,6 +78,7 @@ function handlePlayerCollision(room, shootingPlayer, targetPlayer, damage, gunid
   targetPlayer.health -= GUN_BULLET_DAMAGE;
   shootingPlayer.damage += GUN_BULLET_DAMAGE;
   targetPlayer.last_hit_time = new Date().getTime();
+  targetPlayer.last_hitter = shootingPlayer // Track last player hitter to give him 1 kill if player gets eliminated through zone etc
 
   const hit = [ targetPlayer.x, targetPlayer.y, GUN_BULLET_DAMAGE ]
 
@@ -87,23 +88,22 @@ function handlePlayerCollision(room, shootingPlayer, targetPlayer, damage, gunid
 
   if (targetPlayer.health <= 0 && targetPlayer.respawns <= 0 && teamActivePlayers <= 1) {
 
-    const elimType = 2; // Type 2 for complete elimination
+    const elimType = 1; // Type 1 for complete elimination
     const ElimMessage = [ elimType, targetPlayer.id ];
     shootingPlayer.eliminations.push(ElimMessage)
 
     handleElimination(room, targetPlayer);
     addKillToKillfeed(room, 1, shootingPlayer.id, targetPlayer.id, gunid)
     targetPlayer.eliminator = shootingPlayer.id;
-    targetPlayer.spectatingTargetPrefer = shootingPlayer;
+    targetPlayer.spectatingTarget = shootingPlayer;
     shootingPlayer.kills += 1;
 
   } else if (targetPlayer.health < 1 && targetPlayer.respawns > 0) {
 
-    const elimType = 1; // Type 1 for respawnable elimination
+    const elimType = 2; // Type 2 for respawnable elimination
     const ElimMessage = [ elimType, targetPlayer.id ];
     shootingPlayer.eliminations.push(ElimMessage)
 
-    targetPlayer.alive = false;
     respawnplayer(room, targetPlayer);
     addKillToKillfeed(room, 2, shootingPlayer.id, targetPlayer.id, gunid)
 

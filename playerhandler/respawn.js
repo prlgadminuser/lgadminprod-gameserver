@@ -6,10 +6,11 @@ const { spawnAnimation } = require('./../gameObjectEvents/animations')
 function respawnplayer(room, player) {
 
   spawnAnimation(room, player, "respawning");
-  room.realtimegrid.removeObject(player);
   player.alive = false
   player.state = 2
   player.moving = false
+  player.last_hitter = false
+  room.realtimegrid.removeObject(player);
 
   player.respawns--
   player.health = player.starthealth

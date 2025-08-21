@@ -290,7 +290,7 @@ class BulletManager {
     }
 
     // A player is not their own ally unless the game mode is solo.
-    if (owner.nmb === other.nmb) {
+    if (owner.id === other.id) {
         return false;
     }
 

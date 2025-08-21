@@ -54,11 +54,11 @@ function handleElimination(room, target) {
 // Helper function to handle the core elimination actions for a single player.
 function eliminatePlayer(room, player) {
   spawnAnimation(room, player, "eliminated");
-  room.realtimegrid.removeObject(player);
   player.eliminated = true;
   player.alive = false;
   player.state = 3;
   player.moving = false;
+  room.realtimegrid.removeObject(player);
   
   // Clear any active intervals/timeouts for the player.
   if (player.moveInterval) {
