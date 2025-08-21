@@ -64,6 +64,8 @@ const { playerhitbox } = require('./config.js')
   else if (newY > mapHeight) newY = mapHeight;
 
   // Store new position (avoid parseFloat — toFixed is slower than necessary)
+  //player.x = Math.round(newX * 100) / 100;
+  //player.y = Math.round(newY * 100) / 100;
   player.x = newX
   player.y = newY
 
