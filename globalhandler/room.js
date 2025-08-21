@@ -1092,8 +1092,6 @@ function prepareRoomMessages(room) {
         const data = playerData[nearbyId];
         if (!data) continue;
 
-        if (nearbyId === p.id) //p.mypd = data
-
         if (!arraysEqual(previousData[nearbyId], data)) {
           filteredPlayers.push(data);
         }
