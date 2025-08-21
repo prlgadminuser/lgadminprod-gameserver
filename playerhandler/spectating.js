@@ -41,7 +41,9 @@ function handleSpectatorMode(player, room) {
       player.spectatingTarget = nearestNonEliminated;
       player.lastSpectateSwitch = now;
       player.pendingSwitchAt = null; // reset
+      player.pd = nearestNonEliminated.latestnozeropd
       updateSpectatingPlayer(player, nearestNonEliminated);
+      
     }
   }
 }
@@ -55,7 +57,7 @@ function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
   spectatingPlayer.nearbycircles = targetPlayer.nearbycircles;
   spectatingPlayer.nearbyanimations = targetPlayer.nearbyanimations;
   spectatingPlayer.finalbullets = targetPlayer.finalbullets;
-//  spectatingPlayer.pd = targetPlayer.pd;
+  spectatingPlayer.pd = targetPlayer.pd;
   spectatingPlayer.spectatingPlayerId = targetPlayer.id;
   spectatingPlayer.spectatingTarget = targetPlayer;
 }
