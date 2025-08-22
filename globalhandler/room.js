@@ -280,7 +280,7 @@ function clearAndRemoveCompletedTimeouts(timeoutArray, clearFn) {
   });
 }
 
-function RemoveRoomPlayer(room, player, type) {
+function RemoveRoomPlayer(room, player) {
   player.timeoutIds?.forEach(clearTimeout);
   player.intervalIds?.forEach(clearInterval);
   player.eliminated = true
@@ -300,7 +300,13 @@ function RemoveRoomPlayer(room, player, type) {
     // ignore errors or log if necessary
   }
 
-  room.players.delete(player.playerId);
+  room.timeoutIds.push(setTimeout(() => {
+      if (room) {
+        room.players.delete(player.playerId)
+      }
+    }, 4000));
+ 
+  
 }
 
 function setRoomTimeout(room, fn, ms) {
