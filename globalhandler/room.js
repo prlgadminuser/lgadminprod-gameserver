@@ -941,7 +941,6 @@ function SendPreStartMessage(room) {
       em: player.emote,
       spc: player.spectatingPlayerId,
       guns: player.loadout_formatted,
-      //np: player.nearbyplayersids,
       ht: [],
     };
 

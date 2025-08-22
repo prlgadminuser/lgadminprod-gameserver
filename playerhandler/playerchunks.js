@@ -67,7 +67,7 @@ function playerchunkrenderer(room) {
 
    AlivePlayers.forEach(player => UpdatePlayerChunks(room, player));
   
-  room.players.forEach(player => findNearestEvents(player, room));
+ // room.players.forEach(player => findNearestEvents(player, room));
 }
 
 module.exports = {

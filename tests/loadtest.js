@@ -92,7 +92,7 @@ function startClient(token) {
   ws.on('open', () => {
     console.log(`✅ Connected: ${token}`);
 
-     setInterval(() => {
+    const heartbeat = setInterval(() => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send("1");
         // console.log(`📤 Sent from ${token}: ${cmd}`);
@@ -100,13 +100,18 @@ function startClient(token) {
     }, 2000);
 
     // Send 10 random commands per second (every 100ms)
-    setInterval(() => {
+     const commandInterval = setInterval(() => {
       if (ws.readyState === WebSocket.OPEN) {
         const cmd = randomCommand();
         ws.send(cmd);
         // console.log(`📤 Sent from ${token}: ${cmd}`);
       }
     }, 100);
+
+       ws.on('close', () => {
+      clearInterval(heartbeat);
+      clearInterval(commandInterval);
+    });
   });
 
   ws.on('message', (data) => {
