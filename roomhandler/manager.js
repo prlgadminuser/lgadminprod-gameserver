@@ -65,8 +65,8 @@ function closeRoom(roomId) {
   room.players.clear();
   rooms.delete(roomId);
 
-  const room1 = rooms.get(roomId);
-  console.log(room1)
+//  const room1 = rooms.get(roomId);
+//  console.log(room1)
 }
 
 
@@ -75,6 +75,7 @@ function closeRoom(roomId) {
     closeRoom,
     roomIndex,
     addRoomToIndex,
+    removeRoomFromIndex,
     getAvailableRoom,
     rooms,
   }

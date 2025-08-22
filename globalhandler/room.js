@@ -37,6 +37,7 @@ const {
   rooms,
   closeRoom,
   addRoomToIndex,
+  removeRoomFromIndex,
   getAvailableRoom,
 } = require("./../roomhandler/manager");
 
@@ -674,6 +675,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
     if (room.players.size >= room.maxplayers && room.state === "waiting") {
 
       room.state = "await";
+      removeRoomFromIndex(room)
       clearTimeout(room.matchmaketimeout);
       await startMatch(room, roomId);
     }
