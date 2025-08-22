@@ -300,12 +300,20 @@ function RemoveRoomPlayer(room, player) {
     // ignore errors or log if necessary
   }
 
-  room.timeoutIds.push(setTimeout(() => {
+  if (room.state === "waiting") {
+     
+    room.players.delete(player.playerId)
+
+  } else {
+
+      room.timeoutIds.push(setTimeout(() => {
       if (room) {
         room.players.delete(player.playerId)
       }
     }, 4000));
  
+  }
+
   
 }
 
