@@ -59,6 +59,7 @@ function eliminatePlayer(room, player) {
   player.state = 3;
   player.moving = false;
   room.realtimegrid.removeObject(player);
+
   
   // Clear any active intervals/timeouts for the player.
   if (player.moveInterval) {
