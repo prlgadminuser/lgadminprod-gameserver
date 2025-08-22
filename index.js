@@ -480,7 +480,7 @@ wss.on("connection", async (ws, req) => {
       const player = joinResult.room.players.get(joinResult.playerId);
       if (player) {
 
-        if (!player.eliminated) eliminatePlayer(room, player)
+        if (!player.eliminated) eliminatePlayer(joinResult.room, player)
         RemoveRoomPlayer(joinResult.room, player);
 
           if (joinResult.room.players.size < 1) {
