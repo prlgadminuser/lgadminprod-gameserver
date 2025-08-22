@@ -34,8 +34,6 @@ function getPlayersInRange(room, centerX, centerY) {
   const yMin = centerY - yThreshold;
   const yMax = centerY + yThreshold;
 
-  if (!room) return
-
  const nearbyPlayers = room.realtimegrid.getObjectsInArea(xMin, xMax, yMin, yMax);
 
   // Filter out the excluded player and non-player objects,
