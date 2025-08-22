@@ -805,7 +805,7 @@ const transformData = (data) => {
 };
 
 function encodePosition(num) {
-  return Math.round(num * 10); // keep 2 decimals
+  return Math.round(num * 100); // keep 2 decimals
   // Math.floor(p.x * 10)
 }
 
