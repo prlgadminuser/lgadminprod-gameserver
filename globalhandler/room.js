@@ -425,7 +425,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
       const now = Date.now();
 
       for (const player of room.players.values()) {
-        if (player.lastPing <= now - player_idle_timeout || player.wsReadyState() !== ws.OPEN) {
+        if (player.lastPing <= now - player_idle_timeout || !player.wsOpen()) {
           player.wsClose(4200, "disconnected_inactivity");
         }
       }
@@ -624,8 +624,9 @@ async function joinRoom(ws, gamemode, playerVerified) {
         if (ws.readyState === ws.OPEN) ws.send(msg);
       },
       wsReadyState: () => ws.readyState,
-
+      wsOpen: () => ws.readyState === ws.OPEN,
       lastPing: Date.now(),
+
       lastmsg: 0,
       rateLimiter: playerRateLimiter,
       intervalIds: [],
