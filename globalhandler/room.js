@@ -283,8 +283,8 @@ function clearAndRemoveCompletedTimeouts(timeoutArray, clearFn) {
 function RemoveRoomPlayer(room, player) {
   player.timeoutIds?.forEach(clearTimeout);
   player.intervalIds?.forEach(clearInterval);
-  player.eliminated = true
   player.visible = false
+  player.eliminated = true
 
   try {
     player.wsClose();

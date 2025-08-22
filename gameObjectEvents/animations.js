@@ -22,6 +22,7 @@ function spawnAnimation(room, player, type) {
 
   const playersToSend = getPlayersInRange(room, player.x, player.y)
 
+
   for (const p of playersToSend) {
   p.nearbyanimations.push(newAnimation)
   }

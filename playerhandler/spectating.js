@@ -35,7 +35,7 @@ function handleSpectatorMode(player, room) {
   if (!currentTarget || (player.pendingSwitchAt && now >= player.pendingSwitchAt)) {
     const nearestNonEliminated = findNearestPlayer(
       player,
-      Array.from(room.players.values()).filter(p => !p.eliminated && p !== player)
+      Array.from(room.players.values()).filter(p => p.alive && p !== player)
     );
 
     if (nearestNonEliminated) {
