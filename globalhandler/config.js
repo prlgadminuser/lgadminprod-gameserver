@@ -13,7 +13,7 @@ const maxClients = 100;
 const matchmaking_timeout = 1800000;
 const game_start_time = 1000;
 const game_win_rest_time = 10000;
-const room_max_open_time = 600000;
+const room_max_open_time = 6000000;
 
 const playerhitbox = {
   xMin: 14,

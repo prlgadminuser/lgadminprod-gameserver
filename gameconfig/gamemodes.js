@@ -33,10 +33,10 @@ const gamemodeconfig = {
     skillpoints_rewardRange: [10, -5], 
     seasoncoins_rewardRange: [30, 5],
 
-    playerhealth: 77,
+    playerhealth: 999999,
     playerspeed: 5.5,
 
-    modifiers: new Set(["AutoHealthDamage"]),
+    modifiers: new Set(["countdown"]),
 
     weapons_modifiers_override: new Set([]),
 
@@ -57,9 +57,9 @@ const gamemodeconfig = {
     can_hit_dummies: false,
     can_hit_players: true,
 
-    maxplayers: 8,
+    maxplayers: 4,
     teamsize: 1,
-    respawns_allowed: 1,
+    respawns_allowed: 0,
 
     playerhealth: 77,
     playerspeed: 1.6,
@@ -191,6 +191,3 @@ module.exports = {
   gamemodeconfig: new Map(Object.entries(gamemodeconfig)),
   allowed_gamemodes,
 };
-
-
-
