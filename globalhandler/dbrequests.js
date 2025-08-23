@@ -6,6 +6,16 @@ const { tokenkey } = require('./..//idbconfig.js');
 const maintenanceId = "maintenance";
 
 
+function isRewardNumberInRange(value, min, max) {
+    // Check if value is a finite number
+    if (typeof value !== 'number' || !isFinite(value)) {
+        return false;
+    }
+    // Check if value is within the specified range
+    return value >= min && value <= max;
+}
+
+
 
 async function verifyPlayer(token) {
   if (!token) {
@@ -84,11 +94,10 @@ async function increasePlayerKillsAndDamage(player, kills, damage) {
     return { error: "Invalid count provided" };
   }
 
-  const maxkillcount = 100
-  const maxdamagecount = 50000
+  if (!isRewardNumberInRange(killcount, 1, 100) || !isRewardNumberInRange(damagecount, 1, 5000)) return
 
-  if (killcount > maxkillcount || damagecount > maxdamagecount) return
 
+  
   const updateObject = {
     $inc: {
       ...(killcount > 0 && { "stats.kills": killcount }),
@@ -105,6 +114,23 @@ async function increasePlayerKillsAndDamage(player, kills, damage) {
         { hint: "playerProfileIndex" } // <-- Using index hint
       );
 
+       if (damagecount > 0 && incrementResult.modifiedCount > 0 || incrementResult.upsertedCount > 0) {
+        // If player's kill count was updated or a new player document was inserted
+         await battlePassCollection.updateOne(
+      { username },
+      {
+        $inc: {
+          ss_damage: damagecount,
+        },
+      },
+      {
+        upsert: true,
+      },
+    );
+      }
+
+
+
       if (killcount > 0 && incrementResult.modifiedCount > 0 || incrementResult.upsertedCount > 0) {
         // If player's kill count was updated or a new player document was inserted
         const eventKillUpdate = await shopcollection.updateOne(
@@ -112,10 +138,10 @@ async function increasePlayerKillsAndDamage(player, kills, damage) {
           { $inc: { eventKills: killcount } } // Increment the eventKills by the number of kills
         );
 
-
         if (eventKillUpdate.modifiedCount === 0) {
           return { error: "Failed to update event kill counter" };
         }
+
 
         return { success: true, message: "Player kills and event counter updated successfully" };
       } else {
@@ -128,6 +154,8 @@ async function increasePlayerKillsAndDamage(player, kills, damage) {
   }
 }
 
+
+
 async function increasePlayerWins(player, wins2) {
 
     if (player.wins_awarded) {
@@ -136,14 +164,13 @@ async function increasePlayerWins(player, wins2) {
   player.wins_awarded = true
 
   const username = player.playerId;
-  const wins = +wins2;
+  const wins = 1;
 
   if (isNaN(wins)) {
     return { error: "Invalid damage count provided" };
   }
 
   try {
-
     const incrementResult = await userCollection.updateOne(
       { "account.username": username },
       { $inc: { "stats.wins": wins } },
@@ -154,6 +181,8 @@ async function increasePlayerWins(player, wins2) {
     console.error("Error updating damage in the database:", error);
   }
 }
+
+
 
 async function increasePlayerPlace(player, place2, room) {
 
@@ -178,6 +207,8 @@ async function increasePlayerPlace(player, place2, room) {
       return;
   }
 
+  if (!isRewardNumberInRange(skillpoints, -30, 30) || !isRewardNumberInRange(season_coins, 0, 60)) return
+
 
     player.skillpoints_inc = skillpoints
     player.seasoncoins_inc = season_coins
@@ -199,7 +230,7 @@ async function increasePlayerPlace(player, place2, room) {
       { username },
       {
         $inc: {
-          season_coins: season_coins,
+          ss_coins: season_coins,
         },
       },
       {
@@ -211,6 +242,10 @@ async function increasePlayerPlace(player, place2, room) {
     console.error("Error updating damage in the database:", JSON.stringify(error));
   }
 }
+
+
+
+
 
 async function checkForMaintenance() {
   let maintenanceMode = false;

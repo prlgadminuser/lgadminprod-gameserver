@@ -2,6 +2,7 @@
 "use strict";
 
 
+
 function handleSpectatorMode(player, room) {
   if (!player.eliminated) {
     // No longer eliminated: stop spectating
