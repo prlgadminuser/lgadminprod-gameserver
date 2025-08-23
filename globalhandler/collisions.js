@@ -153,7 +153,7 @@ function findCollidedWall(grid, x, y, height, width) {
 }
 
 function adjustBulletDirection(bullet, wall) {
-  const wallhitbox = 40;
+  const wallhitbox = 20;
   const bw = bullet.width * 0.5;
   const bh = bullet.height * 0.5;
 
