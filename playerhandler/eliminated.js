@@ -81,7 +81,7 @@ function checkGameEndCondition(room) {
   let remainingTeamsOrPlayers;
   if (room.IsTeamMode) {
     remainingTeamsOrPlayers = [...room.teams.values()].filter(
-      (team) => team.players.some(player => !room.players.get(player.playerId).eliminated)
+      (team) => team.players.some(player => !player.eliminated)
     );
   } else {
     remainingTeamsOrPlayers = [...room.players.values()].filter((p) => !p.eliminated);
@@ -93,7 +93,7 @@ function checkGameEndCondition(room) {
     if (room.IsTeamMode) {
       room.winner = winner.id;
       winner.players.forEach((player) => {
-        const p = room.players.get(player.id);
+        const p = player;
         p.place = 1;
         increasePlayerWins(p, 1);
         increasePlayerPlace(p, 1, room);
