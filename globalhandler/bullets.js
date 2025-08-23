@@ -280,9 +280,9 @@ class BulletManager {
     this.bullets.delete(bulletId);
   }
 
-  isAlly(ownerId, otherPlayerId) {
+  isAlly(ownerId, otherPlayer) {
     const owner = this.room.players.get(ownerId);
-    const other = this.room.players.get(otherPlayerId);
+    const other = otherPlayer;
 
     // If either player doesn't exist, they can't be allies.
     if (!owner || !other) {

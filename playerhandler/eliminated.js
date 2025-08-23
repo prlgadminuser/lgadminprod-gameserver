@@ -81,7 +81,7 @@ function checkGameEndCondition(room) {
   let remainingTeamsOrPlayers;
   if (room.IsTeamMode) {
     remainingTeamsOrPlayers = [...room.teams.values()].filter(
-      (team) => team.players.some(player => !room.players.get(player.id).eliminated)
+      (team) => team.players.some(player => !room.players.get(player.playerId).eliminated)
     );
   } else {
     remainingTeamsOrPlayers = [...room.players.values()].filter((p) => !p.eliminated);
