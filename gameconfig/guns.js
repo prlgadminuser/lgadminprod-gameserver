@@ -64,7 +64,7 @@ const gunsconfig = {
   3: { // Default Sniper
     modifiers: new Set([
       // "CanBounce",
-      // "DestroyWalls"
+      "DestroyWalls"
     ]),
     cooldown: 600,
     distance: 1200,
@@ -200,4 +200,5 @@ module.exports = {
   gunsconfig,
   //gunsconfig: new Map(Object.entries(gunsconfig)),
   gunskeys: Object.keys(gunsconfig)
+
 };
