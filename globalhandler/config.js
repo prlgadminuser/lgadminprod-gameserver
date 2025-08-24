@@ -10,10 +10,10 @@ const server_tick_rate = 16.6;
 const player_idle_timeout = 10000;
 const maxClients = 100;
 
-const matchmaking_timeout = 1800000;
+const matchmaking_timeout = 30 * 60 * 1000; // 30 mins
 const game_start_time = 1000;
 const game_win_rest_time = 10000;
-const room_max_open_time = 6000000;
+const room_max_open_time = 10 * 60 * 1000; // 10 mins
 
 const playerhitbox = {
   xMin: 14,
