@@ -959,6 +959,18 @@ function SendPreStartMessage(room) {
   }
 }
 
+function SerializePlayerData(p) {
+
+return  [
+      p.id,
+      encodePosition(p.x),
+      encodePosition(p.y),
+      Number(p.direction2), // convert to number if it might be string
+      Number(p.health),
+      Number(p.gun),
+      Number(p.emote),
+    ];
+}
 
 
 function prepareRoomMessages(room) {
@@ -987,6 +999,8 @@ function prepareRoomMessages(room) {
     }
     return;
   }
+
+
 
   // PLAYING STATE
   const aliveCount = players.reduce((c, p) => c + !p.eliminated, 0);
@@ -1027,6 +1041,9 @@ function prepareRoomMessages(room) {
     finalroomdata = undefined;
   }
 
+
+
+
   const playerData = {};
 
   for (const p of players) {
@@ -1063,18 +1080,12 @@ function prepareRoomMessages(room) {
 
     if (!p.alive) continue;
     //  Math.floor(p.x / 10)
-    const serializedPlayer = [
-      p.id,
-      encodePosition(p.x),
-      encodePosition(p.y),
-      Number(p.direction2), // convert to number if it might be string
-      Number(p.health),
-      Number(p.gun),
-      Number(p.emote),
-    ];
+    const serializedPlayer = SerializePlayerData(p)
 
     playerData[p.id] = serializedPlayer
   }
+
+
 
   // ONE PASS: Build, hash, compress, send
   for (const p of players) {
