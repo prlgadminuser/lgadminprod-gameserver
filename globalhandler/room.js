@@ -625,7 +625,18 @@ async function joinRoom(ws, gamemode, playerVerified) {
       },
       wsReadyState: () => ws.readyState,
       wsOpen: () => ws.readyState === ws.OPEN,
+      PingPlayer() {
+        const start = Date.now();
+        ws.ping();
+        ws.once("pong", () => {
+          const ping = Date.now() - start;
+          this.ping_ms = ping; // now correctly updates lastPing
+        });
+      },
+
       lastPing: Date.now(),
+      ping_ms: 0,
+
 
       lastmsg: 0,
       rateLimiter: playerRateLimiter,
@@ -701,6 +712,7 @@ async function startMatch(room, roomId) {
 
   playerchunkrenderer(room);
   SendPreStartMessage(room);
+  setupRoomPingMeasurementInterval(room)
 
   try {
     room.intervalIds.push(
@@ -757,6 +769,20 @@ async function startMatch(room, roomId) {
     console.error(`Error starting match in room ${roomId}:`, err);
   }
 }
+
+
+function setupRoomPingMeasurementInterval(room) {
+
+    room.intervalIds.push(setInterval(() => {
+
+      room.players.forEach((player) => {
+        if (player.wsOpen()) {
+          player.PingPlayer();
+        }
+      });
+    }, 1000)); // every 1 second
+}
+
 
 //setInterval(() => console.log(rooms), 5000);
 
@@ -858,6 +884,7 @@ function hashString(str) {
 function BuildSelfData(p) {
   const selfdata = {
     state: p.state,
+    ping: p.ping_ms,
     sh: p.starthealth,
     s: +p.shooting,
     kil: p.kills,
