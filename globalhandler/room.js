@@ -633,7 +633,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
         this.isPinging = true;
         const start = Date.now();
 
-        this.ws.once("pong", () => {
+        ws.once("pong", () => {
           this.ping_ms = Date.now() - start;
           this.isPinging = false;
         });
