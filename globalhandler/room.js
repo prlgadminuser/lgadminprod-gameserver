@@ -480,13 +480,13 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
   // in ms
   room.intervalIds.push(
     setInterval(() => {
+
       room.bulletManager.update();
-      // this could take some time...
       prepareRoomMessages(room);
 
-      setTimeout(() => {
+    //  setTimeout(() => {
         sendRoomMessages(room);
-      }, 3);
+    //  }, 3);
     }, server_tick_rate)
   );
 
@@ -508,6 +508,8 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
   // console.log("Room", room.roomId, "created")
   return room;
 }
+
+
 
 async function joinRoom(ws, gamemode, playerVerified) {
   try {
