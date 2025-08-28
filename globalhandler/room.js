@@ -777,11 +777,11 @@ function setupRoomPingMeasurementInterval(room) {
             });
 
             // Clear pingnow = 0 for all players after 100ms
-            setTimeout(() => {
+            room.timeoutIds.push(setTimeout(() => {
                 room.players.forEach((player) => {
                     player.pingnow = 0;
                 });
-            }, 100);
+            }, 100));
 
         }, 3000) // repeat every 1 second
     );
