@@ -638,7 +638,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
           this.isPinging = false;
         });
 
-        this.ws.ping();
+        ws.ping();
       },
 
       lastPing: Date.now(),
