@@ -1025,7 +1025,7 @@ function prepareRoomMessages(room) {
     return;
   }
 
-     if (Date.now() - room.lastglobalping > 10)  {
+     if (Date.now() - room.lastglobalping > 1000)  {
   room.lastglobalping = Date.now();
   room.players.forEach((player) => {
     if (player.wsOpen()) {
