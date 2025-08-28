@@ -628,18 +628,19 @@ async function joinRoom(ws, gamemode, playerVerified) {
       wsOpen: () => ws.readyState === ws.OPEN,
 
         PingPlayer() {
-        if (!this.wsOpen() || this.isPinging) return;
+    if (!this.wsOpen() || this.isPinging) return;
 
-        this.isPinging = true;
-        const start = Date.now();
+    this.isPinging = true;
+    const start = process.hrtime.bigint(); // nanoseconds
 
-        ws.once("pong", () => {
-          this.ping_ms = Date.now() - start;
-          this.isPinging = false;
-        });
+    ws.once("pong", () => {
+        const end = process.hrtime.bigint();
+        this.ping_ms = Number(end - start) / 1_000_000; // convert ns to ms
+        this.isPinging = false;
+    });
 
-        ws.ping();
-      },
+    ws.ping();
+},
 
       lastPing: Date.now(),
       ping_ms: 0,
