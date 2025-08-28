@@ -619,7 +619,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
       gadgetchangevars: gadgetdata.changevariables,
 
       // network
-      //  ws,
+      ws: ws,
       wsClose: (code, msg) => ws.close(code, msg),
       send: (msg) => {
         if (ws.readyState === ws.OPEN) ws.send(msg);
@@ -770,16 +770,35 @@ async function startMatch(room, roomId) {
 
 
 function setupRoomPingMeasurementInterval(room) {
+    // Ping each player every second
+    const pingInterval = setInterval(() => {
+        room.players.forEach((player) => {
+            // Ensure the WebSocket is open and not currently pinging
+            if (!player.ws || player.ws.readyState !== player.ws.OPEN || player.isPinging) return;
 
-    room.intervalIds.push(setInterval(() => {
+            player.isPinging = true;
+            const start = Date.now(); // Or use process.hrtime.bigint() for sub-ms precision
 
-      room.players.forEach((player) => {
-        if (player.wsOpen()) {
-          player.PingPlayer();
-        }
-      });
-    }, 1000)); // every 1 second
+            // Listen for pong once
+            player.ws.once("pong", () => {
+                player.ping_ms = Date.now() - start;
+                player.lastPing = Date.now();
+                player.isPinging = false;
+            });
+
+            // Send ping
+            try {
+                player.ws.ping();
+            } catch (err) {
+                console.error(`Ping error for player ${player.playerId}:`, err);
+                player.isPinging = false;
+            }
+        });
+    }, 1000); // 1-second interval
+
+    room.intervalIds.push(pingInterval);
 }
+
 
 
 //setInterval(() => console.log(rooms), 5000);
