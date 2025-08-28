@@ -402,6 +402,8 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     // clear interval ids
     intervalIds: [],
     timeoutIds: [],
+
+    lastglobalping: 0
   };
 
   if (gmconfig.can_hit_dummies && mapdata.dummies) {
@@ -706,7 +708,6 @@ async function startMatch(room, roomId) {
 
   playerchunkrenderer(room);
   SendPreStartMessage(room);
-  setupRoomPingMeasurementInterval(room)
 
   try {
     room.intervalIds.push(
@@ -765,26 +766,23 @@ async function startMatch(room, roomId) {
 }
 
 
-function setupRoomPingMeasurementInterval(room) {
-    room.intervalIds.push(
-        setInterval(() => {
-            // Set pingnow = 1 for all players
-                       room.lastglobalping = Date.now()
-            room.players.forEach((player) => {
-                if (player.wsOpen()) {
-                    player.pingnow = 1;
-                }
-            });
+function setupRoomNewRoomPing(room) {
+  // Set pingnow = 1 for all players
+  room.lastglobalping = Date.now();
+  room.players.forEach((player) => {
+    if (player.wsOpen()) {
+      player.pingnow = 1;
+    }
+  });
 
-            // Clear pingnow = 0 for all players after 100ms
-            room.timeoutIds.push(setTimeout(() => {
-                room.players.forEach((player) => {
-                    player.pingnow = 0;
-                });
-            }, 100));
-
-        }, 1000) // repeat every 1 second
-    );
+  // Clear pingnow = 0 for all players after 100ms
+  room.timeoutIds.push(
+    setTimeout(() => {
+      room.players.forEach((player) => {
+        player.pingnow = 0;
+      });
+    }, 100)
+  );
 }
 
 
@@ -1008,6 +1006,7 @@ return  [
 
 function prepareRoomMessages(room) {
   //console.time()
+   if (Date.now() > room.lastglobalping - 1000 )setupRoomNewRoomPing(room)
 
   const players = Array.from(room.players.values());
   const GameRunning = room.state === "playing" || room.state === "countdown";
