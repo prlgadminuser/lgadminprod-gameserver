@@ -627,6 +627,27 @@ async function joinRoom(ws, gamemode, playerVerified) {
       wsReadyState: () => ws.readyState,
       wsOpen: () => ws.readyState === ws.OPEN,
 
+      PingPlayer() {
+    if (!this.ws || this.ws.readyState !== this.ws.OPEN || this.isPinging) return;
+
+    this.isPinging = true;
+    this.pingstart_ms = Date.now();
+
+    // Listen once for the pong corresponding to this ping
+    this.ws.once("pong", () => {
+        this.ping_ms = Date.now() - this.pingstart_ms;
+        this.lastPing = Date.now();
+        this.isPinging = false;
+    });
+
+    try {
+        this.ws.ping();
+    } catch (err) {
+        console.error(`Ping error for player ${this.playerId}:`, err);
+        this.isPinging = false;
+    }
+},
+
 
       lastPing: Date.now(),
       ping_ms: 0,
@@ -770,12 +791,10 @@ function setupRoomPingMeasurementInterval(room) {
 
       room.players.forEach((player) => {
         if (player.wsOpen()) {
-        player.pingstart_ms = Date.now();
-
-        player.ws.ping();
+        player.PingPlayer()
         }
       });
-    }, 1000)); // every 1 second
+    }, 5000)); // every 1 second
 }
 
 
