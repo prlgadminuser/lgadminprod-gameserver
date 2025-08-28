@@ -769,9 +769,9 @@ function setupRoomPingMeasurementInterval(room) {
     room.intervalIds.push(
         setInterval(() => {
             // Set pingnow = 1 for all players
+                       room.lastglobalping = Date.now()
             room.players.forEach((player) => {
                 if (player.wsOpen()) {
-                    room.lastglobalping = Date.now()
                     player.pingnow = 1;
                 }
             });
