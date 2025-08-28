@@ -619,7 +619,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
       gadgetchangevars: gadgetdata.changevariables,
 
       // network
-      //  ws,
+      ws,
       wsClose: (code, msg) => ws.close(code, msg),
       send: (msg) => {
         if (ws.readyState === ws.OPEN) ws.send(msg);
@@ -627,11 +627,6 @@ async function joinRoom(ws, gamemode, playerVerified) {
       wsReadyState: () => ws.readyState,
       wsOpen: () => ws.readyState === ws.OPEN,
 
-        PingPlayer() {
-        this.pingstart_ms = Date.now();
-
-        ws.ping();
-      },
 
       lastPing: Date.now(),
       ping_ms: 0,
@@ -775,7 +770,9 @@ function setupRoomPingMeasurementInterval(room) {
 
       room.players.forEach((player) => {
         if (player.wsOpen()) {
-          player.PingPlayer();
+        player.pingstart_ms = Date.now();
+
+        player.ws.ping();
         }
       });
     }, 1000)); // every 1 second
