@@ -783,7 +783,7 @@ function setupRoomPingMeasurementInterval(room) {
                 });
             }, 100));
 
-        }, 3000) // repeat every 1 second
+        }, 1000) // repeat every 1 second
     );
 }
 
@@ -1285,9 +1285,10 @@ function handleRequest(result, message) {
 function handleGlobalMSMeasurePong (player, room) {
   const now = Date.now();
 
-  if (!room.lastglobalping || now - room.lastglobalping < 10000) {
+  if (!room.lastglobalping) {
     return;
   }
+
   player.ping_ms = now - room.lastglobalping;
 }
 
