@@ -768,12 +768,6 @@ async function startMatch(room, roomId) {
 
 function setupRoomNewRoomPing(room) {
   // Set pingnow = 1 for all players
-  room.lastglobalping = Date.now();
-  room.players.forEach((player) => {
-    if (player.wsOpen()) {
-      player.pingnow = 1;
-    }
-  });
 
   // Clear pingnow = 0 for all players after 100ms
   room.timeoutIds.push(
@@ -1006,7 +1000,6 @@ return  [
 
 function prepareRoomMessages(room) {
   //console.time()
-   if (Date.now() - room.lastglobalping > 1000) setupRoomNewRoomPing(room)
 
   const players = Array.from(room.players.values());
   const GameRunning = room.state === "playing" || room.state === "countdown";
@@ -1032,6 +1025,16 @@ function prepareRoomMessages(room) {
     return;
   }
 
+     if (Date.now() - room.lastglobalping > 1000)  {
+  room.lastglobalping = Date.now();
+  room.players.forEach((player) => {
+    if (player.wsOpen()) {
+      player.pingnow = 1;
+    }
+  });
+  
+  setupRoomNewRoomPing(room) 
+}
 
 
   // PLAYING STATE
