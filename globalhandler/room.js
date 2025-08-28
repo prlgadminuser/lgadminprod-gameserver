@@ -483,10 +483,9 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
       room.bulletManager.update();
       prepareRoomMessages(room);
-
-    //  setTimeout(() => {
-        sendRoomMessages(room);
-    //  }, 3);
+    room.timeoutdelaysending = setTimeout(() => {
+      sendRoomMessages(room);
+   }, 3);
     }, server_tick_rate)
   );
 
@@ -768,21 +767,6 @@ async function startMatch(room, roomId) {
 }
 
 
-function setupRoomNewRoomPing(room) {
-  // Set pingnow = 1 for all players
-
-  // Clear pingnow = 0 for all players after 100ms
-  room.timeoutIds.push(
-    setTimeout(() => {
-      room.players.forEach((player) => {
-        player.pingnow = 0;
-      });
-    }, 100)
-  );
-}
-
-
-
 //setInterval(() => console.log(rooms), 5000);
 
 function cleanupRoom(roomId) {
@@ -1027,7 +1011,7 @@ function prepareRoomMessages(room) {
     return;
   }
 
-  
+
   // PLAYING STATE
   const aliveCount = players.reduce((c, p) => c + !p.eliminated, 0);
   playerchunkrenderer(room);
