@@ -1006,7 +1006,7 @@ return  [
 
 function prepareRoomMessages(room) {
   //console.time()
-   if (Date.now() > room.lastglobalping - 1000 )setupRoomNewRoomPing(room)
+   if (Date.now() - room.lastglobalping > 1000) setupRoomNewRoomPing(room)
 
   const players = Array.from(room.players.values());
   const GameRunning = room.state === "playing" || room.state === "countdown";
