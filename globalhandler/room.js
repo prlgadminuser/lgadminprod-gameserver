@@ -619,7 +619,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
       gadgetchangevars: gadgetdata.changevariables,
 
       // network
-      ws: ws,
+      //  ws,
       wsClose: (code, msg) => ws.close(code, msg),
       send: (msg) => {
         if (ws.readyState === ws.OPEN) ws.send(msg);
@@ -770,59 +770,15 @@ async function startMatch(room, roomId) {
 
 
 function setupRoomPingMeasurementInterval(room) {
-    const PING_INTERVAL_MS = 1000;
-    const PING_TIMEOUT_MS = 5000; // Timeout after 5 seconds
 
-    const pingInterval = setInterval(() => {
-        room.players.forEach((player) => {
-            if (!player.ws || player.ws.readyState !== player.ws.OPEN || player.isPinging) {
-                // If a ping is already in flight, skip this player for now.
-                // This prevents sending multiple pings simultaneously.
-                return;
-            }
+    room.intervalIds.push(setInterval(() => {
 
-            player.isPinging = true;
-            const start = Date.now();
-
-            let timeoutId = null;
-
-            // Define the pong handler and timeout logic
-            const onPong = () => {
-                clearTimeout(timeoutId);
-                player.ping_ms = Date.now() - start;
-                player.lastPing = Date.now();
-                player.isPinging = false;
-                // Remove the event listener to avoid memory leaks
-                player.ws.removeListener('pong', onPong);
-            };
-
-            // Set up a timeout to handle unresponsive clients
-            timeoutId = setTimeout(() => {
-                console.warn(`Ping timeout for player ${player.playerId}.`);
-                player.ping_ms = null; // Or some other value indicating failure
-                player.isPinging = false;
-                player.ws.removeListener('pong', onPong);
-            }, PING_TIMEOUT_MS);
-
-            player.intervalIds.push(timeoutId)
-
-            // Listen for pong
-            player.ws.once("pong", onPong);
-
-            // Send ping
-            try {
-                player.ws.ping();
-            } catch (err) {
-                console.error(`Ping error for player ${player.playerId}:`, err);
-                // Clean up in case of an immediate error
-                clearTimeout(timeoutId);
-                player.isPinging = false;
-                player.ws.removeListener('pong', onPong);
-            }
-        });
-    }, PING_INTERVAL_MS);
-
-    room.intervalIds.push(pingInterval);
+      room.players.forEach((player) => {
+        if (player.wsOpen()) {
+          player.PingPlayer();
+        }
+      });
+    }, 1000)); // every 1 second
 }
 
 
