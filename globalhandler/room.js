@@ -883,8 +883,8 @@ function hashString(str) {
 function BuildSelfData(p) {
   const selfdata = {
     state: p.state,
-    pr: p.pingnow,
-    ping: p.ping_ms,
+   // pr: p.pingnow,
+  //  ping: p.ping_ms,
     sh: p.starthealth,
     s: +p.shooting,
     kil: p.kills,
@@ -1027,18 +1027,7 @@ function prepareRoomMessages(room) {
     return;
   }
 
-     if (Date.now() - room.lastglobalping > 1000)  {
-  room.lastglobalping = Date.now();
-  room.players.forEach((player) => {
-    if (player.wsOpen()) {
-      player.pingnow = 1;
-    }
-  });
   
-  setupRoomNewRoomPing(room) 
-}
-
-
   // PLAYING STATE
   const aliveCount = players.reduce((c, p) => c + !p.eliminated, 0);
   playerchunkrenderer(room);
