@@ -104,25 +104,6 @@ function dealDamage(room) {
   });
 }
 
-function pingPlayers(room) {
-  room.timeoutIds.push(
-    setTimeout(() => {
-      room.players.forEach((player) => {
-        if (player.alive !== false) {
-          player.lastping = new Date().getTime();
-        }
-      });
-      room.sendping = 1;
-    }, 200)
-  );
-
-  room.timeoutIds.push(
-    setTimeout(() => {
-      room.sendping = undefined;
-    }, 500)
-  );
-}
-
 
 function generateRandomTarget(prevZone, targetSize) {
   if (RandomZone) {

@@ -627,29 +627,9 @@ async function joinRoom(ws, gamemode, playerVerified) {
       wsReadyState: () => ws.readyState,
       wsOpen: () => ws.readyState === ws.OPEN,
 
-      PingPlayer() {
-    if (!this.ws || this.ws.readyState !== this.ws.OPEN || this.isPinging) return;
-
-    this.isPinging = true;
-    this.pingstart_ms = Date.now();
-
-    // Listen once for the pong corresponding to this ping
-    this.ws.once("pong", () => {
-        this.ping_ms = Date.now() - this.pingstart_ms;
-        this.lastPing = Date.now();
-        this.isPinging = false;
-    });
-
-    try {
-        this.ws.ping();
-    } catch (err) {
-        console.error(`Ping error for player ${this.playerId}:`, err);
-        this.isPinging = false;
-    }
-},
-
 
       lastPing: Date.now(),
+      pingnow: 0,
       ping_ms: 0,
 
       lastmsg: 0,
@@ -786,16 +766,27 @@ async function startMatch(room, roomId) {
 
 
 function setupRoomPingMeasurementInterval(room) {
+    room.intervalIds.push(
+        setInterval(() => {
+            // Set pingnow = 1 for all players
+            room.players.forEach((player) => {
+                if (player.wsOpen()) {
+                    room.lastglobalping = Date.now()
+                    player.pingnow = 1;
+                }
+            });
 
-    room.intervalIds.push(setInterval(() => {
+            // Clear pingnow = 0 for all players after 100ms
+            setTimeout(() => {
+                room.players.forEach((player) => {
+                    player.pingnow = 0;
+                });
+            }, 100);
 
-      room.players.forEach((player) => {
-        if (player.wsOpen()) {
-        player.PingPlayer()
-        }
-      });
-    }, 5000)); // every 1 second
+        }, 3000) // repeat every 1 second
+    );
 }
+
 
 
 //setInterval(() => console.log(rooms), 5000);
@@ -898,6 +889,7 @@ function hashString(str) {
 function BuildSelfData(p) {
   const selfdata = {
     state: p.state,
+    pr: p.pingnow,
     ping: p.ping_ms,
     sh: p.starthealth,
     s: +p.shooting,
@@ -1244,10 +1236,16 @@ function handleRequest(result, message) {
   if (!player) return;
 
   switch (message) {
+
+    case "0":
+      handleGlobalMSMeasurePong(player, result.room);
+      break;
+
     case "1":
       handlePong(player);
       break;
   }
+
 
   if (
     result.room.state !== "playing" ||
@@ -1283,6 +1281,16 @@ function handleRequest(result, message) {
     player.moving = false;
   }
 }
+
+function handleGlobalMSMeasurePong (player, room) {
+  const now = Date.now();
+
+  if (!room.lastglobalping || now - room.lastglobalping < 1000) {
+    return;
+  }
+  player.ping_ms = now - room.lastglobalping;
+}
+
 
 function handlePong(player) {
   const now = Date.now();
