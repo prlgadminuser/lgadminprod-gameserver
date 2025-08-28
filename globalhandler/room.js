@@ -766,6 +766,20 @@ async function startMatch(room, roomId) {
 }
 
 
+function setupRoomNewRoomPing(room) {
+  // Set pingnow = 1 for all players
+
+  // Clear pingnow = 0 for all players after 100ms
+  room.timeoutIds.push(
+    setTimeout(() => {
+      room.players.forEach((player) => {
+        player.pingnow = 0;
+      });
+    }, 100)
+  );
+}
+
+
 
 //setInterval(() => console.log(rooms), 5000);
 
@@ -1018,6 +1032,8 @@ function prepareRoomMessages(room) {
       player.pingnow = 1;
     }
   });
+  
+  setupRoomNewRoomPing(room) 
 }
 
 
@@ -1193,10 +1209,6 @@ function prepareRoomMessages(room) {
     p.eliminations = [];
     p.nearbyanimations = [];
   }
-  
-      room.players.forEach((player) => {
-        player.pingnow = 0;
-      });
   // console.timeEnd();
 }
 
