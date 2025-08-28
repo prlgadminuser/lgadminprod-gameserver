@@ -627,7 +627,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
       wsReadyState: () => ws.readyState,
       wsOpen: () => ws.readyState === ws.OPEN,
 
-      PingPlayer() {
+        PingPlayer() {
         if (!this.wsOpen() || this.isPinging) return;
 
         this.isPinging = true;
