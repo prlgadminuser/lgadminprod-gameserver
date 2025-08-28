@@ -1285,7 +1285,7 @@ function handleRequest(result, message) {
 function handleGlobalMSMeasurePong (player, room) {
   const now = Date.now();
 
-  if (!room.lastglobalping || now - room.lastglobalping < 1000) {
+  if (!room.lastglobalping || now - room.lastglobalping < 10000) {
     return;
   }
   player.ping_ms = now - room.lastglobalping;
