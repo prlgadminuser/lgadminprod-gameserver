@@ -472,6 +472,12 @@ wss.on("connection", async (ws, req) => {
       }
     });
 
+    ws.on("pong", () => {
+    //const player = joinResult.room.players.get(joinResult.playerId);
+    const now = Date.now();
+    player.ping_ms = now - player.pingstart_ms;
+    });
+
     ws.on("close", async () => {
       // Marked async for Redis operations
 
