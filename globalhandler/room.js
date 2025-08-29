@@ -1076,7 +1076,7 @@ function prepareRoomMessages(room) {
     if (nearbyBullets) {
       for (const bullet of nearbyBullets.values()) {
         finalBullets.push([
-          bullet.id,
+        //  bullet.id,
           Math.round(bullet.position.x),
           Math.round(bullet.position.y),
           Math.round(bullet.direction),
