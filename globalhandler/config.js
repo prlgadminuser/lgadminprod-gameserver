@@ -7,7 +7,7 @@ const { matchmakingsp } = require('./../gameconfig/matchmaking');
 
 const gridcellsize = 40;
 
-const TICK_RATE = 62
+const TICK_RATE = 59
 const server_tick_rate =  1000 / TICK_RATE;
 const player_idle_timeout = 10000;
 const maxClients = 100;
