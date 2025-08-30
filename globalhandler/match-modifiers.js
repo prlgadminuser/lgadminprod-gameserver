@@ -1,81 +1,56 @@
 "use strict";
 
-const { respawnplayer } = require("./../playerhandler/respawn");
-const { handleElimination } = require("./../playerhandler/eliminated.js");
-const { TeamPlayersActive } = require('./../teamhandler/aliveteam')
+const { respawnplayer } = require("../playerhandler/respawn");
+const { handleElimination } = require("../playerhandler/eliminated");
+const { TeamPlayersActive } = require("../teamhandler/aliveteam");
 
+function damagePlayer(player, room) {
+  if (player.health <= 0) return;
 
-// Helper function to decrease health
-function applyHealthDecrease(player, room) {
-  if (player.health > 0) {
-    player.last_hit_time = new Date().getTime();
-    player.health -= 5;
+  player.last_hit_time = Date.now();
+  player.health -= 5;
 
-    if (player.health <= 0) {
-      const teamactiveplayers = TeamPlayersActive(room, player)
-      if (player.respawns > 0 || teamactiveplayers > 1) {
-        respawnplayer(room, player);
-      } else {
-        handleElimination(room, player);
-      }
-    }
-  }
+  if (player.health > 0) return;
+
+  const active = TeamPlayersActive(room, player);
+  (player.respawns > 0 || active > 1)
+    ? respawnplayer(room, player)
+    : handleElimination(room, player);
 }
 
-// Helper function to regenerate health
-function applyHealthRegeneration(player, currentTime) {
+function regenPlayer(player, now) {
   if (
     player.health > 0 &&
     player.health < player.starthealth &&
-    currentTime - player.last_hit_time >= 10000
+    now - player.last_hit_time >= 10000
   ) {
     player.health = Math.min(player.health + 6, player.starthealth);
   }
 }
 
-// Function to decrease health for all players
-function decreaseHealthForAllPlayers(room) {
+function forEachAlive(room, fn) {
+  room.players.forEach(p => p.alive !== false && fn(p));
+}
+
+function decreaseHealth(room) {
   if (room.state === "playing" && room.winner === -1) {
-    room.players.forEach((player) => {
-      if (player.alive !== false) {
-        applyHealthDecrease(player, room);
-      }
-    });
+    forEachAlive(room, p => damagePlayer(p, room));
   }
 }
 
-// Function to regenerate health for all players
-function regenerateHealthForAllPlayers(room) {
+function regenerateHealth(room) {
   if (room.state === "playing") {
-    const currentTime = new Date().getTime();
-
-    room.players.forEach((player) => {
-      if (player.alive !== false) {
-        applyHealthRegeneration(player, currentTime);
-      }
-    });
+    const now = Date.now();
+    forEachAlive(room, p => regenPlayer(p, now));
   }
 }
 
-// Start periodic health decrease
-function startDecreasingHealth(room, intervalInSeconds) {
-  room.intervalIds.push(setInterval(() => {
-
-    decreaseHealthForAllPlayers(room);
-    
-  }, intervalInSeconds * 1000));
+function startDecreasingHealth(room, seconds) {
+  room.intervalIds.push(setInterval(() => decreaseHealth(room), seconds * 1000));
 }
 
-// Start periodic health regeneration
-function startRegeneratingHealth(room, intervalInSeconds) {
-  room.intervalIds.push(setInterval(() => {
-
-    regenerateHealthForAllPlayers(room);
-
-  }, intervalInSeconds * 1000));
+function startRegeneratingHealth(room, seconds) {
+  room.intervalIds.push(setInterval(() => regenerateHealth(room), seconds * 1000));
 }
 
-module.exports = {
-  startDecreasingHealth,
-  startRegeneratingHealth,
-};
+module.exports = { startDecreasingHealth, startRegeneratingHealth };

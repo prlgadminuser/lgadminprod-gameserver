@@ -48,15 +48,8 @@ let connectedClientsCount = 0;
 
 redisClient.on("connect", () => {
   console.log("Redis command client connected.");
-  // Start sending heartbeats once connected to Redis
   startHeartbeat();
-  // Start periodic stale session cleanup
-  setInterval(cleanStaleSessions, CLEANUP_INTERVAL_MS);
-  console.log(
-    `Stale session cleanup scheduled every ${
-      CLEANUP_INTERVAL_MS / 1000
-    } seconds.`
-  );
+
 });
 
 redisClient.on("error", (err) =>
@@ -111,107 +104,6 @@ async function removeSession(username) {
   await pipeline.exec();
 }
 
-// Deletes all sessions belonging to a serverId quickly:
-// 1) HKEYS users:<serverId> to get usernames
-// 2) DEL users:<serverId> and DEL user:<username> for each member (pipelined)
-async function removeSessionsByServerId(targetServerId) {
-  try {
-    const serverKey = `${SERVER_USERS_PREFIX}${targetServerId}`;
-
-    // Get usernames on this server
-    const usernames = await redisClient.hkeys(serverKey);
-
-    if (!usernames || usernames.length === 0) {
-      // There may still be a key with no fields; just DEL the serverKey to be safe
-      const deleted = await redisClient.del(serverKey);
-      if (deleted) {
-        console.log(`Removed empty server key for ${targetServerId}.`);
-      } else {
-        console.log(`No sessions found for serverId ${targetServerId}.`);
-      }
-      return;
-    }
-
-    const pipeline = redisClient.multi();
-    // Remove per-user keys and the server hash
-    usernames.forEach((username) => {
-      pipeline.del(`${USER_KEY_PREFIX}${username}`);
-    });
-    pipeline.del(serverKey);
-    await pipeline.exec();
-
-    console.log(
-      `Removed ${usernames.length} sessions for serverId ${targetServerId}.`
-    );
-  } catch (error) {
-    console.error(
-      `Error removing sessions for serverId ${targetServerId}:`,
-      error
-    );
-  }
-}
-
-// cleanStaleSessions: iterate over server user hashes (users:*), check heartbeat for each serverId.
-// If heartbeat missing => server is down => delete users:<serverId> and each user:<username>
-async function cleanStaleSessions() {
-  try {
-    // Use scanStream to avoid blocking Redis (production-friendly)
-    const pattern = `${SERVER_USERS_PREFIX}*`;
-    const stream = redisClient.scanStream({ match: pattern, count: 100 });
-
-    let totalCleaned = 0;
-    const promises = [];
-
-    stream.on("data", async (resultKeys) => {
-      // resultKeys is an array of keys matching `users:*`
-      for (const serverKey of resultKeys) {
-        const serverId = serverKey.slice(SERVER_USERS_PREFIX.length); // strip prefix
-        const heartbeatKey = `${SERVER_HEARTBEAT_PREFIX}${serverId}`;
-        const isAlive = await redisClient.exists(heartbeatKey);
-        if (!isAlive) {
-          // server dead -> remove all sessions of that server
-          promises.push(
-            (async () => {
-              const usernames = await redisClient.hkeys(serverKey);
-              if (usernames.length > 0) {
-                const pipeline = redisClient.multi();
-                usernames.forEach((u) =>
-                  pipeline.del(`${USER_KEY_PREFIX}${u}`)
-                );
-                pipeline.del(serverKey);
-                await pipeline.exec();
-                totalCleaned += usernames.length;
-              } else {
-                // just delete the empty hash
-                const delCount = await redisClient.del(serverKey);
-                if (delCount) {
-                  // treated as cleaned (zero usernames)
-                }
-              }
-            })()
-          );
-        }
-      }
-    });
-
-    await new Promise((resolve, reject) => {
-      stream.on("end", resolve);
-      stream.on("error", reject);
-    });
-
-    // wait for all deletions to finish
-    await Promise.all(promises);
-
-    if (totalCleaned > 0) {
-      console.log(
-        `Completed periodic cleanup. Cleaned ${totalCleaned} stale sessions.`
-      );
-    }
-  } catch (error) {
-    console.error("Error during periodic stale session cleanup:", error);
-  }
-}
-// -------------------- end Redis session helpers --------------------
 
 const rateLimiterConnection = new RateLimiterMemory(ConnectionOptionsRateLimit);
 

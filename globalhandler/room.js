@@ -480,12 +480,11 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
   // in ms
   room.intervalIds.push(
     setInterval(() => {
-
       room.bulletManager.update();
       prepareRoomMessages(room);
-    room.timeoutdelaysending = setTimeout(() => {
-      sendRoomMessages(room);
-   }, 3);
+      room.timeoutdelaysending = setTimeout(() => {
+        sendRoomMessages(room);
+      }, 3);
     }, server_tick_rate)
   );
 
@@ -622,7 +621,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
       gadgetchangevars: gadgetdata.changevariables,
 
       // network
-      ws,
+     // ws,
       wsClose: (code, msg) => ws.close(code, msg),
       send: (msg) => {
         if (ws.readyState === ws.OPEN) ws.send(msg);
@@ -1076,7 +1075,7 @@ function prepareRoomMessages(room) {
     if (nearbyBullets) {
       for (const bullet of nearbyBullets.values()) {
         finalBullets.push([
-        //  bullet.id,
+       //   bullet.id,
           Math.round(bullet.position.x),
           Math.round(bullet.position.y),
           Math.round(bullet.direction),

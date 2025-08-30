@@ -61,6 +61,7 @@ function closeRoom(roomId) {
   clearTimeout(room.matchmaketimeout);
   clearTimeout(room.maxopentimeout);
   clearInterval(room.xcleaninterval);
+  clearInterval(room.timeoutdelaysending);
   removeRoomFromIndex(room);
   room.players.clear();
   rooms.delete(roomId);
