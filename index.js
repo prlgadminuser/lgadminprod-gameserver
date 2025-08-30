@@ -376,14 +376,16 @@ wss.on("connection", async (ws, req) => {
         if (joinResult.room.grid && !player.eliminated) eliminatePlayer(joinResult.room, player)
         RemoveRoomPlayer(joinResult.room, player);
 
+        addEntryToKillfeed(room, 5, null, player.id, null)
+
           if (joinResult.room.players.size < 1) {
           closeRoom(joinResult.roomId);
           return;
           }
 
-        
 
         if (joinResult.room.grid) checkGameEndCondition(joinResult.room);
+
 
       
       }

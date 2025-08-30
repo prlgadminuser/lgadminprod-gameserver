@@ -1,5 +1,5 @@
 
-function addKillToKillfeed(room, type, killer, target, gunid) {
+function addEntryToKillfeed(room, type, killer, target, gunid) {
 
   let entryMessage;
 
@@ -29,5 +29,5 @@ function addKillToKillfeed(room, type, killer, target, gunid) {
 }
 
 module.exports = {
-  addKillToKillfeed,
+  addEntryToKillfeed,
 };

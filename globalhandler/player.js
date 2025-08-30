@@ -2,7 +2,7 @@
 
 const { isCollisionWithCachedWalls } = require('./collisions');
 const { respawnplayer } = require('./../playerhandler/respawn')
-const { addKillToKillfeed } = require('./killfeed.js')
+const { addEntryToKillfeed } = require('./killfeed.js')
 const { TeamPlayersActive } = require('./../teamhandler/aliveteam')
 const { spawnAnimation } = require('./../gameObjectEvents/animations')
 const { handleElimination } = require('../playerhandler/eliminated');
@@ -95,7 +95,7 @@ function handlePlayerCollision(room, shootingPlayer, targetPlayer, damage, gunid
     shootingPlayer.eliminations.push(ElimMessage)
 
     handleElimination(room, targetPlayer);
-    addKillToKillfeed(room, 1, shootingPlayer.id, targetPlayer.id, gunid)
+    addEntryToKillfeed(room, 1, shootingPlayer.id, targetPlayer.id, gunid)
     targetPlayer.eliminator = shootingPlayer.id;
     targetPlayer.spectatingTarget = shootingPlayer;
     shootingPlayer.kills += 1;
@@ -107,7 +107,7 @@ function handlePlayerCollision(room, shootingPlayer, targetPlayer, damage, gunid
     shootingPlayer.eliminations.push(ElimMessage)
 
     respawnplayer(room, targetPlayer);
-    addKillToKillfeed(room, 2, shootingPlayer.id, targetPlayer.id, gunid)
+    addEntryToKillfeed(room, 2, shootingPlayer.id, targetPlayer.id, gunid)
 
     if (room.matchtype === "td") {
       updateTeamScore(room, shootingPlayer, 1)
