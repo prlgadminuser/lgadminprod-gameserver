@@ -82,7 +82,7 @@ function handlePlayerCollision(room, shootingPlayer, targetPlayer, damage, gunid
   targetPlayer.last_hit_time = new Date().getTime();
   targetPlayer.last_hitter = shootingPlayer // Track last player hitter to give him 1 kill if player gets eliminated through zone etc
 
-  const hit = [ targetPlayer.x, targetPlayer.y, GUN_BULLET_DAMAGE ]
+  const hit = [ Math.round(targetPlayer.x), Math.round(targetPlayer.y), GUN_BULLET_DAMAGE ]
 
   shootingPlayer.hitmarkers.push(hit)
 
