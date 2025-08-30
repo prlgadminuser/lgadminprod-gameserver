@@ -1,6 +1,5 @@
 
 function addKillToKillfeed(room, type, killer, target, gunid) {
-  const timestamp = Date.now(); // Get current timestamp (in milliseconds)
 
   let entryMessage;
 

@@ -132,7 +132,7 @@ function handleDummyCollision(room, shootingPlayer, dummyKey, damage) {
 
   dummy.health -= GUN_BULLET_DAMAGE;
 
-  const hit = [dummy.x, dummy.y, GUN_BULLET_DAMAGE]
+  const hit = [Math.round(dummy.x), Math.round(dummy.y), GUN_BULLET_DAMAGE]
 
   shootingPlayer.hitmarkers.push(hit);
 

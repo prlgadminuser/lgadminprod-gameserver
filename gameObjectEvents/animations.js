@@ -11,8 +11,8 @@ function spawnAnimation(room, player, type) {
 
 
   const animationtype = animationtypes[type]
-  const x = player.x
-  const y = player.y
+  const x = Math.round(player.x)
+  const y = Math.round(player.y)
 
   const newAnimation = [
     animationtype,
