@@ -198,6 +198,11 @@ const {
 } = require("./globalhandler/dbrequests");
 
 const {
+  addEntryToKillfeed,
+} = require("./globalhandler/killfeed");
+
+
+const {
   game_win_rest_time,
   allowed_gamemodes,
 } = require("./globalhandler/config");
@@ -376,7 +381,7 @@ wss.on("connection", async (ws, req) => {
         if (joinResult.room.grid && !player.eliminated) eliminatePlayer(joinResult.room, player)
         RemoveRoomPlayer(joinResult.room, player);
 
-        addEntryToKillfeed(room, 5, null, player.id, null)
+        addEntryToKillfeed(joinResult.room, 5, null, player.id, null)
 
           if (joinResult.room.players.size < 1) {
           closeRoom(joinResult.roomId);
