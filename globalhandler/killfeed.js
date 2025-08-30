@@ -26,12 +26,7 @@ function addKillToKillfeed(room, type, killer, target, gunid) {
       break;
   }
 
-  const killEntry = {
-    entry: entryMessage,
-    timestamp: timestamp,
-  };
-
-  room.killfeed.push(killEntry);
+  room.killfeed.push(entryMessage);
 }
 
 module.exports = {
