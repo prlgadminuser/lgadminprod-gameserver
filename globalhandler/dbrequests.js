@@ -66,7 +66,6 @@ async function verifyPlayer(token) {
       hat_color: user.equipped.hat_color,
       top_color: user.equipped.top_color,
       skillpoints: user.stats.sp,
-      gadget: user.equipped.gadget,
       loadout: user.inventory.loadout,
       gadget: user.inventory.loadout.gadget
     };

@@ -519,9 +519,9 @@ async function joinRoom(ws, gamemode, playerVerified) {
       player_color,
       hat_color,
       top_color,
-      gadget,
       skillpoints,
       loadout,
+      gadget,
     } = playerVerified;
 
     //const fallbackloadout = { 1: "1", 2: "5", 3: "DEVLOCKED" }
@@ -532,7 +532,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
     const max_length = 16;
     const min_length = 4;
     const gadgetselected = gadget || 1;
-    const fallbackloadout = { 1: "1", 2: "2", 3: "3" };
+    const fallbackloadout = { slot1: "1", slot2: "2", slot3: "3" };
     const finalskillpoints = SkillbasedMatchmakingEnabled ? skillpoints || 0 : 0;
 
     if (
@@ -612,7 +612,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
 
       //loadout and gadgets
       loadout: loadout || fallbackloadout,
-      loadout_formatted: [loadout[1], loadout[2], loadout[3]].join("$"),
+      loadout_formatted: [loadout["slot1"], loadout["slot2"], loadout["slot3"]].join("$"),
       gadgetid: gadgetselected,
       canusegadget: true,
       gadgetactive: false,
@@ -658,7 +658,7 @@ async function joinRoom(ws, gamemode, playerVerified) {
       },
     };
 
-    newPlayer.gun = newPlayer.loadout[1];
+    newPlayer.gun = newPlayer.loadout["slot1"];
 
     if (newPlayer.gadgetchangevars) {
       for (const [variable, change] of Object.entries(
@@ -1292,9 +1292,9 @@ function handleSwitchGun(data, player) {
     !player.shooting &&
     GunSlot >= 1 &&
     GunSlot <= 3 &&
-     player.loadout[GunSlot] !== player.gun
+     player.loadout[`slot${GunSlot}`] !== player.gun
   ) {
-    player.gun = player.loadout[GunSlot];
+    player.gun = player.loadout[`slot${GunSlot}`];
   }
 }
 
