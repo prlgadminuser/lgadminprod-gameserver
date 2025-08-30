@@ -35,6 +35,7 @@ async function verifyPlayer(token) {
       { "account.token": token },
       {
         projection: {
+          "_id": 0,
           "account.username": 1,
           "account.nickname": 1,
           "equipped.hat": 1,
@@ -43,7 +44,6 @@ async function verifyPlayer(token) {
           "equipped.hat_color": 1,
           "equipped.top_color": 1,
           "stats.sp": 1,
-          "equipped.gadget": 1,
           "inventory.loadout": 1,
         },
       }
@@ -68,6 +68,7 @@ async function verifyPlayer(token) {
       skillpoints: user.stats.sp,
       gadget: user.equipped.gadget,
       loadout: user.inventory.loadout,
+      gadget: user.inventory.loadout.gadget
     };
 
   } catch (error) {
