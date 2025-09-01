@@ -259,7 +259,7 @@ function prepareRoomMessages(room) {
       }
     }
 
-    p.finalbullets = finalBullets.length > 0 ? finalBullets : undefined;
+    p.finalbullets = finalBullets;
 
     if (!p.alive) continue;
 
@@ -319,6 +319,7 @@ function prepareRoomMessages(room) {
       sd: p.dirtySelf ? changes : undefined,
       WLD: room.destroyedWalls.length ? room.destroyedWalls : undefined,
      // cl: p.nearbycircles.length ? p.nearbycircles : undefined,
+      b: p.finalbullets,
       an: p.nearbyanimations.length ? p.nearbyanimations : undefined,
       pd: p.dirtyNearby ? p.pd : undefined,
     };
@@ -334,7 +335,6 @@ function prepareRoomMessages(room) {
       }
     }
 
-    msg.b = p.dirtyBullets ? p.finalbullets : "{}"
 
     // Send if any dirty flag
     if (
