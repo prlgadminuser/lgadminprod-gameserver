@@ -314,10 +314,10 @@ function prepareRoomMessages(room) {
       r: p.dirtyRoomData ? finalroomdata : undefined,
       dm: p.dirtyDummies ? dummiesFiltered : undefined,
       kf: room.killfeed.length ? room.killfeed : undefined,
-      sb: room.scoreboard.length ? room.scoreboard : undefined,
+      //sb: room.scoreboard.length ? room.scoreboard : undefined,
       sd: p.dirtySelf ? changes : undefined,
       WLD: room.destroyedWalls.length ? room.destroyedWalls : undefined,
-      cl: p.nearbycircles.length ? p.nearbycircles : undefined,
+     // cl: p.nearbycircles.length ? p.nearbycircles : undefined,
       an: p.nearbyanimations.length ? p.nearbyanimations : undefined,
       b: p.dirtyBullets ? p.finalbullets : undefined,
       pd: p.dirtyNearby || !p.pdSentOnce ? p.pd : undefined,
@@ -370,6 +370,7 @@ function sendRoomMessages(room) {
 
 
 module.exports = { SendPreStartMessage, prepareRoomMessages, sendRoomMessages }
+
 
 
 
