@@ -98,14 +98,6 @@ async function PlayerJoinRoom(ws, gamemode, playerVerified) {
       emote: 0,
       // combat shooting
 
-      //dirty flags
-      dirtyRoomData: true,
-      dirtyDummies: true,
-      dirtySelf:  true,
-      dirtyNearby: true,
-      dirtyBullets: true,
-
-
       lastShootTime: 0,
       shooting: false,
       shoot_direction: 90,

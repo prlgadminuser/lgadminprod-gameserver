@@ -161,6 +161,8 @@ return  [
     ];
 }
 
+const CachedEmptyMsg = compressMessage({})
+
 
 function prepareRoomMessages(room) {
   //console.time()
@@ -362,8 +364,7 @@ if (Object.keys(msg).length === 0) {
 if (hash === "{}") {
 
     if (!p.emptySent) {
-      p.lastcompressedmessage = compressMessage(msg);
-    //  p.lastMessageHash = hash;
+      p.lastcompressedmessage = CachedEmptyMsg;
       p.tick_send_allow = true;
       p.emptySent = true; // mark empty msg as sent
     } else {
@@ -373,9 +374,8 @@ if (hash === "{}") {
   } else {
     // Non-empty msg
     p.lastcompressedmessage = compressMessage(msg);
-  //  p.lastMessageHash = hash;
     p.tick_send_allow = true;
-    p.emptySent = false; // reset, allow future empty msg to be sent again
+    p.emptySent = false; 
   }
   
 }
