@@ -354,32 +354,31 @@ let hash;
 if (Object.keys(msg).length === 0) {
   hash = "{}";
 } else {
-  hash = msg;
+  hash = 0;
 }
 
 // Determine if we should send
-if (hash !== p.lastMessageHash) {
   // If msg is empty, only send if we haven't sent empty before
-  if (hash === "{}") {
+if (hash === "{}") {
+
     if (!p.emptySent) {
       p.lastcompressedmessage = compressMessage(msg);
-      p.lastMessageHash = hash;
+    //  p.lastMessageHash = hash;
       p.tick_send_allow = true;
       p.emptySent = true; // mark empty msg as sent
     } else {
       p.tick_send_allow = false;
     }
+
   } else {
     // Non-empty msg
     p.lastcompressedmessage = compressMessage(msg);
-    p.lastMessageHash = hash;
+  //  p.lastMessageHash = hash;
     p.tick_send_allow = true;
     p.emptySent = false; // reset, allow future empty msg to be sent again
   }
-} else {
-  p.tick_send_allow = false;
+  
 }
-  }
   // CLEANUP
   room.killfeed = [];
   room.destroyedWalls = [];
