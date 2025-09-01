@@ -260,7 +260,6 @@ function prepareRoomMessages(room) {
     }
 
     p.finalbullets = finalBullets.length > 0 ? finalBullets : undefined;
-    if (finalBullets.length) p.dirtyBullets = true;
 
     if (!p.alive) continue;
 
@@ -321,7 +320,6 @@ function prepareRoomMessages(room) {
       WLD: room.destroyedWalls.length ? room.destroyedWalls : undefined,
      // cl: p.nearbycircles.length ? p.nearbycircles : undefined,
       an: p.nearbyanimations.length ? p.nearbyanimations : undefined,
-      b: p.dirtyBullets ? p.finalbullets : "{}",
       pd: p.dirtyNearby ? p.pd : undefined,
     };
 
@@ -335,6 +333,8 @@ function prepareRoomMessages(room) {
         delete msg[key];
       }
     }
+
+    msg.b = p.dirtyBullets ? p.finalbullets : "{}"
 
     // Send if any dirty flag
     if (
