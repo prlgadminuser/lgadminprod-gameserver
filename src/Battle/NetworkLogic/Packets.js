@@ -1,4 +1,4 @@
-const { arraysEqual, generateHash } = require("@main/modules");
+const { arraysEqual } = require("@main/modules");
 const { compressMessage } = require("./compress");
 const { playerchunkrenderer } = require("../PlayerLogic/playerchunks");
 const { handlePlayerMoveIntervalAll } = require("./HandleRequest");
@@ -198,20 +198,6 @@ function prepareRoomMessages(room) {
   handlePlayerMoveIntervalAll(room);
   HandleAfflictions(room);
 
-  // DUMMIES (once)
-  let dummiesFiltered;
-  if (room.dummies) {
-    const transformed = transformData(room.dummies);
-
-    if (!arraysEqual(transformed, room.previousdummies)) {
-      room.dummiesfiltered = transformed;
-      room.previousdummies = transformed;
-    } else {
-      room.dummiesfiltered = undefined;
-    }
-    dummiesFiltered = room.dummiesfiltered;
-  }
-
   // ROOM DATA (once)
   let roomdata = [
     state_map[room.state],
@@ -324,7 +310,6 @@ function prepareRoomMessages(room) {
 
     const msg = {
       r: finalroomdata,
-      dm: dummiesFiltered,
       kf: room.killfeed,
       sd: Object.keys(changes).length ? changes : undefined,
       WLD: room.destroyedWalls,
