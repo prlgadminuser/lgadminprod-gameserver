@@ -1,19 +1,11 @@
 "use strict";
-
-//process.env.NODE_ENV = process.env.NODE_ENV || 'production';
-
-//console.log('NODE_ENV is', process.env.NODE_ENV);
-
-const testmode = true;
+require('module-alias/register');
 
 const WebSocket = require("ws");
 const http = require("http");
 const axios = require("axios");
-const LZString = require("lz-string");
-const { MongoClient, ServerApiVersion } = require("mongodb");
-const jwt = require("jsonwebtoken");
 const { RateLimiterMemory } = require("rate-limiter-flexible");
-const { uri, rediskey } = require("./idbconfig");
+const { rediskey } = require("@main/idbconfig");
 const Redis = require("ioredis");
 
 const SERVER_INSTANCE_ID = "xxxxxxxxxx".replace(/[xy]/g, function (c) {
@@ -22,12 +14,7 @@ const SERVER_INSTANCE_ID = "xxxxxxxxxx".replace(/[xy]/g, function (c) {
   return v.toString(16);
 });
 
-// ------------------------------------------------------------
-// Removed monolithic USER_SESSION_MAP_KEY
-// Use per-user key + per-server hash:
-//   user:<username> => serverId
-//   users:<serverId> => HSET username -> sessionData (stringified or simple timestamp)
-// ------------------------------------------------------------
+
 const USER_KEY_PREFIX = "user:"; // user:<username> => serverId
 const SERVER_USERS_PREFIX = "users:"; // users:<serverId> => hash of username -> sessionInfo
 const SERVER_HEARTBEAT_PREFIX = "server_heartbeat:"; // Prefix for server heartbeat keys
@@ -35,7 +22,6 @@ const SERVER_HEARTBEAT_PREFIX = "server_heartbeat:"; // Prefix for server heartb
 const multiplier = 40;
 const HEARTBEAT_INTERVAL_MS = 10000 * multiplier; // Send heartbeat periodically
 const HEARTBEAT_TTL_SECONDS = (30000 * multiplier) / 1000; // Heartbeat expires (seconds) - SETEX uses seconds
-const CLEANUP_INTERVAL_MS = 60000 * multiplier; // Run stale session cleanup periodically
 
 const redisClient = new Redis(rediskey);
 
@@ -43,6 +29,8 @@ const ConnectionOptionsRateLimit = {
   points: 1, // Number of points
   duration: 1, // Per second
 };
+const rateLimiterConnection = new RateLimiterMemory(ConnectionOptionsRateLimit);
+
 
 let connectedClientsCount = 0;
 
@@ -105,7 +93,6 @@ async function removeSession(username) {
 }
 
 
-const rateLimiterConnection = new RateLimiterMemory(ConnectionOptionsRateLimit);
 
 const server = http.createServer((req, res) => {
   try {
@@ -137,76 +124,22 @@ const wss = new WebSocket.Server({
   maxPayload: 10, // 10MB max payload (adjust according to your needs)
 });
 
-const Limiter = require("limiter").RateLimiter;
+
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  },
-});
 
-async function startServer() {
-  try {
-    await client.connect();
-    console.log("Connected to MongoDB");
-  } catch (err) {
-    console.error("Error connecting to MongoDB:", err);
-  }
-}
-
-if (!testmode) {
-  startServer();
-}
-
-const db = client.db("Cluster0");
-const userCollection = db.collection("users");
-const battlePassCollection = db.collection("battlepass_users");
-const shopcollection = db.collection("serverconfig");
 
 module.exports = {
   axios,
-  Limiter,
   WebSocket,
   http,
   connectedClientsCount,
-  MongoClient,
-  ServerApiVersion,
-  db,
-  userCollection,
-  battlePassCollection,
-  shopcollection,
-  jwt,
-  LZString,
 };
 
-const {
-  joinRoom,
-  handleRequest,
-  RemoveRoomPlayer,
-} = require("./globalhandler/room");
-
-const { closeRoom } = require("./roomhandler/manager");
-
-const {
-  increasePlayerPlace,
-  increasePlayerWins,
-  verifyPlayer,
-  checkForMaintenance,
-} = require("./globalhandler/dbrequests");
-
-const {
-  addEntryToKillfeed,
-} = require("./globalhandler/killfeed");
 
 
-const {
-  game_win_rest_time,
-  allowed_gamemodes,
-} = require("./globalhandler/config");
-const { checkGameEndCondition, eliminatePlayer } = require("./playerhandler/eliminated");
+
+
 
 const allowedOrigins = [
   "https://slcount.netlify.app",
@@ -250,6 +183,7 @@ wss.on("connection", async (ws, req) => {
       ws.close(1011, "Internal server error");
       return;
     }
+    
 
     if (isMaintenance) {
       ws.send("matchmaking_disabled"); // First send a message
@@ -284,6 +218,7 @@ wss.on("connection", async (ws, req) => {
       ws.close(4094, "Unauthorized");
       return;
     }
+
 
     let playerVerified;
     try {
@@ -334,7 +269,7 @@ wss.on("connection", async (ws, req) => {
 
     let joinResult;
     try {
-      joinResult = await joinRoom(ws, gamemode, playerVerified);
+      joinResult = await PlayerJoinRoom(ws, gamemode, playerVerified);
     } catch (err) {
       console.error("Error joining room:", err);
       // Clean up Redis session in case of join failure
@@ -379,7 +314,7 @@ wss.on("connection", async (ws, req) => {
       if (player) {
 
         if (joinResult.room.grid && !player.eliminated) eliminatePlayer(joinResult.room, player)
-        RemoveRoomPlayer(joinResult.room, player);
+        RemovePlayerFromRoom(joinResult.room, player);
 
         addEntryToKillfeed(joinResult.room, 5, null, player.id, null)
 
@@ -387,6 +322,8 @@ wss.on("connection", async (ws, req) => {
           closeRoom(joinResult.roomId);
           return;
           }
+
+          
 
 
         if (joinResult.room.grid) checkGameEndCondition(joinResult.room);
@@ -397,9 +334,8 @@ wss.on("connection", async (ws, req) => {
     });
   } catch (error) {
     console.error("Error during WebSocket connection handling:", error);
-    try {
+
       ws.close(1011, "Internal server error");
-    } catch {}
   }
 });
 
@@ -411,7 +347,7 @@ server.on("upgrade", (request, socket, head) => {
       request.socket.remoteAddress;
 
     try {
-     // await rateLimiterConnection.consume(ip);
+      await rateLimiterConnection.consume(ip);
 
       const origin =
         request.headers["sec-websocket-origin"] || request.headers.origin;
@@ -431,6 +367,7 @@ server.on("upgrade", (request, socket, head) => {
   })();
 });
 
+
 process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception:", error);
   process.exit();
@@ -441,17 +378,60 @@ process.on("unhandledRejection", (reason, promise) => {
   process.exit();
 });
 
-process.on("SIGINT", () => {
-  console.log(
-    "SIGINT signal received. Closing WebSocket and Redis connection."
-  );
-  wss.close(() => {
-    redisClient.quit();
-    process.exit(0);
-  });
+const { MongoClient, ServerApiVersion } = require("mongodb");
+const { uri } = require("@main/idbconfig");
+
+
+const mongoClient = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
 });
 
-const PORT = process.env.PORT || 8070;
-server.listen(PORT, () => {
-  console.log(`Server is listening on port ${PORT}`);
-});
+async function ConnectToMongoDB() {
+  try {
+    await mongoClient.connect();
+    console.log("Connected to MongoDB");
+  } catch (err) {
+    console.error("Error connecting to MongoDB:", err);
+    process.exit(1)
+  }
+}
+  
+
+
+const db = mongoClient.db("Cluster0");
+const DBuserCollection = db.collection("users");
+const DBbattlePassCollection = db.collection("battlepass_users");
+const DBshopCollection = db.collection("serverconfig");
+
+
+
+module.exports = { db, DBuserCollection, DBbattlePassCollection, DBshopCollection }
+
+
+
+const { verifyPlayer } = require('./src/Database/verifyPlayer');
+const { checkForMaintenance } = require('./src/Database/ChangePlayerStats');
+const { allowed_gamemodes } = require('./src/GameConfig/gamemodes');
+const { PlayerJoinRoom } = require('./src/RoomHandler/AddPlayer');
+const { handleRequest } = require('./src/Battle/NetworkLogic/HandleRequest');
+const { eliminatePlayer, checkGameEndCondition } = require('./src/Battle/PlayerLogic/eliminated');
+const { RemovePlayerFromRoom } = require('./src/RoomHandler/RemovePlayer');
+const { addEntryToKillfeed } = require('./src/Battle/GameLogic/killfeed');
+const { closeRoom } = require('./src/RoomHandler/closeRoom');
+
+
+async function startServer() { // Wait for DB connection
+await ConnectToMongoDB();
+  const PORT = process.env.PORT || 8070;
+  server.listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}`);
+  });
+}
+
+// Initialize
+startServer();
+
