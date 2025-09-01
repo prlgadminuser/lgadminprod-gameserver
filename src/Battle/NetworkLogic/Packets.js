@@ -259,7 +259,8 @@ function prepareRoomMessages(room) {
       }
     }
 
-    p.finalbullets = finalBullets;
+    p.finalbullets = finalBullets.length > 0 ? finalBullets : undefined;
+    if (finalBullets.length) p.dirtyBullets = true;
 
     if (!p.alive) continue;
 
@@ -319,8 +320,8 @@ function prepareRoomMessages(room) {
       sd: p.dirtySelf ? changes : undefined,
       WLD: room.destroyedWalls.length ? room.destroyedWalls : undefined,
      // cl: p.nearbycircles.length ? p.nearbycircles : undefined,
-      b: p.finalbullets,
       an: p.nearbyanimations.length ? p.nearbyanimations : undefined,
+      b: p.dirtyBullets ? p.finalbullets : undefined,
       pd: p.dirtyNearby ? p.pd : undefined,
     };
 
@@ -335,7 +336,6 @@ function prepareRoomMessages(room) {
       }
     }
 
-
     // Send if any dirty flag
     if (
       p.dirtyRoomData ||
@@ -345,6 +345,8 @@ function prepareRoomMessages(room) {
       p.dirtyBullets
     ) {
       p.lastcompressedmessage = compressMessage(msg);
+      
+      p.lastmsgempty = false
       p.tick_send_allow = true;
 
       // Reset dirty flags
@@ -354,7 +356,15 @@ function prepareRoomMessages(room) {
       p.dirtyNearby = false;
       p.dirtyBullets = false;
     } else {
+      if (msg === "{}" && !p.lastmsgempty) {
+         
+       p.lastmsgempty = true
+        p.tick_send_allow = true;
+
+      } else {}
+      
       p.tick_send_allow = false;
+
     }
   }
 
