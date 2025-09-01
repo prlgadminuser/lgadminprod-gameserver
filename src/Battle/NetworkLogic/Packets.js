@@ -178,13 +178,13 @@ function prepareRoomMessages(room) {
         p.lastcompressedmessage = compressed;
         p.tick_send_allow = true;
 
-        // Reset per-player state
+        // Reset dirty flags
         p.dirtyRoomData = false;
         p.dirtyDummies = false;
         p.dirtySelf = false;
         p.dirtyNearby = false;
         p.dirtyBullets = false;
-        p.lastMessageSent = roomdata;
+        p.pdSentOnce = false; // Reset empty-send tracker
       }
     }
     return;
@@ -201,7 +201,6 @@ function prepareRoomMessages(room) {
   let dummiesFiltered;
   if (room.dummies) {
     const transformed = transformData(room.dummies);
-
     if (!arraysEqual(transformed, room.previousdummies)) {
       room.dummiesfiltered = transformed;
       room.previousdummies = transformed;
@@ -297,22 +296,16 @@ function prepareRoomMessages(room) {
       const currentData = {};
 
       for (const nearbyId of playersInRange) {
-        const data = playerData[nearbyId];
-        if (!data) continue;
-
-        // Dirty if new player or data changed
-        const isDirty = !arraysEqual(previousData[nearbyId], data);
-        if (isDirty) filteredPlayers.push(data);
-
+        const data = playerData[nearbyId] || [];
         currentData[nearbyId] = data;
+
+        const isDirty = !arraysEqual(previousData[nearbyId], data);
+        if (isDirty || !p.pdSentOnce) filteredPlayers.push(data);
       }
 
-      if (filteredPlayers.length) {
-        p.dirtyNearby = true;
-        p.latestnozeropd = filteredPlayers;
-      }
+      if (filteredPlayers.length) p.dirtyNearby = true;
 
-      p.pd = filteredPlayers.length ? filteredPlayers : undefined;
+      p.pd = filteredPlayers.length ? filteredPlayers : [];
       p.pdHashes = currentData;
     }
 
@@ -321,35 +314,25 @@ function prepareRoomMessages(room) {
       r: p.dirtyRoomData ? finalroomdata : undefined,
       dm: p.dirtyDummies ? dummiesFiltered : undefined,
       kf: room.killfeed.length ? room.killfeed : undefined,
-     // sb: room.scoreboard.length ? room.scoreboard : undefined,
+      sb: room.scoreboard.length ? room.scoreboard : undefined,
       sd: p.dirtySelf ? changes : undefined,
       WLD: room.destroyedWalls.length ? room.destroyedWalls : undefined,
-      //cl: p.nearbycircles.length ? p.nearbycircles : undefined,
-        cl: p.nearbycircles,
-      an: p.nearbyanimations,
-      b: p.finalbullets,
-      pd: p.pd,
+      cl: p.nearbycircles.length ? p.nearbycircles : undefined,
+      an: p.nearbyanimations.length ? p.nearbyanimations : undefined,
+      b: p.dirtyBullets ? p.finalbullets : undefined,
+      pd: p.dirtyNearby || !p.pdSentOnce ? p.pd : undefined,
     };
 
-    // Remove empty keys
-    for (const key in msg) {
-      if (
-        !msg[key] ||
-        (Array.isArray(msg[key]) && !msg[key].length) ||
-        (typeof msg[key] === "object" && !Object.keys(msg[key]).length)
-      ) {
-        delete msg[key];
-      }
-    }
-
-    // Send if any dirty flag
-    if (
+    // -------------------- SEND CHECK --------------------
+    const anyDirty =
       p.dirtyRoomData ||
       p.dirtyDummies ||
       p.dirtySelf ||
       p.dirtyNearby ||
-      p.dirtyBullets
-    ) {
+      p.dirtyBullets ||
+      !p.pdSentOnce;
+
+    if (anyDirty) {
       p.lastcompressedmessage = compressMessage(msg);
       p.tick_send_allow = true;
 
@@ -359,6 +342,7 @@ function prepareRoomMessages(room) {
       p.dirtySelf = false;
       p.dirtyNearby = false;
       p.dirtyBullets = false;
+      p.pdSentOnce = true;
     } else {
       p.tick_send_allow = false;
     }
@@ -384,7 +368,9 @@ function sendRoomMessages(room) {
 
 
 
+
 module.exports = { SendPreStartMessage, prepareRoomMessages, sendRoomMessages }
+
 
 
 
