@@ -3,6 +3,27 @@ function generateHash(message) {
   return JSON.stringify(message)
 }
 
+function deepEqual(a, b) {
+  if (a === b) return true;
+
+  if (typeof a !== typeof b) return false;
+  if (typeof a !== "object" || a === null || b === null) return false;
+
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) return false;
+
+  for (const key of keysA) {
+    if (!keysB.includes(key)) return false;
+    if (!deepEqual(a[key], b[key])) return false;
+  }
+
+  return true;
+}
+
+
 function arraysEqual(a, b) {
   if (a === b) return true;
   if (!a || !b) return false;
@@ -27,4 +48,4 @@ function deepCopy(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
-module.exports = {generateHash, arraysEqual, hashString, deepCopy}
+module.exports = {generateHash, arraysEqual, deepEqual, hashString, deepCopy}

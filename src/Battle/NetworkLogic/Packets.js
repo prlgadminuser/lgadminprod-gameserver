@@ -336,6 +336,8 @@ function prepareRoomMessages(room) {
       }
     }
 
+  
+ 
     // Send if any dirty flag
     if (
       p.dirtyRoomData ||
@@ -346,7 +348,6 @@ function prepareRoomMessages(room) {
     ) {
       p.lastcompressedmessage = compressMessage(msg);
       
-      p.lastmsgempty = false
       p.tick_send_allow = true;
 
       // Reset dirty flags
@@ -356,14 +357,9 @@ function prepareRoomMessages(room) {
       p.dirtyNearby = false;
       p.dirtyBullets = false;
     } else {
-      if (msg === "{}" && !p.lastmsgempty) {
-         
-       p.lastmsgempty = true
-        p.tick_send_allow = true;
 
-      } else {}
-      
       p.tick_send_allow = false;
+  
 
     }
   }
