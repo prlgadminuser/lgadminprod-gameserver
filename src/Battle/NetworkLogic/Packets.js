@@ -345,14 +345,10 @@ function prepareRoomMessages(room) {
     }
 
     // Send if changed
-    const hash = generateHash(msg);
-    if (hash !== p.lastMessageHash) {
-      p.lastcompressedmessage = compressMessage(msg);
-      p.lastMessageHash = hash;
+
+  
+    
       p.tick_send_allow = true;
-    } else {
-      p.tick_send_allow = false;
-    }
   }
   // CLEANUP
   room.killfeed = [];
@@ -372,5 +368,6 @@ function sendRoomMessages(room) {
     }
   });
 }
+
 
 module.exports = { SendPreStartMessage, prepareRoomMessages, sendRoomMessages }
