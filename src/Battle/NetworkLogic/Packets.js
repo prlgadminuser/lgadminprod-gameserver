@@ -180,11 +180,6 @@ function prepareRoomMessages(room) {
         p.tick_send_allow = true;
 
         // Reset per-player state
-        p.dirtyRoomData = false;
-        p.dirtyDummies = false;
-        p.dirtySelf = false;
-        p.dirtyNearby = false;
-        p.dirtyBullets = false;
         p.lastMessageSent = roomdata;
       }
     }
@@ -326,7 +321,7 @@ function prepareRoomMessages(room) {
       WLD: room.destroyedWalls.length ? room.destroyedWalls : undefined,
      // cl: p.nearbycircles.length ? p.nearbycircles : undefined,
       an: p.nearbyanimations.length ? p.nearbyanimations : undefined,
-      b: p.dirtyBullets ? p.finalbullets : undefined,
+      b: p.dirtyBullets ? p.finalbullets : "{}",
       pd: p.dirtyNearby ? p.pd : undefined,
     };
 
