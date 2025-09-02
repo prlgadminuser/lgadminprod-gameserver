@@ -68,7 +68,7 @@ const gunsconfig = {
     ]),
     cooldown: 600,
     distance: 1200,
-    maxexistingtime: 20000,
+    maxexistingtime: 5000,
     damage: 25,
     width: 33,
     height: 7,

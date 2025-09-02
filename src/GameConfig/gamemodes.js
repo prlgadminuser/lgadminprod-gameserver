@@ -121,7 +121,7 @@ const gamemodeconfig = {
       "countdown"
     ]),
 
-    weapons_modifiers_override: new Set(["CanBounce"]),
+    weapons_modifiers_override: new Set([]),
 
     placereward: [0],
     seasoncoinsreward: [0],
