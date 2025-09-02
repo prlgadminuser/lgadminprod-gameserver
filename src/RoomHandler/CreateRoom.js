@@ -4,6 +4,19 @@ const { BulletManager } = require("../Battle/WeaponLogic/bullets");
 const { addRoomToIndex } = require("./roomIndex");
 const { prepareRoomMessages, sendRoomMessages } = require("../Battle/NetworkLogic/Packets");
 
+function setRoomTimeout(room, fn, ms) {
+  const id = setTimeout(fn, ms);
+  room.timeoutIds.push(id);
+  return id;
+}
+
+function setRoomInterval(room, fn, ms) {
+  const id = setInterval(fn, ms);
+  room.intervalIds.push(id);
+  return id;
+}
+
+
 
 function cleanupRoom(roomId) {
   const room = rooms.get(roomId);
@@ -201,7 +214,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
       prepareRoomMessages(room);
       room.timeoutdelaysending = setTimeout(() => {
         sendRoomMessages(room);
-      }, 3);
+      }, 2);
     }, game_tick_rate)
   );
 

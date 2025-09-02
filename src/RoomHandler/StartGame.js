@@ -161,8 +161,6 @@ async function startMatch(room, roomId) {
                     .padStart(2, "0")}`;
                 }
               }, 1000);
-
-              room.intervalIds.push(room.countdownInterval);
             }
 
             if (room.modifiers.has("HealingCircles"))
