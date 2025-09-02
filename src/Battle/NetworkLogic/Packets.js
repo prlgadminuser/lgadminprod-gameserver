@@ -361,10 +361,10 @@ if (hash === "{}") {
     p.lastcompressedmessage = compressMessage(msg);
     p.tick_send_allow = true;
     p.emptySent = false; 
-  }
-  
+  } 
 }
   // CLEANUP
+  
   room.killfeed = [];
   room.destroyedWalls = [];
   for (const p of players) {
