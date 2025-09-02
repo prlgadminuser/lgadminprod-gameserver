@@ -110,7 +110,7 @@ class BulletManager {
 
     spawnBullet(player, bulletData) {
 
-      const obj = { x: 34, y: 12, type: "spray" }
+      const obj = { x: player.x, y: player.y, type: "spray" }
       PlaceNewObject(this.room, obj)
 
 
@@ -402,4 +402,5 @@ function handleBulletFired(room, player, gunType) {
 module.exports = {
   BulletManager,
   handleBulletFired
+
 };
