@@ -402,5 +402,4 @@ function handleBulletFired(room, player, gunType) {
 module.exports = {
   BulletManager,
   handleBulletFired
-
 };

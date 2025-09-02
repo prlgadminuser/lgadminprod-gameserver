@@ -1,4 +1,4 @@
-const { SpatialGrid, RealTimeObjectGrid, gridcellsize, room_max_open_time, game_start_time } = require("@main/modules");
+const { SpatialGrid, RealTimeObjectGrid, gridcellsize, room_max_open_time, game_start_time, NotSeenNearbyObjectsGrid } = require("@main/modules");
 const { closeRoom } = require("./closeRoom");
 const { playerchunkrenderer } = require("../Battle/PlayerLogic/playerchunks");
 const { SendPreStartMessage } = require("../Battle/NetworkLogic/Packets");
@@ -31,7 +31,7 @@ async function SetupRoomStartGameData(room) {
   room.itemgrid = new SpatialGrid(gridcellsize); // grid system for items
   room.realtimegrid = new RealTimeObjectGrid(100);
   room.bulletgrid = new RealTimeObjectGrid(60);
-  room.notSeenObjectgrid = new RealTimeObjectGrid(80),
+  room.notSeenObjectgrid = new NotSeenNearbyObjectsGrid(80),
   room.grid = cloneSpatialGrid(room.mapdata.grid);
 }
 

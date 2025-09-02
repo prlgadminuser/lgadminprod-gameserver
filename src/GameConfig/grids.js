@@ -2,8 +2,7 @@
 
 const gridcellsize = 40;
 
-
-class RealTimeObjectGrid {
+class NotSeenNearbyObjectsGrid {
   constructor(cellSize) {
     this.cellSize = cellSize;
     this.grid = new Map(); // Key: "cellX,cellY" → Set of objects
@@ -82,26 +81,84 @@ class RealTimeObjectGrid {
 
     return result;
   }
+}
 
-  ForNotSeenObjectsGetObjectsInArea(xMin, xMax, yMin, yMax, excludeSeenIds) {
-  const result = [];
-  const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
+class RealTimeObjectGrid {
+  constructor(cellSize) {
+    this.cellSize = cellSize;
+    this.grid = new Map(); // Key: "cellX,cellY" → Set of objects
+  }
 
-  for (const key of keys) {
-    const set = this.grid.get(key);
+  _getCellKey(x, y) {
+    const cellX = Math.floor(x / this.cellSize);
+    const cellY = Math.floor(y / this.cellSize);
+    return `${cellX},${cellY}`;
+  }
+
+  addObject(obj) {
+  
+    if (!obj.position) {
+    if (typeof obj.x !== 'number' || typeof obj.y !== 'number') {
+      throw new Error("Object must have numeric 'x' and 'y' properties.");
+    }
+  }
+
+    const key = this._getCellKey(obj.x, obj.y);
+    if (!this.grid.has(key)) {
+      this.grid.set(key, new Set());
+    }
+
+    this.grid.get(key).add(obj);
+    obj._gridKey = key;
+  }
+
+  removeObject(obj) {
+    if (!obj || !obj._gridKey) return;
+
+    const set = this.grid.get(obj._gridKey);
     if (set) {
-      for (const obj of set) {
-        // Only filter if excludeSeenIds is provided
-        if (!excludeSeenIds || !excludeSeenIds.has(obj.id)) {
+      set.delete(obj);
+      if (set.size === 0) {
+        this.grid.delete(obj._gridKey);
+      }
+    }
+
+    delete obj._gridKey;
+  }
+
+  updateObject(obj, newX, newY) {
+    const newKey = this._getCellKey(newX, newY);
+
+    if (obj._gridKey !== newKey) {
+      this.removeObject(obj);
+      obj.x = newX;
+      obj.y = newY;
+      this.addObject(obj);
+    } else {
+      obj.x = newX;
+      obj.y = newY;
+    }
+  }
+
+  hasObject(obj) {
+  return !!obj._gridKey && this.grid.has(obj._gridKey) && this.grid.get(obj._gridKey).has(obj);
+}
+
+  getObjectsInArea(xMin, xMax, yMin, yMax) {
+    const result = [];
+    const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
+
+    for (const key of keys) {
+      const set = this.grid.get(key);
+      if (set) {
+        for (const obj of set) {
           result.push(obj);
         }
       }
     }
+
+    return result;
   }
-
-  return result;
-}
-
 
   _getKeysInArea(xMin, xMax, yMin, yMax) {
     const keys = [];
@@ -119,7 +176,6 @@ class RealTimeObjectGrid {
     return keys;
   }
 }
-
 
 
 class SpatialGrid {
@@ -189,4 +245,4 @@ class SpatialGrid {
 }
 
 
-module.exports = { gridcellsize, RealTimeObjectGrid, SpatialGrid }
+module.exports = { gridcellsize, RealTimeObjectGrid, SpatialGrid, NotSeenNearbyObjectsGrid }
