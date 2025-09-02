@@ -6,6 +6,10 @@ const wallblocksize = 40;
 const halfBlockSize = wallblocksize / 2;
 
 
+const playerHalfWidth = playerhitbox.width
+const playerHalfHeight = playerhitbox.height
+
+
 function isCollisionWithCachedWalls(walls, x, y) {
   const xMin = x - playerhitbox.xMin;
   const xMax = x + playerhitbox.xMax;
