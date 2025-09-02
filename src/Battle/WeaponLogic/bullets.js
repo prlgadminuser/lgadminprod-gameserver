@@ -1,5 +1,11 @@
 "use strict";
 
+function PlaceNewObject(room, obj) {
+ 
+ room.notSeenObjectgrid.addObject(obj);
+
+}
+
 const { gunsconfig } = require("@main/modules");
 const { isCollisionWithBullet, findCollidedWall, adjustBulletDirection, isCollisionWithPlayer } = require("../Collisions/collision");
 const { handleDummyCollision, handlePlayerCollision } = require("../PlayerLogic/movement");
@@ -103,6 +109,11 @@ class BulletManager {
 }
 
     spawnBullet(player, bulletData) {
+
+      const obj = { x: 34, y: 12, type: "spray" }
+      PlaceNewObject(this.room, obj)
+
+
     const id = this.generateBulletId();
     const angle = bulletData.angle;
     const offset = bulletData.offset;

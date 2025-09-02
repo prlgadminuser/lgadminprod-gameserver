@@ -284,7 +284,7 @@ function prepareRoomMessages(room) {
 
       let filteredPlayers = [];
 
-      const playersInRange = p.nearbyplayers;
+      const playersInRange = p.nearbyplayersids;
       const previousData = p.pdHashes || {};
       const currentData = {};
 
@@ -315,10 +315,12 @@ function prepareRoomMessages(room) {
       WLD: room.destroyedWalls,
     //  cl: p.nearbycircles,
       an: p.nearbyanimations,
+      ons: p.newSeenObjects, //objects not seen
       b: p.finalbullets,
       pd: p.pd,
     };
 
+    console.log(p.newSeenObjects)
     // Remove empty keys
     for (const key in msg) {
       if (

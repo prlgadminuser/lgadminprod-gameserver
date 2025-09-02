@@ -52,11 +52,38 @@ function getPlayersInRange(room, centerX, centerY) {
 }
 
 
+
+function getNotSeenObjects(room, player, centerX, centerY) {
+
+  const xMin = centerX - xThreshold;
+  const xMax = centerX + xThreshold;
+  const yMin = centerY - yThreshold;
+  const yMax = centerY + yThreshold;
+
+ 
+  const visible = room.notSeenObjectgrid.ForNotSeenObjectsGetObjectsInArea(xMin, xMax, yMin, yMax, player.seenObjectsIds);
+  visible.forEach(obj => player.seenObjectsIds.add(obj.id));
+
+   const formattedObjects = visible.length > 0
+    ? visible.map(obj => [Math.round(obj.x), Math.round(obj.y), obj.type])
+    : undefined;
+
+  return formattedObjects;
+
+}
+
+
 function UpdatePlayerChunks(room, player) {
+
+const nearbyNotSeenObjectIds = getNotSeenObjects(room, player, player.x, player.y)
+
+//console.log(nearbyNotSeenObjectIds)
+
 const nearbyPlayersIdsArray = getPlayersInRange(room, player.x, player.y)
     .map(p => p.id);
 
- player.nearbyplayers = nearbyPlayersIdsArray
+ player.newSeenObjects = nearbyNotSeenObjectIds
+
  player.nearbyplayersids = nearbyPlayersIdsArray
 }
 

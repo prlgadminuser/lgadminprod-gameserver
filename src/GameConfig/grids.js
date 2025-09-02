@@ -7,6 +7,7 @@ class RealTimeObjectGrid {
   constructor(cellSize) {
     this.cellSize = cellSize;
     this.grid = new Map(); // Key: "cellX,cellY" → Set of objects
+    this.nextId = 1;   
   }
 
   _getCellKey(x, y) {
@@ -22,6 +23,8 @@ class RealTimeObjectGrid {
       throw new Error("Object must have numeric 'x' and 'y' properties.");
     }
   }
+
+   if (!obj.id) obj.id = this.nextId++;
 
     const key = this._getCellKey(obj.x, obj.y);
     if (!this.grid.has(key)) {
@@ -80,6 +83,26 @@ class RealTimeObjectGrid {
     return result;
   }
 
+  ForNotSeenObjectsGetObjectsInArea(xMin, xMax, yMin, yMax, excludeSeenIds) {
+  const result = [];
+  const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
+
+  for (const key of keys) {
+    const set = this.grid.get(key);
+    if (set) {
+      for (const obj of set) {
+        // Only filter if excludeSeenIds is provided
+        if (!excludeSeenIds || !excludeSeenIds.has(obj.id)) {
+          result.push(obj);
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
+
   _getKeysInArea(xMin, xMax, yMin, yMax) {
     const keys = [];
     const startX = Math.floor(xMin / this.cellSize);
@@ -96,6 +119,7 @@ class RealTimeObjectGrid {
     return keys;
   }
 }
+
 
 
 class SpatialGrid {

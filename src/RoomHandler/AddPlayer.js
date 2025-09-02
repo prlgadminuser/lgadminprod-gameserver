@@ -96,6 +96,8 @@ async function PlayerJoinRoom(ws, gamemode, playerVerified) {
       finalrewards_awarded: false,
       respawns: room.respawns,
       emote: 0,
+
+      seenObjectsIds: new Set(),
       // combat shooting
 
       lastShootTime: 0,
@@ -105,7 +107,6 @@ async function PlayerJoinRoom(ws, gamemode, playerVerified) {
       eliminations: [],
       nearbyanimations: [],
       can_bullets_bounce: false,
-      nearbyplayers: [],
       nearbyplayersids: [],
       lastplayerids: [],
       // movement

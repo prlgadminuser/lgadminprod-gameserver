@@ -9,7 +9,6 @@ function RemovePlayerFromRoom(room, player) {
   player.eliminated = true
  
   player.wsClose();
-  player.nearbyplayers = [];
 
   if (player.kills > 0 || player.damage > 0)
      UpdatePlayerKillsAndDamage(player);
