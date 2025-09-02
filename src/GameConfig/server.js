@@ -5,7 +5,7 @@ const maxPlayers = 100;
 const maxOpenRooms = 100;
 
 
-const TICK_RATE = 70 // add one more for smoothness // use 70 for local
+const TICK_RATE = 60 // add one more for smoothness // use 70 for local
 const game_tick_rate =  1000 / TICK_RATE;
 const player_idle_timeout = 10000;
 const PlayerMaxRequestsPerSecond = 30

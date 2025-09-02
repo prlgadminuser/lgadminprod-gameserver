@@ -320,7 +320,6 @@ function prepareRoomMessages(room) {
       pd: p.pd,
     };
 
-    console.log(p.newSeenObjects)
     // Remove empty keys
     for (const key in msg) {
       if (
