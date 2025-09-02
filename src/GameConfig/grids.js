@@ -66,6 +66,22 @@ class NotSeenNearbyObjectsGrid {
   return !!obj._gridKey && this.grid.has(obj._gridKey) && this.grid.get(obj._gridKey).has(obj);
 }
 
+ _getKeysInArea(xMin, xMax, yMin, yMax) {
+    const keys = [];
+    const startX = Math.floor(xMin / this.cellSize);
+    const endX = Math.floor(xMax / this.cellSize);
+    const startY = Math.floor(yMin / this.cellSize);
+    const endY = Math.floor(yMax / this.cellSize);
+
+    for (let x = startX; x <= endX; x++) {
+      for (let y = startY; y <= endY; y++) {
+        keys.push(`${x},${y}`);
+      }
+    }
+
+    return keys;
+  }
+
     getObjectsInArea(xMin, xMax, yMin, yMax, excludeSeenIds, resultArray) {
     const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
     const result = resultArray || [];
@@ -87,6 +103,9 @@ class NotSeenNearbyObjectsGrid {
     return result;
   }
 }
+
+
+
 
 class RealTimeObjectGrid {
   constructor(cellSize) {
