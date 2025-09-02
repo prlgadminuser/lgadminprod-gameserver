@@ -5,6 +5,7 @@ const {
   gridcellsize,
   RealTimeObjectGrid,
   SpatialGrid,
+  NotSeenNearbyObjectsGrid,
 } = require("@GameConfig/grids");
 
 const { isValidDirection, playerhitbox } = require("@src/GameConfig/player");
@@ -62,6 +63,7 @@ module.exports = {
   gridcellsize,
   RealTimeObjectGrid,
   SpatialGrid,
+  NotSeenNearbyObjectsGrid,
 
   // player config
   playerhitbox,
