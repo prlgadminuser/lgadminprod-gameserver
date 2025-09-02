@@ -66,15 +66,20 @@ class NotSeenNearbyObjectsGrid {
   return !!obj._gridKey && this.grid.has(obj._gridKey) && this.grid.get(obj._gridKey).has(obj);
 }
 
-  getObjectsInArea(xMin, xMax, yMin, yMax) {
-    const result = [];
+    getObjectsInArea(xMin, xMax, yMin, yMax, excludeSeenIds, resultArray) {
     const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
+    const result = resultArray || [];
 
-    for (const key of keys) {
-      const set = this.grid.get(key);
+    // If resultArray is passed, clear it first
+    if (resultArray) resultArray.length = 0;
+
+    for (let i = 0; i < keys.length; i++) {
+      const set = this.grid.get(keys[i]);
       if (set) {
         for (const obj of set) {
-          result.push(obj);
+          if (!excludeSeenIds || !excludeSeenIds.has(obj.id)) {
+            result.push(obj);
+          }
         }
       }
     }

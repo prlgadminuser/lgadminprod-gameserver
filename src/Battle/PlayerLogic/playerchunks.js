@@ -61,7 +61,7 @@ function getNotSeenObjects(room, player, centerX, centerY) {
   const yMax = centerY + yThreshold;
 
  
-  const visible = room.notSeenObjectgrid.ForNotSeenObjectsGetObjectsInArea(xMin, xMax, yMin, yMax, player.seenObjectsIds);
+  const visible = room.notSeenObjectgrid.GetObjectsInArea(xMin, xMax, yMin, yMax, player.seenObjectsIds);
   visible.forEach(obj => player.seenObjectsIds.add(obj.id));
 
    const formattedObjects = visible.length > 0
