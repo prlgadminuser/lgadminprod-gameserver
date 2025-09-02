@@ -212,9 +212,9 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     setInterval(() => {
       room.bulletManager.update();
       prepareRoomMessages(room);
-      room.timeoutdelaysending = setTimeout(() => {
+    //  room.timeoutdelaysending = setTimeout(() => {
         sendRoomMessages(room);
-      }, 2);
+    //  }, 2);
     }, game_tick_rate)
   );
 
