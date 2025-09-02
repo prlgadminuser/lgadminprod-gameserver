@@ -1,20 +1,9 @@
 "use strict";
 
-
+const { playerhitbox } = require("@main/modules");
 
 const wallblocksize = 40;
 const halfBlockSize = wallblocksize / 2;
-
-const playerhitbox = {
-  xMin: 14,
-  xMax: 14,
-  yMin: 49,
-  yMax: 49,
-  width: 22,
-  height: 47,
-  zonewidth: 40,
-  zoneheight: 60,
-}
 
 
 function isCollisionWithCachedWalls(walls, x, y) {
@@ -101,9 +90,7 @@ function isCollisionWithPlayer(
     bulletAngle
   );
 
-  // Define the player's rectangle as 4 points (clockwise)
-  const playerHalfWidth = playerhitbox.width;
-  const playerHalfHeight = playerhitbox.height;
+  // Define the player's rectangle
   const playerCorners = [
     { x: player.x - playerHalfWidth, y: player.y - playerHalfHeight },
     { x: player.x + playerHalfWidth, y: player.y - playerHalfHeight },
@@ -113,6 +100,7 @@ function isCollisionWithPlayer(
 
   return doPolygonsIntersect(bulletCorners, playerCorners);
 }
+
 
 function isCollisionWithBullet(grid, x, y, height, width, direction) {
   const bulletCorners = getBulletCorners({ x, y }, width, height, direction);
@@ -161,75 +149,39 @@ function findCollidedWall(grid, x, y, height, width) {
 }
 
 function adjustBulletDirection(bullet, wall) {
-  const wallhitbox = 40;
-  const bw = bullet.width * 0.5;
-  const bh = bullet.height * 0.5;
-
-  const bulletCenterX = bullet.position.x + bw;
-  const bulletCenterY = bullet.position.y + bh;
-
-  const deltaX = bulletCenterX - wall.x;
-  const deltaY = bulletCenterY - wall.y;
-
-  const absDeltaX = Math.abs(deltaX);
-  const absDeltaY = Math.abs(deltaY);
-
-  const overlapX = wallhitbox + bw - absDeltaX;
-  const overlapY = wallhitbox + bh - absDeltaY;
-
-  const toRad = angle => (angle * Math.PI) / 180;
-  const incomingAngleRad = toRad(bullet.direction);
-  const sinDir = Math.sin(incomingAngleRad);
-  const cosDir = Math.cos(incomingAngleRad);
-
-  let normalAngle;
-  let side;
-  const tolerance = 1;
-
-  if (Math.abs(overlapX - overlapY) < tolerance) {
-    // Corner case
-    if (Math.abs(sinDir) > Math.abs(cosDir)) {
-      normalAngle = deltaY < 0 ? 90 : 270;
-      side = deltaY < 0 ? "top" : "bottom";
-    } else {
-      normalAngle = deltaX < 0 ? 180 : 0;
-      side = deltaX < 0 ? "left" : "right";
-    }
-  } else if (overlapX < overlapY) {
-    normalAngle = deltaX < 0 ? 180 : 0;
-    side = deltaX < 0 ? "left" : "right";
-  } else {
-    normalAngle = deltaY < 0 ? 90 : 270;
-    side = deltaY < 0 ? "top" : "bottom";
-  }
-
-  const normalAngleRad = toRad(normalAngle);
-
-  let reflectionAngleRad = 2 * normalAngleRad - incomingAngleRad;
-  if (reflectionAngleRad < 0) reflectionAngleRad += 2 * Math.PI;
-
-  let reflectionAngleDeg = (reflectionAngleRad * 180) / Math.PI;
-  reflectionAngleDeg %= 360;
-
-  if (bullet.bouncedata) {
-    const bd = bullet.bouncedata;
-    const posSame =
-      Math.abs(bullet.position.x - bd.pos.x) < 1 &&
-      Math.abs(bullet.position.y - bd.pos.y) < 1;
-
-    if (side === bd.side && posSame) {
-      bullet.alive = false;
-     // console.log("Bullet stuck and killed");
-      return;
-    }
-  }
-
-  bullet.bouncedata = {
-    side,
-    pos: { x: bullet.position.x, y: bullet.position.y },
+  const incomingVector = {
+    x: Math.cos(toRadians(bullet.direction)),
+    y: Math.sin(toRadians(bullet.direction)),
   };
 
-  bullet.direction = reflectionAngleDeg;
+  let normalVector;
+
+  const wallLeft = wall.x - halfBlockSize;
+  const wallRight = wall.x + halfBlockSize;
+  const wallTop = wall.y - halfBlockSize;
+  const wallBottom = wall.y + halfBlockSize;
+
+  // Determine the normal vector of the wall side hit
+  if (bullet.x < wallLeft || bullet.x > wallRight) {
+    normalVector = { x: bullet.x < wall.x ? -1 : 1, y: 0 };
+  } else {
+    normalVector = { x: 0, y: bullet.y < wall.y ? -1 : 1 };
+  }
+
+  // Calculate the dot product
+  const dotProduct = incomingVector.x * normalVector.x + incomingVector.y * normalVector.y;
+
+  // Reflect the vector
+  const reflectedVector = {
+    x: incomingVector.x - 2 * dotProduct * normalVector.x,
+    y: incomingVector.y - 2 * dotProduct * normalVector.y,
+  };
+
+  // Convert the reflected vector back to a direction angle
+  const reflectionAngleRad = Math.atan2(reflectedVector.y, reflectedVector.x);
+  let reflectionAngleDeg = (reflectionAngleRad * 180) / Math.PI;
+
+  bullet.direction = (reflectionAngleDeg + 360) % 360;
 }
 
 
@@ -240,41 +192,34 @@ function toRadians(degrees) {
 function doPolygonsIntersect(a, b) {
   const polygons = [a, b];
 
-  for (let i = 0; i < polygons.length; i++) {
-    const polygon = polygons[i];
+  for (const polygon of polygons) {
+    for (let i = 0; i < polygon.length; i++) {
+      const p1 = polygon[i];
+      const p2 = polygon[(i + 1) % polygon.length];
 
-    for (let j = 0; j < polygon.length; j++) {
-      const k = (j + 1) % polygon.length;
-      const edge = {
-        x: polygon[k].x - polygon[j].x,
-        y: polygon[k].y - polygon[j].y,
-      };
+      // Perpendicular axis to the edge
+      const axis = { x: -(p2.y - p1.y), y: p2.x - p1.x };
 
-      // Get perpendicular axis to the edge
-      const axis = { x: -edge.y, y: edge.x };
+      const [minA, maxA] = projectPolygon(a, axis);
+      const [minB, maxB] = projectPolygon(b, axis);
 
-      // Project both polygons onto the axis
-      let [minA, maxA] = projectPolygon(a, axis);
-      let [minB, maxB] = projectPolygon(b, axis);
-
-      // Check for overlap
       if (maxA < minB || maxB < minA) {
-        return false; // No collision on this axis
+        return false;
       }
     }
   }
 
-  return true; // All axes overlap
+  return true;
 }
 
 function projectPolygon(polygon, axis) {
-  let min = dotProduct(polygon[0], axis);
-  let max = min;
+  let min = Infinity;
+  let max = -Infinity;
 
-  for (let i = 1; i < polygon.length; i++) {
-    const proj = dotProduct(polygon[i], axis);
-    if (proj < min) min = proj;
-    if (proj > max) max = proj;
+  for (const point of polygon) {
+    const projection = point.x * axis.x + point.y * axis.y;
+    min = Math.min(min, projection);
+    max = Math.max(max, projection);
   }
 
   return [min, max];

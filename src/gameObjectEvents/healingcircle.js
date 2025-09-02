@@ -1,8 +1,9 @@
 
+const { playerhitbox } = require("@main/modules");
 
 
-const playerHitboxWidth = 22;
-const playerHitboxHeight = 47;
+const playerHitboxWidth = playerhitbox.width;
+const playerHitboxHeight = playerhitbox.height;
 
 function spawnHealingCircle(room) {
   // Filter active players (not eliminated)

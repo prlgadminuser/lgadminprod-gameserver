@@ -214,7 +214,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
       prepareRoomMessages(room);
       room.timeoutdelaysending = setTimeout(() => {
         sendRoomMessages(room);
-      }, 2);
+      }, 3);
     }, game_tick_rate)
   );
 

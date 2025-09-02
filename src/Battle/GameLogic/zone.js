@@ -4,16 +4,13 @@ const { TeamPlayersActive } = require("@main/src/teamhandler/aliveteam");
 const { handleElimination } = require("../PlayerLogic/eliminated");
 const { addEntryToKillfeed } = require("./killfeed");
 const { respawnplayer } = require("../PlayerLogic/respawn");
-
+const { playerhitbox } = require("@main/modules");
 
 
 const RandomZone = false
 
-
-
-
- const PLAYER_WIDTH = 40
-const PLAYER_HEIGHT = 60;
+const PLAYER_WIDTH = playerhitbox.zonewidth
+const PLAYER_HEIGHT = playerhitbox.zoneheight
 
 function isWithinZone(room, playerX, playerY) {
   return playerX - PLAYER_WIDTH >= room.zoneStartX && playerX + PLAYER_WIDTH <= room.zoneEndX &&
