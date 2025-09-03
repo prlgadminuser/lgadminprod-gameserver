@@ -312,7 +312,6 @@ function prepareRoomMessages(room) {
       r: finalroomdata,
       kf: room.killfeed,
       sd: Object.keys(changes).length ? changes : undefined,
-      WLD: room.destroyedWalls,
     //  cl: p.nearbycircles,
       an: p.nearbyanimations,
       ons: p.newSeenObjects, //objects not seen
@@ -367,7 +366,6 @@ if (hash === "{}") {
   // CLEANUP
   
   room.killfeed = [];
-  room.destroyedWalls = [];
   for (const p of players) {
     p.hitmarkers = [];
     p.eliminations = [];

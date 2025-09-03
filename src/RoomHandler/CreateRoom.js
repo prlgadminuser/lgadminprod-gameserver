@@ -127,7 +127,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     zone: 0,
 
     // Destruction
-    destroyedWalls: [],
+   // destroyedWalls: [],
 
     // clear interval ids
     intervalIds: [],
