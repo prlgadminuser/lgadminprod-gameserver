@@ -72,21 +72,22 @@ function getNotSeenObjects(room, player, centerX, centerY) {
     ])
     : undefined;
 
-     player.newSeenObjects = formattedObjects
- // return formattedObjects;
+    // player.newSeenObjects = formattedObjects
+     return formattedObjects;
 
 }
 
 
 function UpdatePlayerChunks(room, player) {
 
- getNotSeenObjects(room, player, player.x, player.y)
+const notSeenObjects = getNotSeenObjects(room, player, player.x, player.y)
 
-//console.log(nearbyNotSeenObjectIds)
 
 const nearbyPlayersIdsArray = getPlayersInRange(room, player.x, player.y)
     .map(p => p.id);
 
+  
+ player.newSeenObjects = notSeenObjects
  player.nearbyplayersids = nearbyPlayersIdsArray
 }
 

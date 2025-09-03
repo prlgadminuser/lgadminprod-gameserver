@@ -44,7 +44,7 @@ function handleSpectatorMode(player, room) {
     );
 
     if (nearestNonEliminated) {
-      getNotSeenObjects(room, player, nearestNonEliminated.x, nearestNonEliminated.y)
+      player.newSeenObjects = getNotSeenObjects(room, player, nearestNonEliminated.x, nearestNonEliminated.y)
       player.spectatingTarget = nearestNonEliminated;
       player.lastSpectateSwitch = now;
       player.pendingSwitchAt = null; // reset
