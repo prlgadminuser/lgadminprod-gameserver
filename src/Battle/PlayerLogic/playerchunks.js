@@ -57,9 +57,12 @@ function playerchunkrenderer(room) {
 
   const roomplayers = Array.from(room.players.values())
 
-  const AlivePlayers = roomplayers.filter(p => !p.spectatingTarget.alive);
-  AlivePlayers.forEach(player =>  
+   roomplayers.forEach(player =>  
   player.newSeenObjects = getNotSeenObjects(room, player, player.x, player.y),
+);
+
+  const AlivePlayers = roomplayers.filter(p => !p.spectating);
+  AlivePlayers.forEach(player =>  
   player.nearbyplayersids = getPlayersInRange(room, player.x, player.y).map(p => p.id)
 );
 
