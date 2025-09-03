@@ -1,31 +1,5 @@
 "use strict";
 
-
-
-function findNearestEvents(player, room) {
-  const grid = room.itemgrid;
-
-  const searchRadiusX = 400;
-  const searchRadiusY = 240;
-
-  const xMin = player.x - searchRadiusX;
-  const xMax = player.x + searchRadiusX;
-  const yMin = player.y - searchRadiusY;
-  const yMax = player.y + searchRadiusY;
-
-  const objectsInArea = grid.getObjectsInArea(xMin, xMax, yMin, yMax);
-
-  const circles = [];
-
-  for (const obj of objectsInArea) {
-    if (obj.id === "circle") {
-      circles.push([obj.type, obj.x, obj.y, obj.radius]);
-    }
-  }
-  
-   player.nearbycircles = circles;
-}
-
 const xThreshold = 380
 const yThreshold = 300
 
@@ -78,29 +52,17 @@ function getNotSeenObjects(room, player, centerX, centerY) {
 }
 
 
-function UpdatePlayerChunks(room, player) {
-
-const notSeenObjects = getNotSeenObjects(room, player, player.x, player.y)
-
-
-const nearbyPlayersIdsArray = getPlayersInRange(room, player.x, player.y)
-    .map(p => p.id);
-
-  
- player.newSeenObjects = notSeenObjects
- player.nearbyplayersids = nearbyPlayersIdsArray
-}
-
-
-
 
 function playerchunkrenderer(room) {
-  
-  const AlivePlayers = Array.from(room.players.values()).filter(p => !p.spectating);
 
-   AlivePlayers.forEach(player => UpdatePlayerChunks(room, player));
-  
- // room.players.forEach(player => findNearestEvents(player, room));
+  const roomplayers = Array.from(room.players.values())
+
+  const AlivePlayers = roomplayers.filter(p => !p.spectatingTarget.alive);
+  AlivePlayers.forEach(player =>  
+  player.newSeenObjects = getNotSeenObjects(room, player, player.x, player.y),
+  player.nearbyplayersids = getPlayersInRange(room, player.x, player.y).map(p => p.id)
+);
+
 }
 
 module.exports = {

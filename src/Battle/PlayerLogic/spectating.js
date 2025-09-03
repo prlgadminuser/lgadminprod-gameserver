@@ -44,12 +44,11 @@ function handleSpectatorMode(player, room) {
     );
 
     if (nearestNonEliminated) {
-      player.newSeenObjects = getNotSeenObjects(room, player, nearestNonEliminated.x, nearestNonEliminated.y)
       player.spectatingTarget = nearestNonEliminated;
       player.lastSpectateSwitch = now;
       player.pendingSwitchAt = null; // reset
     //  player.tick_send_allow = true
-    //  updateSpectatingPlayer(player, nearestNonEliminated);
+      updateSpectatingPlayer(player, nearestNonEliminated);
       
     }
   }
@@ -63,7 +62,6 @@ function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
   spectatingPlayer.spectatingTarget = targetPlayer;
   spectatingPlayer.pd = targetPlayer.latestnozeropd;
   spectatingPlayer.nearbyplayersids = targetPlayer.nearbyplayersids;
-  spectatingPlayer.newSeenObjects = targetPlayer.newSeenObjects;
   spectatingPlayer.hitmarkers = targetPlayer.hitmarkers;
   spectatingPlayer.nearbyanimations = targetPlayer.nearbyanimations;
   spectatingPlayer.finalbullets = targetPlayer.finalbullets;
