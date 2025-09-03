@@ -56,8 +56,8 @@ function handleSpectatorMode(player, room) {
 
 function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
   if (!targetPlayer) return;
-//  spectatingPlayer.x = targetPlayer.x;
- // spectatingPlayer.y = targetPlayer.y;
+  spectatingPlayer.x = targetPlayer.x;
+  spectatingPlayer.y = targetPlayer.y;
   spectatingPlayer.spectatingPlayerId = targetPlayer.id;
   spectatingPlayer.spectatingTarget = targetPlayer;
   spectatingPlayer.pd = targetPlayer.latestnozeropd;
