@@ -1,5 +1,5 @@
 "use strict";
-require('module-alias/register');
+require("module-alias/register");
 
 const WebSocket = require("ws");
 const http = require("http");
@@ -14,7 +14,6 @@ const SERVER_INSTANCE_ID = "xxxxxxxxxx".replace(/[xy]/g, function (c) {
   return v.toString(16);
 });
 
-
 const USER_KEY_PREFIX = "user:"; // user:<username> => serverId
 const SERVER_USERS_PREFIX = "users:"; // users:<serverId> => hash of username -> sessionInfo
 const SERVER_HEARTBEAT_PREFIX = "server_heartbeat:"; // Prefix for server heartbeat keys
@@ -24,25 +23,27 @@ const HEARTBEAT_INTERVAL_MS = 10000 * multiplier; // Send heartbeat periodically
 const HEARTBEAT_TTL_SECONDS = (30000 * multiplier) / 1000; // Heartbeat expires (seconds) - SETEX uses seconds
 
 const redisClient = new Redis(rediskey);
+const sub = new Redis(rediskey);
 
-const ConnectionOptionsRateLimit = {
-  points: 1, // Number of points
-  duration: 1, // Per second
-};
-const rateLimiterConnection = new RateLimiterMemory(ConnectionOptionsRateLimit);
-
-
-let connectedClientsCount = 0;
-
-redisClient.on("connect", () => {
-  console.log("Redis command client connected.");
-  startHeartbeat();
-
+sub.subscribe("bans", (err) => {
+  if (err) console.error("Failed to subscribe:", err);
+  else console.log("Subscribed to bans channel.");
 });
 
-redisClient.on("error", (err) =>
-  console.error("Redis command client error:", err)
-);
+sub.on("message", (c, username) => {
+  //  console.log(`Ban event received for ${username}`);
+  kickFromRoom(username);
+});
+
+const playerLookup = new Map();
+
+function kickFromRoom(username) {
+  const room = playerLookup.get(username);
+  if (!room) return; // player not in any room
+
+  if (!room.players.get(username)) return;
+  RemovePlayerFromRoom(username); // drop their connection
+}
 
 function startHeartbeat() {
   setInterval(async () => {
@@ -92,7 +93,22 @@ async function removeSession(username) {
   await pipeline.exec();
 }
 
+redisClient.on("connect", () => {
+  console.log("Redis command client connected.");
+  startHeartbeat();
+});
 
+redisClient.on("error", (err) =>
+  console.error("Redis command client error:", err)
+);
+
+const ConnectionOptionsRateLimit = {
+  points: 1, // Number of points
+  duration: 1, // Per second
+};
+const rateLimiterConnection = new RateLimiterMemory(ConnectionOptionsRateLimit);
+
+let connectedClientsCount = 0;
 
 const server = http.createServer((req, res) => {
   try {
@@ -124,10 +140,7 @@ const wss = new WebSocket.Server({
   maxPayload: 10, // 10MB max payload (adjust according to your needs)
 });
 
-
-
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
-
 
 module.exports = {
   axios,
@@ -135,11 +148,6 @@ module.exports = {
   http,
   connectedClientsCount,
 };
-
-
-
-
-
 
 const allowedOrigins = [
   "https://slcount.netlify.app",
@@ -183,7 +191,6 @@ wss.on("connection", async (ws, req) => {
       ws.close(1011, "Internal server error");
       return;
     }
-    
 
     if (isMaintenance) {
       ws.send("matchmaking_disabled"); // First send a message
@@ -218,7 +225,6 @@ wss.on("connection", async (ws, req) => {
       ws.close(4094, "Unauthorized");
       return;
     }
-
 
     let playerVerified;
     try {
@@ -285,7 +291,11 @@ wss.on("connection", async (ws, req) => {
       return;
     }
 
-    const player = joinResult.room.players.get(joinResult.playerId);
+    const player = joinResult.room.players.get(username);
+    const room = joinResult.room;
+    const roomId = joinResult.roomId;
+
+    playerLookup.set(username, room);
 
     ws.on("message", (message) => {
       if (!player || !player.rateLimiter) return;
@@ -304,38 +314,28 @@ wss.on("connection", async (ws, req) => {
       }
     });
 
-
     ws.on("close", async () => {
       // Marked async for Redis operations
-
+      playerLookup.delete(username);
       await removeSession(ws.username);
-
-      const player = joinResult.room.players.get(joinResult.playerId);
       if (player) {
+        if (room && !player.eliminated) eliminatePlayer(room, player);
+        RemovePlayerFromRoom(room, player);
 
-        if (joinResult.room.grid && !player.eliminated) eliminatePlayer(joinResult.room, player)
-        RemovePlayerFromRoom(joinResult.room, player);
+        addEntryToKillfeed(room, 5, null, player.id, null);
 
-        addEntryToKillfeed(joinResult.room, 5, null, player.id, null)
-
-          if (joinResult.room.players.size < 1) {
-          closeRoom(joinResult.roomId);
+        if (room.players.size < 1) {
+          closeRoom(roomId);
           return;
-          }
+        }
 
-          
-
-
-        if (joinResult.room.grid) checkGameEndCondition(joinResult.room);
-
-
-      
+        if (room.grid) checkGameEndCondition(room);
       }
     });
   } catch (error) {
     console.error("Error during WebSocket connection handling:", error);
 
-      ws.close(1011, "Internal server error");
+    ws.close(1011, "Internal server error");
   }
 });
 
@@ -347,7 +347,7 @@ server.on("upgrade", (request, socket, head) => {
       request.socket.remoteAddress;
 
     try {
-     // await rateLimiterConnection.consume(ip);
+      await rateLimiterConnection.consume(ip);
 
       const origin =
         request.headers["sec-websocket-origin"] || request.headers.origin;
@@ -367,7 +367,6 @@ server.on("upgrade", (request, socket, head) => {
   })();
 });
 
-
 process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception:", error);
   process.exit();
@@ -380,7 +379,6 @@ process.on("unhandledRejection", (reason, promise) => {
 
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const { uri } = require("@main/idbconfig");
-
 
 const mongoClient = new MongoClient(uri, {
   serverApi: {
@@ -396,36 +394,38 @@ async function ConnectToMongoDB() {
     console.log("Connected to MongoDB");
   } catch (err) {
     console.error("Error connecting to MongoDB:", err);
-    process.exit(1)
+    process.exit(1);
   }
 }
-  
-
 
 const db = mongoClient.db("Cluster0");
 const DBuserCollection = db.collection("users");
 const DBbattlePassCollection = db.collection("battlepass_users");
 const DBshopCollection = db.collection("serverconfig");
 
+module.exports = {
+  db,
+  DBuserCollection,
+  DBbattlePassCollection,
+  DBshopCollection,
+};
 
+const { verifyPlayer } = require("./src/Database/verifyPlayer");
+const { checkForMaintenance } = require("./src/Database/ChangePlayerStats");
+const { allowed_gamemodes } = require("./src/GameConfig/gamemodes");
+const { PlayerJoinRoom } = require("./src/RoomHandler/AddPlayer");
+const { handleRequest } = require("./src/Battle/NetworkLogic/HandleRequest");
+const {
+  eliminatePlayer,
+  checkGameEndCondition,
+} = require("./src/Battle/PlayerLogic/eliminated");
+const { RemovePlayerFromRoom } = require("./src/RoomHandler/RemovePlayer");
+const { addEntryToKillfeed } = require("./src/Battle/GameLogic/killfeed");
+const { closeRoom } = require("./src/RoomHandler/closeRoom");
 
-module.exports = { db, DBuserCollection, DBbattlePassCollection, DBshopCollection }
-
-
-
-const { verifyPlayer } = require('./src/Database/verifyPlayer');
-const { checkForMaintenance } = require('./src/Database/ChangePlayerStats');
-const { allowed_gamemodes } = require('./src/GameConfig/gamemodes');
-const { PlayerJoinRoom } = require('./src/RoomHandler/AddPlayer');
-const { handleRequest } = require('./src/Battle/NetworkLogic/HandleRequest');
-const { eliminatePlayer, checkGameEndCondition } = require('./src/Battle/PlayerLogic/eliminated');
-const { RemovePlayerFromRoom } = require('./src/RoomHandler/RemovePlayer');
-const { addEntryToKillfeed } = require('./src/Battle/GameLogic/killfeed');
-const { closeRoom } = require('./src/RoomHandler/closeRoom');
-
-
-async function startServer() { // Wait for DB connection
-await ConnectToMongoDB();
+async function startServer() {
+  // Wait for DB connection
+  await ConnectToMongoDB();
   const PORT = process.env.PORT || 8070;
   server.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);
@@ -434,4 +434,3 @@ await ConnectToMongoDB();
 
 // Initialize
 startServer();
-
