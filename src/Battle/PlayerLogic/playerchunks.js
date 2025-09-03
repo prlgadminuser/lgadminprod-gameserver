@@ -65,24 +65,28 @@ function getNotSeenObjects(room, player, centerX, centerY) {
   visible.forEach(obj => player.seenObjectsIds.add(obj.id));
 
    const formattedObjects = visible.length > 0
-    ? visible.map(obj => [Math.round(obj.x), Math.round(obj.y), obj.type])
+    ? visible.map(obj => [
+      obj.id,
+      obj.type,
+      Math.round(obj.x), 
+      Math.round(obj.y), 
+    ])
     : undefined;
 
-  return formattedObjects;
+     player.newSeenObjects = nearbyNotSeenObjectIds
+ // return formattedObjects;
 
 }
 
 
 function UpdatePlayerChunks(room, player) {
 
-const nearbyNotSeenObjectIds = getNotSeenObjects(room, player, player.x, player.y)
+ getNotSeenObjects(room, player, player.x, player.y)
 
 //console.log(nearbyNotSeenObjectIds)
 
 const nearbyPlayersIdsArray = getPlayersInRange(room, player.x, player.y)
     .map(p => p.id);
-
- player.newSeenObjects = nearbyNotSeenObjectIds
 
  player.nearbyplayersids = nearbyPlayersIdsArray
 }
@@ -102,4 +106,5 @@ function playerchunkrenderer(room) {
 module.exports = {
   playerchunkrenderer,
   getPlayersInRange,
+  getNotSeenObjects
 };

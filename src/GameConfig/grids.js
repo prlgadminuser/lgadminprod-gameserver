@@ -23,7 +23,7 @@ class NotSeenNearbyObjectsGrid {
     }
   }
 
-   if (!obj.id) obj.id = this.nextId++;
+   obj.id = this.nextId++;
 
     const key = this._getCellKey(obj.x, obj.y);
     if (!this.grid.has(key)) {

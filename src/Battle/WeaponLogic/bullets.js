@@ -1,14 +1,10 @@
 "use strict";
 
-function PlaceNewObject(room, obj) {
- 
- room.notSeenObjectgrid.addObject(obj);
-
-}
 
 const { gunsconfig } = require("@main/modules");
 const { isCollisionWithBullet, findCollidedWall, adjustBulletDirection, isCollisionWithPlayer } = require("../Collisions/collision");
 const { handleDummyCollision, handlePlayerCollision } = require("../PlayerLogic/movement");
+const { AddNewUnseenObject } = require("@main/src/gameObjectEvents/utils");
 
 class Vec2 {
   constructor(x, y) {
@@ -109,10 +105,6 @@ class BulletManager {
 }
 
     spawnBullet(player, bulletData) {
-
-      const obj = { x: player.x, y: player.y, type: "spray" }
-      PlaceNewObject(this.room, obj)
-
 
     const id = this.generateBulletId();
     const angle = bulletData.angle;
@@ -345,6 +337,13 @@ function GunHasModifier(name, room, modifiers) {
 function DestroyWall(wall, room) {
   room.grid.removeObject(wall);
   room.destroyedWalls.push([wall.x,wall.y]);
+
+  const obj = {
+    type: 1,
+    x: wall.x,
+    y: wall.y
+  }  // id for wall removal object: 1
+  AddNewUnseenObject(room, )
 }
 
 function calculateFinalDamage(distanceUsed, bulletMaxDistance, normalDamage, layers) {

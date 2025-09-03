@@ -1,7 +1,11 @@
 
 "use strict";
 
+const { getNotSeenObjects } = require("./playerchunks");
 
+
+
+const timeToSwitchTargets = 2000
 
 function handleSpectatorMode(player, room) {
   if (!player.eliminated) {
@@ -29,7 +33,7 @@ function handleSpectatorMode(player, room) {
 
   // If current target just got eliminated → start a new 2s countdown
   if (currentTarget && currentTarget.eliminated && !player.pendingSwitchAt) {
-    player.pendingSwitchAt = now + 2000; // wait exactly 2s
+    player.pendingSwitchAt = now + timeToSwitchTargets; // wait exactly 2s
   }
 
   // Check if it's time to switch
@@ -41,6 +45,7 @@ function handleSpectatorMode(player, room) {
 
     if (nearestNonEliminated) {
       player.spectatingTarget = nearestNonEliminated;
+      getNotSeenObjects(room, player, nearestNonEliminated.x, nearestNonEliminated.y)
       player.lastSpectateSwitch = now;
       player.pendingSwitchAt = null; // reset
     //  player.tick_send_allow = true
@@ -58,8 +63,8 @@ function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
   spectatingPlayer.spectatingTarget = targetPlayer;
   spectatingPlayer.pd = targetPlayer.latestnozeropd;
   spectatingPlayer.nearbyplayersids = targetPlayer.nearbyplayersids;
+  spectatingPlayer.newSeenObjects = targetPlayer.newSeenObjects;
   spectatingPlayer.hitmarkers = targetPlayer.hitmarkers;
-  spectatingPlayer.nearbycircles = targetPlayer.nearbycircles;
   spectatingPlayer.nearbyanimations = targetPlayer.nearbyanimations;
   spectatingPlayer.finalbullets = targetPlayer.finalbullets;
 }
