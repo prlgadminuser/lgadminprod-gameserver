@@ -73,7 +73,7 @@ function getNotSeenObjects(room, player, centerX, centerY) {
     ])
     : undefined;
 
-     player.newSeenObjects = nearbyNotSeenObjectIds
+     player.newSeenObjects = formattedObjects
  // return formattedObjects;
 
 }
