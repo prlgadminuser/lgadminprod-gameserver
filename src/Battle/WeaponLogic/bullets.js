@@ -197,9 +197,9 @@ class BulletManager {
 
         const centerX = bullet.position.x
         const centerY = bullet.position.y
-        const threshold = bullet.width > bullet.height ? bullet.width : bullet.height
-        const xThreshold = threshold + playerWidth
-        const yThreshold = threshold + playerHeight
+        const threshold = Math.max(bullet.width, bullet.height) / 2;
+        const xThreshold = threshold + playerWidth / 2
+        const yThreshold = threshold + playerHeight / 2
         
         const nearbyPlayers = this.room.realtimegrid.getObjectsInArea(
         centerX - xThreshold,
