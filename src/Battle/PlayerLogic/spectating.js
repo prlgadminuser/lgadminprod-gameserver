@@ -44,8 +44,8 @@ function handleSpectatorMode(player, room) {
     );
 
     if (nearestNonEliminated) {
-      player.spectatingTarget = nearestNonEliminated;
       getNotSeenObjects(room, player, nearestNonEliminated.x, nearestNonEliminated.y)
+      player.spectatingTarget = nearestNonEliminated;
       player.lastSpectateSwitch = now;
       player.pendingSwitchAt = null; // reset
     //  player.tick_send_allow = true
