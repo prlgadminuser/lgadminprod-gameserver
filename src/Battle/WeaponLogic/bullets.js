@@ -1,10 +1,15 @@
 "use strict";
 
 
-const { gunsconfig } = require("@main/modules");
+const { gunsconfig, playerhitbox } = require("@main/modules");
 const { isCollisionWithBullet, findCollidedWall, adjustBulletDirection, isCollisionWithPlayer } = require("../Collisions/collision");
 const { handleDummyCollision, handlePlayerCollision } = require("../PlayerLogic/movement");
 const { AddNewUnseenObject } = require("@main/src/gameObjectEvents/utils");
+
+
+const playerWidth = playerhitbox.width
+const playerHeight = playerhitbox.height
+
 
 class Vec2 {
   constructor(x, y) {
@@ -193,8 +198,8 @@ class BulletManager {
         const centerX = bullet.position.x
         const centerY = bullet.position.y
         const threshold = bullet.width > bullet.height ? bullet.width : bullet.height
-        const xThreshold = threshold
-        const yThreshold = threshold
+        const xThreshold = threshold + playerWidth
+        const yThreshold = threshold + playerHeight
         
         const nearbyPlayers = this.room.realtimegrid.getObjectsInArea(
         centerX - xThreshold,

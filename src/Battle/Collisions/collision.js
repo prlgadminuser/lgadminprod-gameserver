@@ -69,8 +69,8 @@ function rotatePoint(x, y, cx, cy, angleRad) {
 
 function getBulletCorners(bullet, width, height, angleDeg) {
   const rad = toRadians(angleDeg);
-  const hw = width / 2;   // HALF width
-  const hh = height / 2;  // HALF height
+  const hw = width;
+  const hh = height;
 
   return [
     rotatePoint(bullet.x + hw, bullet.y + hh, bullet.x, bullet.y, rad),
@@ -79,7 +79,6 @@ function getBulletCorners(bullet, width, height, angleDeg) {
     rotatePoint(bullet.x + hw, bullet.y - hh, bullet.x, bullet.y, rad),
   ];
 }
-
 
 function isCollisionWithPlayer(
   bullet,
@@ -242,4 +241,3 @@ module.exports = {
   findCollidedWall,
   isCollisionWithPlayer,
 };
-
