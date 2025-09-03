@@ -151,7 +151,7 @@ function updatePlayerDirection(player, direction) {
 
   if (player.direction == -180 || player.direction == 0) {
   } else
-    player.direction2 = direction > 0 ? 90 : -90 // Adjust otherwise
+    player.direction2 = direction > 0 ? -90 : 90 // Adjust otherwise
 }
 
 
@@ -168,3 +168,4 @@ async function handlePlayerMoveIntervalAll(room) {
 
 
 module.exports = { handleRequest, handlePlayerMoveIntervalAll }
+
