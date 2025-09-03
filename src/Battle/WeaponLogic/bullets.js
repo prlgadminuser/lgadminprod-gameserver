@@ -343,7 +343,7 @@ function DestroyWall(wall, room) {
     x: wall.x,
     y: wall.y
   }  // id for wall removal object: 1
-  AddNewUnseenObject(room, )
+  AddNewUnseenObject(room, obj)
 }
 
 function calculateFinalDamage(distanceUsed, bulletMaxDistance, normalDamage, layers) {
