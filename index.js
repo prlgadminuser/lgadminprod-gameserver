@@ -1,7 +1,6 @@
 // server.js
 "use strict";
 require("module-alias/register");
-require("dotenv").config();
 
 const http = require("http");
 const WebSocket = require("ws");
