@@ -180,9 +180,6 @@ async function AddPlayerToRoom(ws, gamemode, playerVerified) {
 
       room.players.set(playerId, newPlayer);
 
-      const playerForLookup = room.players.get(playerId)
-      playerLookup.set(playerId, playerForLookup);
-
       if (newPlayer.wsReadyState() === ws.CLOSED) {
         RemovePlayerFromRoom(room, newPlayer);
         return;
