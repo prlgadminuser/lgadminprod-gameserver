@@ -18,12 +18,15 @@ sub.subscribe("bans", (err) => {
 function kickPlayer(username) {
   const roomOfPlayer = playerLookup.get(username);
 
+  if (!roomOfPlayer) return
+
   const player = roomOfPlayer.get(username)
 
   if (player && player.ws) {
     player.wsClose(4009, "You have been banned.");
   }
 }
+
 
 sub.on("message", (channel, username) => {
   console.log(`Ban event received for ${username}`);
@@ -81,4 +84,5 @@ module.exports = {
   addSession,
   removeSession,
   checkExistingSession,
+
 };
