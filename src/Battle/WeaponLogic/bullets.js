@@ -80,6 +80,16 @@ class Bullet {
     return this.position.add(dirVec.scale(this.speed));
   }
 
+
+  FormatForSending()   {
+   this.serialized = {
+      x: Math.round(this.position.x),
+      y: Math.round(this.position.y),
+      d: Math.round(this.direction),
+    }  
+  }
+
+
   isExpired() {
     if (!this.alive) return true;
     if (Date.now() > this.maxTime) return true;
@@ -122,9 +132,16 @@ class BulletManager {
       .add(baseDirVec.scale(offset))
       .add(perpDirVec.scale(30));
 
+    const roundeddata = {
+      x: Math.round(player.x),
+      y: Math.round(player.y),
+      d: Math.round(angle),
+    }  
+
     const bullet = new Bullet({
       id,
       position: initialPosition,
+      serialized: roundeddata,
       direction: angle,
       speed: bulletData.speed / 2,
       height: bulletData.height,
@@ -162,6 +179,8 @@ class BulletManager {
       const nextPos = bullet.nextPosition();
 
       bullet.position = nextPos;
+
+      bullet.FormatForSending() 
    
        this.room.bulletgrid.updateObject(bullet, nextPos.x, nextPos.y);
 
@@ -197,9 +216,9 @@ class BulletManager {
 
         const centerX = bullet.position.x
         const centerY = bullet.position.y
-        const threshold = Math.max(bullet.width, bullet.height) / 2;
-        const xThreshold = threshold + playerWidth / 2
-        const yThreshold = threshold + playerHeight / 2
+        const threshold = Math.max(bullet.width, bullet.height)
+        const xThreshold = threshold + playerWidth
+        const yThreshold = threshold + playerHeight
         
         const nearbyPlayers = this.room.realtimegrid.getObjectsInArea(
         centerX - xThreshold,

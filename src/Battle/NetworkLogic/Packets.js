@@ -47,7 +47,6 @@ function BuildSelfData(p) {
     state: p.state,
    // pr: p.pingnow,
   //  ping: p.ping_ms,
-    sh: p.starthealth,
     s: +p.shooting,
     kil: p.kills,
     dmg: p.damage,
@@ -154,8 +153,8 @@ return  [
       p.id,
       encodePosition(p.x),
       encodePosition(p.y),
-      Number(p.direction2), // convert to number if it might be string
-      Number(p.health),
+      p.direction2, // convert to number if it might be string
+      p.health,
       Number(p.gun),
       Number(p.emote),
     ];
@@ -217,9 +216,6 @@ function prepareRoomMessages(room) {
     finalroomdata = undefined;
   }
 
-
-
-
   const playerData = {};
 
   for (const p of players) {
@@ -242,10 +238,9 @@ function prepareRoomMessages(room) {
     if (nearbyBullets) {
       for (const bullet of nearbyBullets.values()) {
         finalBullets.push([
-       //   bullet.id,
-          Math.round(bullet.position.x),
-          Math.round(bullet.position.y),
-          Math.round(bullet.direction),
+          bullet.serialized.x,
+          bullet.serialized.y,
+          bullet.serialized.d,
           bullet.gunId,
           bullet.effect,
         ]);

@@ -99,7 +99,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     objects: [],
 
     winner: -1,
-    countdown: 0,
+    countdown: null,
 
     // bullets handler
     bullets: new Map(),

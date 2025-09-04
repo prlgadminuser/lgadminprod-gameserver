@@ -19,11 +19,11 @@ async function startServer() {
     // Setup servers
     const server = http.createServer(setupHttpServer);
     const wss = new WebSocket.Server({
-  noServer: true,
-  clientTracking: false,
-  perMessageDeflate: false,
-  maxPayload: 10, // 10MB max payload (adjust according to your needs)
-});
+      noServer: true,
+      clientTracking: false,
+      perMessageDeflate: false,
+      maxPayload: 10, // 10MB max payload (adjust according to your needs)
+    });
 
     setupWebSocketServer(wss, server);
 
