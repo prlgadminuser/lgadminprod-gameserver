@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@main/*": ["*"],
+      "@src/*": ["src/*"],
+      "@GameConfig/*": ["src/GameConfig/*"],
+      "@Battle/*": ["src/Battle/*"],
+      "@RoomHandler/*": ["src/RoomHandler/*"],
+    }
+  }
+}
