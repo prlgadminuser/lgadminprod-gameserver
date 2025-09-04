@@ -16,11 +16,14 @@ function isValidOrigin(origin) {
   return ALLOWED_ORIGINS.has(trimmedOrigin);
 }
 
+const DisableConnectRateLimit = true
+
+
 async function handleUpgrade(request, socket, head, wss) {
   const ip = request.socket["true-client-ip"] || request.socket["x-forwarded-for"] || request.socket.remoteAddress;
 
   try {
- //   await connectionRateLimiter.consume(ip);
+    if (!DisableConnectRateLimit) await connectionRateLimiter.consume(ip);
     const origin = request.headers["sec-websocket-origin"] || request.headers.origin;
 
     if (!isValidOrigin(origin)) {
@@ -44,27 +47,20 @@ function setupWebSocketServer(wss, server) {
         ws.close(4008, "maintenance");
         return;
       }
-
           
       const [_, token, gamemode] = req.url.split("/");
       const origin = req.headers["sec-websocket-origin"] || req.headers.origin;
-
-     
-
 
       if (!token || !gamemode || !GAME_MODES.has(gamemode) || !isValidOrigin(origin)) {
         ws.close(4004, "Unauthorized");
         return;
       }
 
-        console.log(gamemode)
-
       const playerVerified = await verifyPlayer(token);
       if (!playerVerified) {
         ws.close(4001, "Invalid token");
         return;
       }
-
 
       const username = playerVerified.playerId;
       const existingServerId = await checkExistingSession(username);
@@ -74,7 +70,6 @@ function setupWebSocketServer(wss, server) {
         ws.close(4006, "code:double");
         return;
       }
-
 
       await addSession(username);
       
@@ -113,6 +108,5 @@ function setupWebSocketServer(wss, server) {
 
   server.on("upgrade", (request, socket, head) => handleUpgrade(request, socket, head, wss));
 }
-
 
 module.exports = { setupWebSocketServer };

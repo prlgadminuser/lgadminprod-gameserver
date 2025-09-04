@@ -93,8 +93,8 @@ async function UpdatePlayerKillsAndDamage(player) {
   }
 
   if (
-    !isRewardNumberInRange(killcount, 1, 100) ||
-    !isRewardNumberInRange(damagecount, 1, 5000)
+    !isRewardNumberInRange(killcount, 0, 100) ||
+    !isRewardNumberInRange(damagecount, 0, 5000)
   )
     return;
 
