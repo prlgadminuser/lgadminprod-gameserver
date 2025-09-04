@@ -17,7 +17,7 @@ sub.subscribe("bans", (err) => {
 function kickPlayer(username) {
   const player = playerLookup.get(username);
   if (player && player.ws) {
-    player.ws.close(4009, "You have been banned.");
+    player.wsClose(4009, "You have been banned.");
   }
 }
 
