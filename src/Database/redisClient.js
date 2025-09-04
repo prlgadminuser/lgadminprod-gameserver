@@ -2,6 +2,7 @@
 const Redis = require("ioredis");
 const { rediskey } = require("@main/idbconfig");
 const { SERVER_INSTANCE_ID, REDIS_KEYS, HEARTBEAT_TTL_SECONDS, HEARTBEAT_INTERVAL_MS } = require("@main/config");
+const { playerLookup } = require("../RoomHandler/setup");
 
 const redisClient = new Redis(rediskey);
 const sub = new Redis(rediskey);
