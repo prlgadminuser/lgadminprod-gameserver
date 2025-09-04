@@ -89,8 +89,6 @@ function setupWebSocketServer(wss, server) {
       const playerId = joinResult.playerId
       const player = room.players.get(playerId)
 
-      playerLookup.set(playerId, player);
-
       ws.on('error', (error) => {
     // Check for the specific error code
     if (error.code === 'WS_ERR_UNSUPPORTED_MESSAGE_LENGTH') {

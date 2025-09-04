@@ -16,7 +16,10 @@ sub.subscribe("bans", (err) => {
 });
 
 function kickPlayer(username) {
-  const player = playerLookup.get(username);
+  const roomOfPlayer = playerLookup.get(username);
+
+  const player = roomOfPlayer.get(username)
+
   if (player && player.ws) {
     player.wsClose(4009, "You have been banned.");
   }
