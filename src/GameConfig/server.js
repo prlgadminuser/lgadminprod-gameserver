@@ -5,7 +5,7 @@ const maxPlayers = 100;
 const maxOpenRooms = 100;
 
 
-const TICK_RATE = 70 // add one more for smoothness // use 70 for local
+const TICK_RATE = 61 // add one more for smoothness // use 70 for local
 const game_tick_rate =  1000 / TICK_RATE;
 const player_idle_timeout = 10000;
 const PlayerMaxRequestsPerSecond = 30
@@ -21,5 +21,6 @@ function PlayerRateLimiter() {
     interval: 1000, // milliseconds
   });
 }
+
 
 module.exports = { game_tick_rate, player_idle_timeout, maxPlayers, maxOpenRooms, matchmaking_timeout, game_start_time, game_win_rest_time, room_max_open_time, PlayerRateLimiter }
