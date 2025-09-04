@@ -162,8 +162,6 @@ function adjustBulletDirection(bullet, wall) {
 
   const wallLeft = wall.x - halfBlockSize;
   const wallRight = wall.x + halfBlockSize;
-  const wallTop = wall.y - halfBlockSize;
-  const wallBottom = wall.y + halfBlockSize;
 
   // Determine the normal vector of the wall side hit
   if (bullet.x < wallLeft || bullet.x > wallRight) {
@@ -229,9 +227,6 @@ function projectPolygon(polygon, axis) {
   return [min, max];
 }
 
-function dotProduct(point, axis) {
-  return point.x * axis.x + point.y * axis.y;
-}
 
 module.exports = {
   isCollisionWithBullet,

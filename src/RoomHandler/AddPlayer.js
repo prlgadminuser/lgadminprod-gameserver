@@ -3,6 +3,7 @@ const { getAvailableRoom, removeRoomFromIndex } = require("./roomIndex");
 const { createRoom } = require("./CreateRoom");
 const { startMatch } = require("./StartGame");
 const { RemovePlayerFromRoom } = require("./RemovePlayer");
+const { playerLookup } = require("./setup");
 
 function generateUUID() {
   return "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
@@ -13,7 +14,7 @@ function generateUUID() {
 }
 
 
-async function PlayerJoinRoom(ws, gamemode, playerVerified) {
+async function AddPlayerToRoom(ws, gamemode, playerVerified) {
   try {
     const {
       playerId,
@@ -178,6 +179,7 @@ async function PlayerJoinRoom(ws, gamemode, playerVerified) {
         return;
 
       room.players.set(playerId, newPlayer);
+      playerLookup.set(playerId, newPlayer);
 
       if (newPlayer.wsReadyState() === ws.CLOSED) {
         RemovePlayerFromRoom(room, newPlayer);
@@ -193,7 +195,7 @@ async function PlayerJoinRoom(ws, gamemode, playerVerified) {
       await startMatch(room, roomId);
     }
 
-    return { roomId, playerId, room };
+    return { room, playerId };
   } catch (error) {
     console.error("Error joining room:", error);
     ws.close(4000, "Error joining room");
@@ -202,4 +204,4 @@ async function PlayerJoinRoom(ws, gamemode, playerVerified) {
 }
 
 
-module.exports = { PlayerJoinRoom }
+module.exports = { AddPlayerToRoom }

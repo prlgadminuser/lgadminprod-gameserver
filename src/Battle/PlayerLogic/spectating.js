@@ -1,10 +1,6 @@
 
 "use strict";
 
-const { getNotSeenObjects } = require("./playerchunks");
-
-
-
 const timeToSwitchTargets = 2000
 
 function handleSpectatorMode(player, room) {

@@ -28,8 +28,6 @@ function closeRoom(roomId) {
   removeRoomFromIndex(room);
   room.players.clear();
   rooms.delete(roomId);
-//  const room1 = rooms.get(roomId);
-//  console.log(room1)
 }
 
 module.exports = { closeRoom }

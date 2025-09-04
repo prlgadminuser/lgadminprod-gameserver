@@ -1,4 +1,6 @@
-const { DBuserCollection, DBbattlePassCollection, DBshopCollection } = require("@main/index");
+
+
+const { DBuserCollection, DBbattlePassCollection, DBshopCollection } = require("./mongoClient");
 
 
 

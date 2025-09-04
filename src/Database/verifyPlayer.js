@@ -1,7 +1,7 @@
 
 const { TOKEN_KEY } = require("@main/ENV");
-const { DBuserCollection } = require("@main/index");
 const jwt = require("jsonwebtoken");
+const { DBuserCollection } = require("./mongoClient");
 
 async function verifyPlayer(token) {
   if (!token) {
