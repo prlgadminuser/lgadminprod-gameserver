@@ -5,7 +5,7 @@ const { verifyPlayer } = require("@src/Database/verifyPlayer");
 const { checkForMaintenance } = require("@src/Database/ChangePlayerStats");
 const { addSession, removeSession, checkExistingSession } = require("@src/Database/redisClient");
 const { AddPlayerToRoom } = require("./src/RoomHandler/AddPlayer");
-const { handleMessage } = require("./src/Battle/NetworkLogic/handleMessage");
+const { handleMessage } = require("./src/Battle/NetworkLogic/HandleMessage");
 const { playerLookup } = require("./src/RoomHandler/setup");
 const { RemovePlayerFromRoom } = require("./src/RoomHandler/RemovePlayer");
 
