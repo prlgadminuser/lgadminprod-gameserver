@@ -1,7 +1,7 @@
 const { arraysEqual } = require("@main/modules");
 const { compressMessage } = require("./compress");
 const { playerchunkrenderer } = require("../PlayerLogic/playerchunks");
-const { handlePlayerMoveIntervalAll } = require("./handleMessage");
+const { handlePlayerMoveIntervalAll } = require("@Battle/NetworkLogic/HandleMessage");
 const { handleSpectatorMode } = require("../PlayerLogic/spectating");
 const { HandleAfflictions } = require("../WeaponLogic/bullets-effects");
 
