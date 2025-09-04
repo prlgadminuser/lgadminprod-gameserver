@@ -15,7 +15,7 @@ module.exports = {
   HEARTBEAT_TTL_SECONDS: HEARTBEAT_INTERVAL_MS / 1000 * 3, // 30 seconds TTL
   WS_OPTIONS: {
     perMessageDeflate: false,
-    maxPayload: 10 * 1024 * 1024, // 10MB
+    maxPayload: 10, // 10MB
   },
   ALLOWED_ORIGINS: new Set([
     "https://slcount.netlify.app",
