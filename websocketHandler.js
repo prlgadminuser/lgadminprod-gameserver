@@ -20,7 +20,7 @@ async function handleUpgrade(request, socket, head, wss) {
   const ip = request.socket["true-client-ip"] || request.socket["x-forwarded-for"] || request.socket.remoteAddress;
 
   try {
-    await connectionRateLimiter.consume(ip);
+ //   await connectionRateLimiter.consume(ip);
     const origin = request.headers["sec-websocket-origin"] || request.headers.origin;
 
     if (!isValidOrigin(origin)) {
@@ -113,5 +113,6 @@ function setupWebSocketServer(wss, server) {
 
   server.on("upgrade", (request, socket, head) => handleUpgrade(request, socket, head, wss));
 }
+
 
 module.exports = { setupWebSocketServer };
