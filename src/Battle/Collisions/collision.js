@@ -22,18 +22,14 @@ function isCollisionWithCachedWalls(walls, x, y) {
     const wallTop = wall.y - halfBlockSize;
     const wallBottom = wall.y + halfBlockSize;
 
-    if (
-      xMax > wallLeft &&
-      xMin < wallRight &&
-      yMax > wallTop &&
-      yMin < wallBottom
-    ) {
+    if (xMax > wallLeft && xMin < wallRight & yMax > wallTop && yMin < wallBottom) {
       return true;
     }
   }
 
   return false;
 }
+
 
 function isHeadHit(bullet, player, height, width) {
   const headshotTop = player.y - playerhitbox.width / 3;

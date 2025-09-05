@@ -9,85 +9,50 @@ const { spawnAnimation } = require("@main/src/gameObjectEvents/animations");
 const { updateTeamScore } = require("@main/src/teamfighthandler/changescore");
 const { playerhitbox } = require("@main/modules");
 
-
   const added_hitbox = 2;
   const hitboxXMin = playerhitbox.xMin + added_hitbox;
   const hitboxXMax = playerhitbox.xMax + added_hitbox;
   const hitboxYMin = playerhitbox.yMin + added_hitbox;
   const hitboxYMax = playerhitbox.yMax + added_hitbox;
 
- function handleMovement(player, room) {
-  const DEG2RAD = Math.PI / 180;
+function handleMovement(player, room) {
+    const DEG2RAD = Math.PI / 180;
+    const finalDirection = (player.direction - 90) * DEG2RAD;
+    const cos = Math.cos(finalDirection);
+    const sin = Math.sin(finalDirection);
 
-  // Compute direction vector
-  if (player.moving) {
-    const dirRad = (player.direction - 90) * DEG2RAD;
-    player.cos = Math.cos(dirRad);
-    player.sin = Math.sin(dirRad);
-  }
+    const speed = player.speed;
+    const deltaX = speed * cos;
+    const deltaY = speed * sin;
 
-  const speed = player.speed;
-  let moveVec = { x: player.cos * speed, y: player.sin * speed };
+    const nearbyWalls = room.grid.getObjectsInArea(
+        player.x - hitboxXMin,
+        player.x + hitboxXMax,
+        player.y - hitboxYMin,
+        player.y + hitboxYMax
+    );
 
-  // Clamp movement to remaining distance in case of collisions
-  let newX = player.x + moveVec.x;
-  let newY = player.y + moveVec.y;
+    // Calculate new position with collision check
+    let newX = isCollisionWithCachedWalls(nearbyWalls, player.x + deltaX, player.y)
+        ? player.x
+        : player.x + deltaX;
 
-  // Nearby walls for collision
-  const xMin = Math.min(player.x, newX) - hitboxXMin;
-  const xMax = Math.max(player.x, newX) + hitboxXMax;
-  const yMin = Math.min(player.y, newY) - hitboxYMin;
-  const yMax = Math.max(player.y, newY) + hitboxYMax;
+    let newY = isCollisionWithCachedWalls(nearbyWalls, player.x, player.y + deltaY)
+        ? player.y
+        : player.y + deltaY;
 
-  const nearbyWalls = room.grid.getObjectsInArea(xMin, xMax, yMin, yMax);
-  player.nearbywalls = nearbyWalls;
+    // Clamp within map bounds
+    const mapWidth = room.mapWidth;
+    const mapHeight = room.mapHeight;
+    newX = Math.max(-mapWidth, Math.min(mapWidth, newX));
+    newY = Math.max(-mapHeight, Math.min(mapHeight, newY));
 
-  // Vector-based sliding
-  const maxIterations = 3; // prevent infinite loops
-  let remaining = { x: moveVec.x, y: moveVec.y };
+    // Apply updated position
+    player.x = newX;
+    player.y = newY;
 
-  for (let i = 0; i < maxIterations; i++) {
-    if (!isCollisionWithCachedWalls(nearbyWalls, player.x + remaining.x, player.y + remaining.y)) {
-      newX = player.x + remaining.x;
-      newY = player.y + remaining.y;
-      break;
-    }
-
-    // Try sliding along X
-    if (!isCollisionWithCachedWalls(nearbyWalls, player.x + remaining.x, player.y)) {
-      newX = player.x + remaining.x;
-      remaining.x = 0;
-    } 
-    // Try sliding along Y
-    if (!isCollisionWithCachedWalls(nearbyWalls, player.x, player.y + remaining.y)) {
-      newY = player.y + remaining.y;
-      remaining.y = 0;
-    }
-
-    // If fully blocked, stop movement
-    if (remaining.x === 0 && remaining.y === 0) {
-      newX = player.x;
-      newY = player.y;
-      break;
-    }
-
-    // Reduce remaining vector to prevent jitter
-    remaining.x *= 0.5;
-    remaining.y *= 0.5;
-  }
-
-  // Clamp within map bounds
-  const mapWidth = room.mapWidth;
-  const mapHeight = room.mapHeight;
-  newX = Math.max(-mapWidth, Math.min(mapWidth, newX));
-  newY = Math.max(-mapHeight, Math.min(mapHeight, newY));
-
-  player.x = newX;
-  player.y = newY;
-
-  if (player._gridKey) room.realtimegrid.updateObject(player, player.x, player.y);
+    if (player._gridKey) room.realtimegrid.updateObject(player, player.x, player.y);
 }
-
 
 
 
@@ -195,5 +160,4 @@ module.exports = {
   handlePlayerCollision,
   handleDummyCollision,
   playerhitbox,
-
 }
