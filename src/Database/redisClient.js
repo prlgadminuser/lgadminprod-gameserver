@@ -19,6 +19,7 @@ function kickPlayer(username) {
   const player = playerLookup.get(username);
 
   if (player && player.wsClose) {
+    player.send("client_banned");
     player.wsClose(4009, "You have been banned.");
   }
 }
@@ -79,4 +80,5 @@ module.exports = {
   addSession,
   removeSession,
   checkExistingSession,
+
 };
