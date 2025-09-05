@@ -83,6 +83,9 @@ async function AddPlayerToRoom(ws, gamemode, playerVerified) {
       hat_color: hat_color,
       top_color: top_color,
 
+      lastdata: [],
+      dirty: true,
+
       // game state
       health: gamemodeSettings.playerhealth,
       starthealth: gamemodeSettings.playerhealth,
