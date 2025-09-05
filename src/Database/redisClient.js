@@ -7,10 +7,12 @@ const { playerLookup } = require("../RoomHandler/setup");
 const redisClient = new Redis(rediskey);
 const sub = new Redis(rediskey);
 
+const heartbeatKey = `${REDIS_KEYS.SERVER_HEARTBEAT_PREFIX}${SERVER_INSTANCE_ID}`;
+
 redisClient.on("connect", () => console.log("Redis command client connected."));
 redisClient.on("error", (err) => console.error("Redis command client error:", err));
 
-sub.subscribe("bans", (err) => {
+sub.subscribe(`server:${SERVER_INSTANCE_ID}`, (err) => {
   if (err) console.error("Failed to subscribe to bans channel:", err);
   else console.log("Subscribed to bans channel.");
 });
@@ -31,17 +33,14 @@ sub.on("message", (channel, message) => {
 });
 
 function startHeartbeat() {
-  const initialDelay = Math.random() * 1000; // Add random initial delay to avoid thundering herd
-  setTimeout(() => {
-    setInterval(async () => {
+ redisClient.setex(heartbeatKey, HEARTBEAT_TTL_SECONDS, Date.now().toString());
+ setInterval(async () => {
       try {
-        const heartbeatKey = `${REDIS_KEYS.SERVER_HEARTBEAT_PREFIX}${SERVER_INSTANCE_ID}`;
         await redisClient.setex(heartbeatKey, HEARTBEAT_TTL_SECONDS, Date.now().toString());
       } catch (error) {
         console.error("Error sending heartbeat to Redis:", error);
       }
     }, HEARTBEAT_INTERVAL_MS);
-  }, initialDelay);
 }
 
 async function addSession(username) {
