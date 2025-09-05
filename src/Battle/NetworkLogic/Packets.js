@@ -6,7 +6,7 @@ const { handleSpectatorMode } = require("../PlayerLogic/spectating");
 const { HandleAfflictions } = require("../WeaponLogic/bullets-effects");
 
 function encodePosition(num) {
-  return Math.round(num * 100); // keep 2 decimals
+  return Math.round(num * 10); // keep 2 decimals
   // Math.floor(p.x * 10)
 }
 
@@ -151,8 +151,8 @@ function SerializePlayerData(p) {
 
 return  [
       p.id,
-      p.x,
-      p.y,
+      encodePosition(p.x),
+      encodePosition(p.y),
       p.direction2, // convert to number if it might be string
       p.health,
       Number(p.gun),
