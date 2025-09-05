@@ -210,7 +210,6 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
   // in ms
   room.intervalIds.push(
     setInterval(() => {
-      room.bulletManager.update();
       prepareRoomMessages(room);
       room.timeoutdelaysending = setTimeout(() => {
         sendRoomMessages(room);

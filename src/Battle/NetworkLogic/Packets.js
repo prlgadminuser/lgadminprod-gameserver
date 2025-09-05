@@ -193,6 +193,7 @@ function prepareRoomMessages(room) {
 
   // PLAYING STATE
   const aliveCount = players.reduce((c, p) => c + !p.eliminated, 0);
+  room.bulletManager.update();
   playerchunkrenderer(room);
   handlePlayerMoveIntervalAll(room);
   HandleAfflictions(room);

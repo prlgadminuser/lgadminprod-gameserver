@@ -19,13 +19,14 @@ function kickPlayer(username) {
   const player = playerLookup.get(username);
 
   if (player && player.wsClose) {
-    player.send("client_banned");
+    player.send("client_kick");
     player.wsClose(4009, "You have been banned.");
   }
 }
 
-sub.on("message", (channel, username) => {
-  console.log(`Ban event received for ${username}`);
+sub.on("message", (channel, message) => {
+  const data = JSON.parse(message);
+  const username = data.uid
   kickPlayer(username);
 });
 
@@ -45,33 +46,38 @@ function startHeartbeat() {
 
 async function addSession(username) {
   const userKey = `${REDIS_KEYS.USER_PREFIX}${username}`;
-  const serverKey = `${REDIS_KEYS.SERVER_USERS_PREFIX}${SERVER_INSTANCE_ID}`;
-  const sessionValue = JSON.stringify({ connectedAt: Date.now() });
+  const sessionValue = JSON.stringify({ 
+    sid: SERVER_INSTANCE_ID, 
+    time: Date.now() 
+  });
 
-  const pipeline = redisClient.multi();
-  pipeline.set(userKey, SERVER_INSTANCE_ID);
-  pipeline.hset(serverKey, username, sessionValue);
-  await pipeline.exec();
+  await redisClient.set(userKey, sessionValue);
 }
 
 async function removeSession(username) {
   const userKey = `${REDIS_KEYS.USER_PREFIX}${username}`;
-  const serverKey = `${REDIS_KEYS.SERVER_USERS_PREFIX}${SERVER_INSTANCE_ID}`;
-  const pipeline = redisClient.multi();
-  pipeline.del(userKey);
-  pipeline.hdel(serverKey, username);
-  await pipeline.exec();
+  await redisClient.del(userKey);
 }
 
 async function checkExistingSession(username) {
   const userKey = `${REDIS_KEYS.USER_PREFIX}${username}`;
-  const existingServerId = await redisClient.get(userKey);
-  if (!existingServerId) return null;
+  const sessionValue = await redisClient.get(userKey);
 
-  const heartbeatKey = `${REDIS_KEYS.SERVER_HEARTBEAT_PREFIX}${existingServerId}`;
+  if (!sessionValue) return null;
+
+  let parsed;
+  try {
+    parsed = JSON.parse(sessionValue);
+  } catch {
+    return null;
+  }
+
+  const heartbeatKey = `${REDIS_KEYS.SERVER_HEARTBEAT_PREFIX}${parsed.sid}`;
   const isExistingServerAlive = await redisClient.exists(heartbeatKey);
-  return isExistingServerAlive ? existingServerId : null;
+  
+  return isExistingServerAlive ? parsed.sid : null;
 }
+
 
 module.exports = {
   redisClient,
@@ -80,5 +86,4 @@ module.exports = {
   addSession,
   removeSession,
   checkExistingSession,
-
 };
