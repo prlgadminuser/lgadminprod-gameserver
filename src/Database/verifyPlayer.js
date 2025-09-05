@@ -22,6 +22,7 @@ async function verifyPlayer(token) {
       {
         projection: {
           "_id": 0,
+          "account.ban_data.until": 1,
           "account.username": 1,
           "account.nickname": 1,
           "equipped.hat": 1,
@@ -38,6 +39,10 @@ async function verifyPlayer(token) {
     if (!user || user.account.username !== username) {
       throw new Error("Invalid token or user not found");
     }
+
+    const bannedUntil = user.account.ban_data.until
+    const time = Date.now()
+    if (time < bannedUntil) throw new Error("user is disabled");
 
     if (!user) {
       throw new Error("User not found");
