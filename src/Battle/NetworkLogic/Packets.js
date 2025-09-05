@@ -148,6 +148,156 @@ function SendPreStartMessage(room) {
 }
 
 
+const { arraysEqual } = require("@main/modules");
+const { compressMessage } = require("./compress");
+const { playerchunkrenderer } = require("../PlayerLogic/playerchunks");
+const { handlePlayerMoveIntervalAll } = require("@Battle/NetworkLogic/HandleMessage");
+const { handleSpectatorMode } = require("../PlayerLogic/spectating");
+const { HandleAfflictions } = require("../WeaponLogic/bullets-effects");
+
+function encodePosition(num) {
+  return Math.round(num * 100); // keep 2 decimals
+  // Math.floor(p.x * 10)
+}
+
+function getTeamIds(room, player) {
+    // 1. Get the player's team object from the room's teams map.
+    const playerTeam = room.teams.get(player.teamId);
+
+    if (!playerTeam) {
+        // Handle cases where the team doesn't exist (e.g., player is not in a team yet).
+        return [];
+    }
+
+    // 2. Map the players array to get their IDs.
+    const teammateIds = playerTeam.players.map(p => p.id);
+
+    return teammateIds;
+}
+
+const state_map = {
+  waiting: 1,
+  await: 2,
+  countdown: 3,
+  playing: 4,
+};
+
+
+
+const transformData = (data) => {
+  const transformed = {};
+  for (const [key, value] of Object.entries(data)) {
+    transformed[key] = [value.x, value.y, value.health, value.type];
+  }
+  return transformed;
+};
+
+function BuildSelfData(p) {
+  const selfdata = {
+    state: p.state,
+   // pr: p.pingnow,
+  //  ping: p.ping_ms,
+    s: +p.shooting,
+    kil: p.kills,
+    dmg: p.damage,
+    rwds: p.finalrewards.length > 0 ? p.finalrewards : undefined,
+    killer: p.eliminator,
+    cg: +p.canusegadget,
+    lg: p.gadgetuselimit,
+    ag: +p.gadgetactive,
+    el: p.eliminations.length > 0 ? p.eliminations : undefined,
+    spc: p.spectatingPlayerId,
+    guns: p.loadout_formatted,
+    np: !arraysEqual(p.nearbyplayersids, p.lastplayerids) ? p.nearbyplayersids : undefined,
+    ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
+  };
+
+  p.lastplayerids = p.nearbyplayersids
+
+  /*  if (p.allowweridsend) {
+        selfdata.x = encodePosition(p.x);
+        selfdata.y = encodePosition(p.y);
+        selfdata.h = p.health
+        selfdata.g = p.gun
+        selfdata.em = p.emote
+    }
+    */
+
+  return selfdata;
+}
+
+function SendPreStartMessage(room) {
+  // Prebuild AllPlayerData
+
+  const players = Array.from(room.players.values());
+
+  const AllData = {};
+  for (const p of players) {
+    AllData[p.id] = [
+      p.hat || 0,
+      p.top || 0,
+      p.player_color,
+      p.hat_color,
+      p.top_color,
+      p.nickname,
+      p.starthealth,
+    ];
+  }
+
+  const dummiesFiltered = room.dummies
+    ? transformData(room.dummies)
+    : undefined;
+
+  const RoomData = {
+    mapid: room.map,
+    type: room.matchtype,
+    modifiers: Array.from(room.modifiers), // set needs array converting
+    sb: room.scoreboard,
+  };
+
+  for (const player of players) {
+    const self_info = {
+      id: player.id,
+      state: player.state,
+      h: player.health,
+      sh: player.starthealth,
+      s: +player.shooting,
+      g: player.gun,
+      kil: player.kills,
+      dmg: player.damage,
+      rwds: player.finalrewards,
+      killer: player.eliminator,
+      cg: +player.canusegadget,
+      lg: player.gadgetuselimit,
+      ag: +player.gadgetactive,
+      x: encodePosition(player.x),
+      y: encodePosition(player.y),
+      el: player.eliminations,
+      em: player.emote,
+      spc: player.spectatingPlayerId,
+      guns: player.loadout_formatted,
+      ht: [],
+    };
+
+    player.selflastmsg = self_info;
+
+    const MessageToSend = {
+      AllData,
+      SelfData: {
+        allies: getTeamIds(room, player),
+        pid: player.id,
+        self_info,
+        dummies: dummiesFiltered,
+        gadget: player.gadgetid,
+      },
+      RoomData: RoomData,
+    };
+
+    player.send(compressMessage(MessageToSend), { binary: true });
+  }
+}
+
+
 function SerializePlayerData(p) {
   return [
     p.id,
@@ -166,13 +316,10 @@ function prepareRoomMessages(room) {
   const players = Array.from(room.players.values());
   const GameRunning = room.state === "playing" || room.state === "countdown";
 
-  // --- WAITING STATE ---
+  // WAITING STATE
   if (!GameRunning) {
     const roomdata = [state_map[room.state], room.maxplayers, players.length];
-
-    for (const p of players) {
-      p.tick_send_allow = false;
-    }
+    for (const p of players) p.tick_send_allow = false;
 
     if (!arraysEqual(room.rdlast, roomdata)) {
       room.rdlast = roomdata;
@@ -187,15 +334,15 @@ function prepareRoomMessages(room) {
     return;
   }
 
-  // --- PLAYING STATE ---
+  // PLAYING STATE
   const aliveCount = players.reduce((c, p) => c + !p.eliminated, 0);
   room.bulletManager.update();
   playerchunkrenderer(room);
   handlePlayerMoveIntervalAll(room);
   HandleAfflictions(room);
 
-  // --- ROOM DATA (once) ---
-  let roomdata = [
+  // ROOM DATA (once)
+  const roomdata = [
     state_map[room.state],
     room.maxplayers,
     aliveCount,
@@ -204,57 +351,41 @@ function prepareRoomMessages(room) {
     room.zone,
   ];
 
-  let finalroomdata;
-  if (!arraysEqual(room.rdlast, roomdata)) {
-    room.rdlast = roomdata;
-    finalroomdata = roomdata;
-  }
+  const finalroomdata = arraysEqual(room.rdlast, roomdata) ? undefined : (room.rdlast = roomdata);
 
-  // --- SERIALIZE ALL PLAYERS ---
   const playerData = {};
+
   for (const p of players) {
     if (p.spectating) continue;
 
-    // Mark dirty if moved or state changed
-    p.dirty = p.moved || p.stateChanged || p.newlySpawned;
-
-    // Nearby bullets
-    const xThreshold = 300;
-    const yThreshold = 180;
+    // BULLETS IN RANGE
     const nearbyBullets = room.bulletgrid.getObjectsInArea(
-      p.x - xThreshold,
-      p.x + xThreshold,
-      p.y - yThreshold,
-      p.y + yThreshold
+      p.x - 300, p.x + 300,
+      p.y - 180, p.y + 180
     );
 
-    const finalBullets = [];
-    if (nearbyBullets) {
-      for (const bullet of nearbyBullets.values()) {
-        finalBullets.push([
-          bullet.serialized.x,
-          bullet.serialized.y,
-          bullet.serialized.d,
-          bullet.gunId,
-          bullet.effect,
-        ]);
-      }
-    }
-    p.finalbullets = finalBullets.length ? finalBullets : undefined;
+    p.finalbullets = nearbyBullets?.size
+      ? Array.from(nearbyBullets.values(), b => [
+          b.serialized.x,
+          b.serialized.y,
+          b.serialized.d,
+          b.gunId,
+          b.effect,
+        ])
+      : undefined;
 
     if (!p.alive) continue;
-
     playerData[p.id] = SerializePlayerData(p);
   }
 
-  // --- BUILD MESSAGES PER PLAYER ---
+  // SEND MESSAGES
   for (const p of players) {
     if (!p.wsReadyState()) continue;
 
-    // Self data
     const selfdata = BuildSelfData(p);
     const changes = {};
     const lastSelf = p.selflastmsg || {};
+
     for (const k in selfdata) {
       if (selfdata[k] !== lastSelf[k]) changes[k] = selfdata[k];
     }
@@ -263,29 +394,24 @@ function prepareRoomMessages(room) {
     if (p.spectating) handleSpectatorMode(p, room);
 
     if (!p.spectating) {
-      const filteredPlayers = [];
+      const playersInRange = p.nearbyplayersids;
       const previousData = p.pdHashes || {};
       const currentData = {};
+      const filteredPlayers = [];
 
-      for (const nearbyId of p.nearbyplayersids) {
-        const np = room.players.get(nearbyId);
-        if (!np) continue;
-
-        // Only recompute if nearby player is dirty or not cached
-        if (np.dirty || !previousData[nearbyId]) {
-          const data = playerData[nearbyId];
-          if (data) filteredPlayers.push(data);
-          currentData[nearbyId] = data;
-        } else {
-          currentData[nearbyId] = previousData[nearbyId];
-        }
+      for (const nearbyId of playersInRange) {
+        const data = playerData[nearbyId];
+        if (!data) continue;
+        if (!arraysEqual(previousData[nearbyId], data)) filteredPlayers.push(data);
+        currentData[nearbyId] = data;
       }
 
-      p.pd = filteredPlayers.length ? filteredPlayers : undefined;
+      if (filteredPlayers.length > 0) p.latestnozeropd = filteredPlayers;
+      p.pd = filteredPlayers;
       p.pdHashes = currentData;
     }
 
-    // --- Assemble message ---
+    // MESSAGE ASSEMBLY
     const msg = {
       r: finalroomdata,
       kf: room.killfeed,
@@ -298,15 +424,13 @@ function prepareRoomMessages(room) {
 
     // Remove empty keys
     for (const key in msg) {
-      if (!msg[key] || (Array.isArray(msg[key]) && !msg[key].length) || (typeof msg[key] === "object" && !Object.keys(msg[key]).length)) {
+      const val = msg[key];
+      if (!val || (Array.isArray(val) && !val.length) || (typeof val === "object" && !Object.keys(val).length)) {
         delete msg[key];
       }
     }
 
-    // --- Send if changed ---
-    if (!p.emptySent) p.emptySent = false;
-
-    let hash = Object.keys(msg).length === 0 ? "{}" : 0;
+    const hash = Object.keys(msg).length ? 0 : "{}";
 
     if (hash === "{}") {
       if (!p.emptySent) {
@@ -323,18 +447,15 @@ function prepareRoomMessages(room) {
     }
   }
 
-  // --- CLEANUP ---
+  // CLEANUP
   room.killfeed = [];
   for (const p of players) {
     p.hitmarkers = [];
     p.eliminations = [];
     p.nearbyanimations = [];
-    p.moved = false;
-    p.stateChanged = false;
-    p.newlySpawned = false;
-    p.dirty = false; // reset dirty flag
   }
 }
+
 
 
 function sendRoomMessages(room) {
@@ -348,3 +469,16 @@ function sendRoomMessages(room) {
 
 
 module.exports = { SendPreStartMessage, prepareRoomMessages, sendRoomMessages }
+
+function sendRoomMessages(room) {
+  room.players.forEach((player) => {
+    if (player.tick_send_allow) {
+      player.send(player.lastcompressedmessage, { binary: true });
+    }
+  });
+}
+
+
+
+module.exports = { SendPreStartMessage, prepareRoomMessages, sendRoomMessages }
+
