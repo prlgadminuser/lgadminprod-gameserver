@@ -252,12 +252,8 @@ function prepareRoomMessages(room) {
 
     if (!p.alive) continue;
     //  Math.floor(p.x / 10)
-    const serialized = SerializePlayerData(p)
-
-    p.dirty = !arraysEqual(serialized, p.lastdata);
-    p.lastdata = serialized
-
-    playerData[p.id] = serialized
+    
+    playerData[p.id] = SerializePlayerData(p)
   }
 
 
@@ -279,38 +275,29 @@ function prepareRoomMessages(room) {
 
     if (p.spectating) handleSpectatorMode(p, room);
 
-   if (!p.spectating) {
-    const playersInRange = p.nearbyplayersids; // IDs of players this player can see
-    const filteredPlayers = [];
-    const currentData = {};
+    if (!p.spectating) {
 
-    for (const nearbyId of playersInRange) {
+      let filteredPlayers = [];
+
+      const playersInRange = p.nearbyplayersids;
+      const previousData = p.pdHashes || {};
+      const currentData = {};
+
+      for (const nearbyId of playersInRange) {
         const data = playerData[nearbyId];
         if (!data) continue;
 
-        filteredPlayers.push(data);
-        currentData[nearbyId] = data;
-    }
-
-    // Save filtered data for this tick
-    p.pd = filteredPlayers;
-
-    // If there are any players in view, save the last non-empty state
-    if (filteredPlayers.length > 0) {
-        p.latestnozeropd = filteredPlayers;
-    }
-
-    // Mark dirty if any new players appeared
-    for (const id of Object.keys(currentData)) {
-        if (!p.lastNearbyIds || !p.lastNearbyIds.includes(id)) {
-            p.dirty = true; // Ensure the client receives full data for new players
-            break;
+        if (!arraysEqual(previousData[nearbyId], data)) {
+          filteredPlayers.push(data);
         }
-    }
 
-    // Save current nearby IDs for next tick comparison
-    p.lastNearbyIds = Object.keys(currentData);
-}
+        currentData[nearbyId] = data;
+
+        if (filteredPlayers.length > 0) p.latestnozeropd = filteredPlayers
+        p.pd = filteredPlayers;
+        p.pdHashes = currentData;
+      }
+   }
 
     // Message assembly
 
