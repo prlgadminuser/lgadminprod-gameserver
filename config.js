@@ -16,9 +16,9 @@ return serverid
 module.exports = {
   SERVER_INSTANCE_ID: serverid(), //uuidv4(),
   REDIS_KEYS: {
-    USER_PREFIX: "user:",
+    USER_PREFIX: "battleuser:",
     SERVER_USERS_PREFIX: "users:",
-    SERVER_HEARTBEAT_PREFIX: "server_heartbeat:",
+    SERVER_HEARTBEAT_PREFIX: "battleServer_heartbeat:",
   },
   HEARTBEAT_INTERVAL_MS,
   HEARTBEAT_TTL_SECONDS: HEARTBEAT_INTERVAL_MS / 1000 * 3, // 30 seconds TTL
@@ -48,4 +48,5 @@ module.exports = {
     CONNECTION: { points: 1, duration: 1 },
     MESSAGE: { points: 30, duration: 1 }, // 30 messages per second
   },
+
 };
