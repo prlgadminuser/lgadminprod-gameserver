@@ -17,30 +17,24 @@ const { playerhitbox } = require("@main/modules");
   const hitboxYMax = playerhitbox.yMax + added_hitbox;
 
  function handleMovement(player, room) {
-  // Skip if player is not moving
-  //if (!player.moving && player.speed === 0) return;
+
+  const DEG2RAD = Math.PI / 180;
+  const finalDirection = (player.moving ? player.direction - 90 : player.direction) * DEG2RAD;
+  const cos = Math.cos(finalDirection);
+  const sin = Math.sin(finalDirection);
+
+  const speed = player.speed;
+  let newX = player.x + speed * cos;
+  let newY = player.y + speed * sin;
 
   const xMin = player.x - hitboxXMin;
   const xMax = player.x + hitboxXMax;
   const yMin = player.y - hitboxYMin;
   const yMax = player.y + hitboxYMax;
 
-  // Only get nearby walls once
   const nearbyWalls = room.grid.getObjectsInArea(xMin, xMax, yMin, yMax);
   player.nearbywalls = nearbyWalls;
 
-  // Calculate movement direction in radians
-  const DEG2RAD = Math.PI / 180;
-  const finalDirection = (player.moving ? player.direction - 90 : player.direction) * DEG2RAD;
-  const cos = Math.cos(finalDirection);
-  const sin = Math.sin(finalDirection);
-
-  // Movement deltas
-  const speed = player.speed;
-  let newX = player.x + speed * cos;
-  let newY = player.y + speed * sin;
-
-  // Collision checks only once per axis
   if (isCollisionWithCachedWalls(nearbyWalls, newX, newY)) {
     const canMoveX = !isCollisionWithCachedWalls(nearbyWalls, newX, player.y);
     const canMoveY = !isCollisionWithCachedWalls(nearbyWalls, player.x, newY);
@@ -63,9 +57,6 @@ const { playerhitbox } = require("@main/modules");
   if (newY < -mapHeight) newY = -mapHeight;
   else if (newY > mapHeight) newY = mapHeight;
 
-  // Store new position (avoid parseFloat — toFixed is slower than necessary)
-  //player.x = Math.round(newX * 100) / 100;
-  //player.y = Math.round(newY * 100) / 100;
   player.x = newX
   player.y = newY
 

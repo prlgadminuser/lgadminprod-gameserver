@@ -128,11 +128,6 @@ async function startMatch(room, roomId) {
   try {
     room.intervalIds.push(
       setTimeout(() => {
-        if (room.matchtype === "td") {
-          const t1 = room.teams[0];
-          const t2 = room.teams[1];
-          room.scoreboard = [t1.id, t1.score].join("$");
-        }
 
         room.state = "countdown";
 
@@ -163,13 +158,10 @@ async function startMatch(room, roomId) {
               }, 1000);
             }
 
-            if (room.modifiers.has("HealingCircles"))
-              initializeHealingCircles(room);
-            if (room.modifiers.has("UseZone")) UseZone(room);
-            if (room.modifiers.has("AutoHealthRestore"))
-              startRegeneratingHealth(room, 1);
-            if (room.modifiers.has("AutoHealthDamage"))
-              startDecreasingHealth(room, 1);
+            if (room.modifiers.has("HealingCircles"))     initializeHealingCircles(room);
+            if (room.modifiers.has("UseZone"))            UseZone(room);
+            if (room.modifiers.has("AutoHealthRestore"))  startRegeneratingHealth(room, 1);
+            if (room.modifiers.has("AutoHealthDamage"))   startDecreasingHealth(room, 1);
           }, game_start_time)
         );
       }, 1000)

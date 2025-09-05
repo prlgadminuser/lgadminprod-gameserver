@@ -3,6 +3,9 @@ const { rooms, closeRoom } = require("./setup");
 const { BulletManager } = require("../Battle/WeaponLogic/bullets");
 const { addRoomToIndex } = require("./roomIndex");
 const { prepareRoomMessages, sendRoomMessages } = require("../Battle/NetworkLogic/Packets");
+const { handlePlayerMoveIntervalAll } = require("../Battle/NetworkLogic/HandleMessage");
+const { playerchunkrenderer } = require("../Battle/PlayerLogic/playerchunks");
+const { HandleAfflictions } = require("../Battle/WeaponLogic/bullets-effects");
 
 function setRoomTimeout(room, fn, ms) {
   const id = setTimeout(fn, ms);
@@ -208,9 +211,22 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
   // Start sending batched messages at regular intervals
   // in ms
+   room.intervalIds.push(
+    setInterval(() => { 
+
+  room.bulletManager.update();
+  playerchunkrenderer(room);
+  handlePlayerMoveIntervalAll(room);
+  HandleAfflictions(room);
+
+    }, game_tick_rate - 1)
+  );
+
   room.intervalIds.push(
     setInterval(() => {
+     // console.time('myFunction');
       prepareRoomMessages(room);
+     // console.timeEnd('myFunction');
       room.timeoutdelaysending = setTimeout(() => {
         sendRoomMessages(room);
       }, 3);
