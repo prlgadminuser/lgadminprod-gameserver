@@ -211,16 +211,7 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
   // Start sending batched messages at regular intervals
   // in ms
-   room.intervalIds.push(
-    setInterval(() => { 
 
-  room.bulletManager.update();
-  playerchunkrenderer(room);
-  handlePlayerMoveIntervalAll(room);
-  HandleAfflictions(room);
-
-    }, game_tick_rate - 1)
-  );
 
   room.intervalIds.push(
     setInterval(() => {
