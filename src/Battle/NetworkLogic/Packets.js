@@ -151,8 +151,8 @@ function SerializePlayerData(p) {
 
 return  [
       p.id,
-      encodePosition(p.x),
-      encodePosition(p.y),
+      p.x,
+      p.y,
       p.direction2, // convert to number if it might be string
       p.health,
       Number(p.gun),
@@ -252,8 +252,10 @@ function prepareRoomMessages(room) {
 
     if (!p.alive) continue;
     //  Math.floor(p.x / 10)
+    const serialized = SerializePlayerData(p)
+    p.dirty = (!arraysEqual(p.lastdata, serialized))
     
-    playerData[p.id] = SerializePlayerData(p)
+    playerData[p.id] = serialized
   }
 
 
