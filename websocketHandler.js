@@ -1,4 +1,4 @@
-// src/handlers/webSocketHandler.js
+// src/handlers/webSocketHandler.js /s
 const { RateLimiterMemory } = require("rate-limiter-flexible");
 const { ALLOWED_ORIGINS, GAME_MODES, RATE_LIMITS } = require("@main/config");
 const { verifyPlayer } = require("@src/Database/verifyPlayer");
@@ -108,5 +108,6 @@ function setupWebSocketServer(wss, server) {
 
   server.on("upgrade", (request, socket, head) => handleUpgrade(request, socket, head, wss));
 }
+
 
 module.exports = { setupWebSocketServer };
