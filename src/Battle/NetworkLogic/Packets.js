@@ -32,6 +32,15 @@ const state_map = {
   playing: 4,
 };
 
+const PacketKeys = {
+  roomdata: 1,
+  selfdata: 2,
+  playerdata: 3,
+  bulletdata: 4,
+  objectupdates: 5,
+  animations: 6,
+};
+
 
 
 const transformData = (data) => {
@@ -42,11 +51,10 @@ const transformData = (data) => {
   return transformed;
 };
 
+
 function BuildSelfData(p) {
   const selfdata = {
     state: p.state,
-   // pr: p.pingnow,
-  //  ping: p.ping_ms,
     s: +p.shooting,
     kil: p.kills,
     dmg: p.damage,
@@ -148,38 +156,33 @@ function SendPreStartMessage(room) {
 }
 
 function SerializePlayerData(p) {
-
-return  [
-      p.id,
-      encodePosition(p.x),
-      encodePosition(p.y),
-      p.direction2, // convert to number if it might be string
-      p.health,
-      Number(p.gun),
-      Number(p.emote),
-    ];
+  const arr = p._serializeBuffer || (p._serializeBuffer = new Array(7));
+  arr[0] = p.id;
+  arr[1] = encodePosition(p.x);
+  arr[2] = encodePosition(p.y);
+  arr[3] = p.direction2;
+  arr[4] = p.health;
+  arr[5] = Number(p.gun);
+  arr[6] = Number(p.emote);
+  return arr;
 }
 
-const CachedEmptyMsg = compressMessage({})
-
+const CachedEmptyMsg = compressMessage([]);
 
 function prepareRoomMessages(room) {
-  //console.time()
-
   const players = Array.from(room.players.values());
   const GameRunning = room.state === "playing" || room.state === "countdown";
 
-  // WAITING STATE
   if (!GameRunning) {
     const roomdata = [state_map[room.state], room.maxplayers, players.length];
 
-    for (const p of players) {
-      p.tick_send_allow = false;
-    }
+    const sendroomdata = [PacketKeys["roomdata"], roomdata];
+
+    for (const p of players) p.tick_send_allow = false;
 
     if (!arraysEqual(room.rdlast, roomdata)) {
       room.rdlast = roomdata;
-      const compressed = compressMessage(roomdata);
+      const compressed = compressMessage(sendroomdata);
       for (const p of players) {
         if (!p.wsReadyState()) continue;
         p.lastcompressedmessage = compressed;
@@ -190,16 +193,14 @@ function prepareRoomMessages(room) {
     return;
   }
 
-
-  // PLAYING STATE
   const aliveCount = players.reduce((c, p) => c + !p.eliminated, 0);
   room.bulletManager.update();
   playerchunkrenderer(room);
   handlePlayerMoveIntervalAll(room);
   HandleAfflictions(room);
 
-  // ROOM DATA (once)
-  let roomdata = [
+  // ROOM DATA
+  const roomdata = [
     state_map[room.state],
     room.maxplayers,
     aliveCount,
@@ -208,33 +209,26 @@ function prepareRoomMessages(room) {
     room.zone,
   ];
 
-  let finalroomdata;
+  const finalroomdata = !arraysEqual(room.rdlast, roomdata) ? (room.rdlast = roomdata) : undefined;
 
-  if (!arraysEqual(room.rdlast, roomdata)) {
-    room.rdlast = roomdata;
-    finalroomdata = roomdata;
-  } else {
-    finalroomdata = undefined;
-  }
-
-  const playerData = {};
+  // Reuse buffers for bullets and player data
+  const playerData = room._playerDataBuffer || (room._playerDataBuffer = new Map());
 
   for (const p of players) {
     if (p.spectating) continue;
 
+    // Nearby bullets
     const centerX = p.x;
     const centerY = p.y;
-    const xThreshold = 300;
-    const yThreshold = 180;
-
     const nearbyBullets = room.bulletgrid.getObjectsInArea(
-      centerX - xThreshold,
-      centerX + xThreshold,
-      centerY - yThreshold,
-      centerY + yThreshold
+      centerX - 300,
+      centerX + 300,
+      centerY - 180,
+      centerY + 180
     );
 
-    const finalBullets = [];
+    let finalBullets = p._bulletBuffer || (p._bulletBuffer = []);
+    finalBullets.length = 0;
 
     if (nearbyBullets) {
       for (const bullet of nearbyBullets.values()) {
@@ -248,19 +242,21 @@ function prepareRoomMessages(room) {
       }
     }
 
-    p.finalbullets = finalBullets.length > 0 ? finalBullets : undefined;
+    p.finalbullets = finalBullets.length ? finalBullets : undefined;
 
     if (!p.alive) continue;
-    //  Math.floor(p.x / 10)
-    const serialized = SerializePlayerData(p)
-    p.dirty = (!arraysEqual(p.lastdata, serialized))
-    
-    playerData[p.id] = serialized
+
+    const serialized = SerializePlayerData(p);
+
+    // Use hash instead of full array equality for efficiency
+    const hash = serialized.join(","); // simple string hash
+    p.dirty = hash !== p._lastSerializedHash;
+    p._lastSerializedHash = hash;
+
+    playerData.set(p.id, serialized);
   }
 
-
-
-  // ONE PASS: Build, hash, compress, send
+  // ONE PASS: build messages
   for (const p of players) {
     if (!p.wsReadyState()) continue;
 
@@ -271,105 +267,70 @@ function prepareRoomMessages(room) {
     for (const k in selfdata) {
       if (selfdata[k] !== lastSelf[k]) changes[k] = selfdata[k];
     }
-    if (Object.keys(changes).length)
-      p.selflastmsg = { ...lastSelf, ...changes };
-
+    if (Object.keys(changes).length) p.selflastmsg = { ...lastSelf, ...changes };
 
     if (p.spectating) handleSpectatorMode(p, room);
 
     if (!p.spectating) {
+      const filteredPlayers = p._filteredPlayersBuffer || (p._filteredPlayersBuffer = []);
+      filteredPlayers.length = 0;
 
-      let filteredPlayers = [];
-
-      const playersInRange = p.nearbyplayersids;
       const previousData = p.pdHashes || {};
       const currentData = {};
 
-      for (const nearbyId of playersInRange) {
-        const data = playerData[nearbyId];
+      for (const nearbyId of p.nearbyplayersids) {
+        const data = playerData.get(nearbyId);
         if (!data) continue;
 
-        if (!arraysEqual(previousData[nearbyId], data)) {
-          filteredPlayers.push(data);
-        }
+        const dataHash = data.join(",");
+        if (previousData[nearbyId] !== dataHash) filteredPlayers.push(data);
 
-        currentData[nearbyId] = data;
-
-        if (filteredPlayers.length > 0) p.latestnozeropd = filteredPlayers
-        p.pd = filteredPlayers;
-        p.pdHashes = currentData;
+        currentData[nearbyId] = dataHash;
       }
-   }
 
-    // Message assembly
-
-   // const statefrom = p.spectating && p.spectatingPlayer && p.spectatingPlayer.alive ? p.spectatingPlayer : p
-
-    const msg = {
-      r: finalroomdata,
-      kf: room.killfeed,
-      sd: Object.keys(changes).length ? changes : undefined,
-    //  cl: p.nearbycircles,
-      an: p.nearbyanimations,
-      ons: p.newSeenObjects, //objects not seen
-      b: p.finalbullets,
-      pd: p.pd,
-    };
-
-    // Remove empty keys
-    for (const key in msg) {
-      if (
-        !msg[key] ||
-        (Array.isArray(msg[key]) && !msg[key].length) ||
-        (typeof msg[key] === "object" && !Object.keys(msg[key]).length)
-      ) {
-        delete msg[key];
-      }
+      if (filteredPlayers.length) p.latestnozeropd = filteredPlayers;
+      p.pd = filteredPlayers;
+      p.pdHashes = currentData;
     }
 
-    
-    // Send if changed
-    // Track if the empty message has been sent
-if (!p.emptySent) p.emptySent = false;
+    // --- Message assembly with buffer reuse ---
+    const msgArray = p._msgBuffer || (p._msgBuffer = []);
+    msgArray.length = 0;
 
-let hash;
+    if (finalroomdata) msgArray.push(PacketKeys["roomdata"], finalroomdata);
+    if (room.killfeed.length) msgArray.push(1, room.killfeed);
+    if (Object.keys(changes).length) msgArray.push(PacketKeys["selfdata"], changes);
+    if (p.nearbyanimations.length) msgArray.push(PacketKeys["animations"], p.nearbyanimations);
+    if (p.newSeenObjects) msgArray.push(PacketKeys["objectupdates"], p.newSeenObjects);
+    if (p.finalbullets) msgArray.push(PacketKeys["bulletdata"], p.finalbullets);
+    if (p.pd.length) msgArray.push(PacketKeys["playerdata"], p.pd);
 
-// If msg is empty, set hash to "{}"
-if (Object.keys(msg).length === 0) {
-  hash = "{}";
-} else {
-  hash = 0;
-}
-
-// Determine if we should send
-  // If msg is empty, only send if we haven't sent empty before
-if (hash === "{}") {
-
-    if (!p.emptySent) {
-      p.lastcompressedmessage = CachedEmptyMsg;
-      p.tick_send_allow = true;
-      p.emptySent = true; // mark empty msg as sent
+    // Send message if changed
+    if (!msgArray.length) {
+      if (!p.emptySent) {
+        p.lastcompressedmessage = CachedEmptyMsg;
+        p.tick_send_allow = true;
+        p.emptySent = true;
+      } else {
+        p.tick_send_allow = false;
+      }
     } else {
-      p.tick_send_allow = false;
+      p.lastcompressedmessage = compressMessage(msgArray);
+      p.tick_send_allow = true;
+      p.emptySent = false;
     }
-
-  } else {
-    // Non-empty msg
-    p.lastcompressedmessage = compressMessage(msg);
-    p.tick_send_allow = true;
-    p.emptySent = false; 
-  } 
-}
-  // CLEANUP
-  
-  room.killfeed = [];
-  for (const p of players) {
-    p.hitmarkers = [];
-    p.eliminations = [];
-    p.nearbyanimations = [];
   }
-  // console.timeEnd();
+
+  // CLEANUP
+  room.killfeed.length = 0;
+  for (const p of players) {
+    p.hitmarkers.length = 0;
+    p.eliminations.length = 0;
+    p.nearbyanimations.length = 0;
+  }
 }
+
+
 
 function sendRoomMessages(room) {
   room.players.forEach((player) => {

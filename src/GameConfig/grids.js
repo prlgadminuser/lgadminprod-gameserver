@@ -9,7 +9,7 @@ class NotSeenNearbyObjectsGrid {
     this.nextId = 1;   
   }
 
-  _getCellKey(x, y) {
+  getCellKey(x, y) {
     const cellX = Math.floor(x / this.cellSize);
     const cellY = Math.floor(y / this.cellSize);
     return `${cellX},${cellY}`;
@@ -25,7 +25,7 @@ class NotSeenNearbyObjectsGrid {
 
    obj.id = this.nextId++;
 
-    const key = this._getCellKey(obj.x, obj.y);
+    const key = this.getCellKey(obj.x, obj.y);
     if (!this.grid.has(key)) {
       this.grid.set(key, new Set());
     }
@@ -49,7 +49,7 @@ class NotSeenNearbyObjectsGrid {
   }
 
   updateObject(obj, newX, newY) {
-    const newKey = this._getCellKey(newX, newY);
+    const newKey = this.getCellKey(newX, newY);
 
     if (obj._gridKey !== newKey) {
       this.removeObject(obj);
@@ -113,7 +113,7 @@ class RealTimeObjectGrid {
     this.grid = new Map(); // Key: "cellX,cellY" → Set of objects
   }
 
-  _getCellKey(x, y) {
+  getCellKey(x, y) {
     const cellX = Math.floor(x / this.cellSize);
     const cellY = Math.floor(y / this.cellSize);
     return `${cellX},${cellY}`;
@@ -127,7 +127,7 @@ class RealTimeObjectGrid {
     }
   }
 
-    const key = this._getCellKey(obj.x, obj.y);
+    const key = this.getCellKey(obj.x, obj.y);
     if (!this.grid.has(key)) {
       this.grid.set(key, new Set());
     }
@@ -151,7 +151,7 @@ class RealTimeObjectGrid {
   }
 
   updateObject(obj, newX, newY) {
-    const newKey = this._getCellKey(newX, newY);
+    const newKey = this.getCellKey(newX, newY);
 
     if (obj._gridKey !== newKey) {
       this.removeObject(obj);
@@ -208,7 +208,7 @@ class SpatialGrid {
     this.grid = new Map(); // Key: "cellX,cellY" → object
   }
 
-  _getCellKey(x, y) {
+  getCellKey(x, y) {
     const cellX = Math.floor(x / this.cellSize);
     const cellY = Math.floor(y / this.cellSize);
     return `${cellX},${cellY}`;
@@ -218,7 +218,7 @@ class SpatialGrid {
     if (typeof obj.x !== 'number' || typeof obj.y !== 'number') {
       throw new Error("Object must have numeric 'x', 'y' and a unique 'id' property.");
     }
-    const key = this._getCellKey(obj.x, obj.y);
+    const key = this.getCellKey(obj.x, obj.y);
     this.grid.set(key, obj);
     obj._gridKey = key;
   }
@@ -231,7 +231,7 @@ class SpatialGrid {
 
   updateObject(obj, newX, newY) {
     const oldKey = obj._gridKey;
-    const newKey = this._getCellKey(newX, newY);
+    const newKey = this.getCellKey(newX, newY);
     if (oldKey === newKey) {
       obj.x = newX;
       obj.y = newY;

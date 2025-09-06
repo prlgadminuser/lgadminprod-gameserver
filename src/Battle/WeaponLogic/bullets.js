@@ -361,11 +361,12 @@ function GunHasModifier(name, room, modifiers) {
 
 function DestroyWall(wall, room) {
   room.grid.removeObject(wall);
-
   const obj = {
     type: 1,
     x: wall.x,
-    y: wall.y
+    y: wall.y,
+    sendx: wall.x / 10,
+    sendy: wall.y / 10,
   }  // id for wall removal object: 1
   AddNewUnseenObject(room, obj)
 }

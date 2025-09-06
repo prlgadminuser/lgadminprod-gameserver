@@ -41,8 +41,8 @@ function getNotSeenObjects(room, player, centerX, centerY) {
    const formattedObjects = visible.length > 0
     ? visible.map(obj => [
       obj.type,
-      Math.round(obj.x), 
-      Math.round(obj.y), 
+      obj.sendx, 
+      obj.sendy
     ])
     : undefined;
 
