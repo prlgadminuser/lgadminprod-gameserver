@@ -132,6 +132,9 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
     // Destruction
    // destroyedWalls: [],
 
+   //reuse 
+    playerDataBuffer: new Map(),
+
     // clear interval ids
     intervalIds: [],
     timeoutIds: [],
@@ -215,12 +218,12 @@ function createRoom(roomId, gamemode, gmconfig, splevel) {
 
   room.intervalIds.push(
     setInterval(() => {
-     // console.time('myFunction');
+    //  console.time('myFunction');
       prepareRoomMessages(room);
-     // console.timeEnd('myFunction');
+    // console.timeEnd('myFunction');
       room.timeoutdelaysending = setTimeout(() => {
         sendRoomMessages(room);
-      }, 3);
+      }, 2);
     }, game_tick_rate)
   );
 

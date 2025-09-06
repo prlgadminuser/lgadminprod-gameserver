@@ -212,7 +212,7 @@ function prepareRoomMessages(room) {
   const finalroomdata = !arraysEqual(room.rdlast, roomdata) ? (room.rdlast = roomdata) : undefined;
 
   // Reuse buffers for bullets and player data
-  const playerData = room._playerDataBuffer || (room._playerDataBuffer = new Map());
+  const playerData = room.playerDataBuffer 
 
   for (const p of players) {
     if (p.spectating) continue;
@@ -250,7 +250,7 @@ function prepareRoomMessages(room) {
 
     // Use hash instead of full array equality for efficiency
     const hash = serialized.join(","); // simple string hash
-    p.dirty = hash !== p._lastSerializedHash;
+   // p.dirty = hash !== p._lastSerializedHash;
     p._lastSerializedHash = hash;
 
     playerData.set(p.id, serialized);
@@ -328,6 +328,7 @@ function prepareRoomMessages(room) {
     p.eliminations.length = 0;
     p.nearbyanimations.length = 0;
   }
+
 }
 
 

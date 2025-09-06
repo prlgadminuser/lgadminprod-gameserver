@@ -23,15 +23,8 @@ function deepEqual(a, b) {
   return true;
 }
 
-
 function arraysEqual(a, b) {
-  if (a === b) return true;
-  if (!a || !b) return false;
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
+  return Array.isArray(a) && Array.isArray(b) && a.join(",") === b.join(",");
 }
 
 // Simple string-to-number hash
