@@ -51,6 +51,7 @@ function setupWebSocketServer(wss, server) {
       const [_, token, gamemode] = req.url.split("/");
       const origin = req.headers["sec-websocket-origin"] || req.headers.origin;
 
+
       if (!token || !gamemode || !GAME_MODES.has(gamemode) || !isValidOrigin(origin)) {
         ws.close(4004, "Unauthorized");
         return;
@@ -106,7 +107,18 @@ function setupWebSocketServer(wss, server) {
     }
   });
 
-  server.on("upgrade", (request, socket, head) => handleUpgrade(request, socket, head, wss));
+
+
+server.on("upgrade", (request, socket, head) => {
+
+ if (!request.url.length || request.url.length > 300) {
+   socket.destroy();
+   console.log("enforced");
+   return;
+ } 
+
+  handleUpgrade(request, socket, head, wss);
+});
 }
 
 module.exports = { setupWebSocketServer };
