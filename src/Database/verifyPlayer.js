@@ -18,7 +18,7 @@ async function verifyPlayer(token) {
     }
 
     const BanData = await DBuserCollection.findOne(
-      { "account.token": token },
+      { "account.username": username },
       {
         projection: {
           "_id": 0,
