@@ -113,7 +113,6 @@ server.on("upgrade", (request, socket, head) => {
 
  if (!request.url.length || request.url.length > 300) {
    socket.destroy();
-   console.log("enforced");
    return;
  } 
 
@@ -122,3 +121,4 @@ server.on("upgrade", (request, socket, head) => {
 }
 
 module.exports = { setupWebSocketServer };
+
