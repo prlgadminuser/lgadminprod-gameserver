@@ -156,7 +156,6 @@ function handleMovementData(data, player) {
   }
 }
 
-
 function updatePlayerDirection(player, direction) {
   player.direction = direction;
 
@@ -175,7 +174,6 @@ async function handlePlayerMoveIntervalAll(room) {
     }
   });
 }
-
 
 
 module.exports = { handleMessage, handlePlayerMoveIntervalAll }

@@ -62,7 +62,7 @@ const gamemodeconfig = {
     respawns_allowed: 0,
 
     playerhealth: 100,
-    playerspeed: 1.6,
+    playerspeed: 1.65,
 
     modifiers: new Set(["UseZone", "AutoHealthRestore"]),
 
@@ -191,4 +191,3 @@ module.exports = {
   gamemodeconfig: new Map(Object.entries(gamemodeconfig)),
   allowed_gamemodes,
 };
-

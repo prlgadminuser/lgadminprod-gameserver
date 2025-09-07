@@ -91,7 +91,7 @@ function checkGameEndCondition(room) {
   // Check if a single winner remains.
   if (remainingTeamsOrPlayers.length === 1) {
     const winner = remainingTeamsOrPlayers[0];
-    if (room.IsTeamMode) {
+    if (room.IsTeamMode && room.winner === -1) {
       room.winner = winner.id;
       winner.players.forEach((player) => {
         const p = player;
@@ -99,7 +99,7 @@ function checkGameEndCondition(room) {
          UpdatePlayerWins(p, 1);
         UpdatePlayerPlace(p, 1, room);
       });
-    } else {
+    } else if (room.winner === -1) {
       room.winner = winner.id;
       winner.place = 1;
        UpdatePlayerWins(winner, 1);
