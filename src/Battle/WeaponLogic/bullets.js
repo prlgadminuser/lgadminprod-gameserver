@@ -400,7 +400,7 @@ function handleBulletFired(room, player, gunType) {
 
    for (const bulletConfig of gun.bullets) {
   room.bulletManager.scheduleBullet(player, {
-    speed: bulletConfig.speed * 1.3,
+    speed: bulletConfig.speed,
     offset: bulletConfig.offset,
     damage: gun.damage,
     angle: gun.useplayerangle ? bulletConfig.angle + baseAngle : bulletConfig.angle,
@@ -426,7 +426,4 @@ function handleBulletFired(room, player, gunType) {
 module.exports = {
   BulletManager,
   handleBulletFired
-
 };
-
-
