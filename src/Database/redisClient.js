@@ -1,7 +1,7 @@
 // src/database/redisClient.js
 const Redis = require("ioredis");
 const { rediskey } = require("@main/idbconfig");
-const { SERVER_INSTANCE_ID, REDIS_KEYS, HEARTBEAT_TTL_SECONDS, HEARTBEAT_INTERVAL_MS } = require("@main/config");
+const { SERVER_INSTANCE_ID, REDIS_KEYS, HEARTBEAT_TTL_SECONDS, HEARTBEAT_INTERVAL_MS, playerCount } = require("@main/config");
 const { playerLookup } = require("../RoomHandler/setup");
 
 const redisClient = new Redis(rediskey);
@@ -33,10 +33,17 @@ sub.on("message", (channel, message) => {
 });
 
 function startHeartbeat() {
- redisClient.setex(heartbeatKey, HEARTBEAT_TTL_SECONDS, Date.now().toString());
+ redisClient.setex(heartbeatKey, HEARTBEAT_TTL_SECONDS,   JSON.stringify({  timestamp: Date.now(),  playercount: playerCount,  }));
  setInterval(async () => {
       try {
-        await redisClient.setex(heartbeatKey, HEARTBEAT_TTL_SECONDS, Date.now().toString());
+        await redisClient.setex(
+          heartbeatKey, 
+          HEARTBEAT_TTL_SECONDS, 
+          JSON.stringify({
+    timestamp: Date.now(),
+    playercount: playerCount,
+  })
+);
       } catch (error) {
         console.error("Error sending heartbeat to Redis:", error);
       }
@@ -76,6 +83,39 @@ async function checkExistingSession(username) {
   
   return isExistingServerAlive ? parsed.sid : null;
 }
+
+async function getTotalPlayers() {
+  // 1. Find keys that start with "battleServer"
+  const keys = await redisClient.keys("battleServer*");
+
+  // 2. Fetch their values
+  const values = await redisClient.mget(keys);
+
+  // 3. Sum up playercount from JSON
+  let totalPlayers = 0;
+
+  for (const v of values) {
+    if (!v) continue;
+    try {
+      const data = JSON.parse(v);
+      if (typeof data.playercount === "number") {
+        totalPlayers += data.playercount;
+      }
+    } catch (err) {
+      console.error("Invalid JSON in key:", v);
+    }
+  }
+  console.log("Total players across all battle servers:", totalPlayers);
+
+
+  return totalPlayers;
+}
+
+
+
+// usage
+//getTotalPlayers();
+
 
 
 module.exports = {
