@@ -192,13 +192,13 @@ async function AddPlayerToRoom(ws, gamemode, playerVerified) {
       }
     }
 
-    if (room.players.size >= room.maxplayers && room.state === "waiting") {
+   // if (room.players.size >= room.maxplayers && room.state === "waiting") {
 
       room.state = "await";
       removeRoomFromIndex(room)
       clearTimeout(room.matchmaketimeout);
       await startMatch(room, roomId);
-    }
+   // }
 
     return { room, playerId };
   } catch (error) {

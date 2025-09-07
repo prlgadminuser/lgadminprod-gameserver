@@ -24,7 +24,7 @@ function deepEqual(a, b) {
 }
 
 
-function arraysEqual(a, b) {
+function arraysEqual5(a, b) {
   if (a === b) return true;
   if (!a || !b) return false;
   if (a.length !== b.length) return false;
@@ -35,7 +35,7 @@ function arraysEqual(a, b) {
 }
 
 
-function arraysEqual2(a, b) {
+function arraysEqual(a, b) {
   return Array.isArray(a) && Array.isArray(b) && a.join(",") === b.join(",");
 }
 

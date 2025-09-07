@@ -39,6 +39,7 @@ const PacketKeys = {
   bulletdata: 4,
   objectupdates: 5,
   animations: 6,
+  killfeed: 7,
 };
 
 
@@ -209,7 +210,7 @@ function prepareRoomMessages(room) {
     room.zone,
   ];
 
- let finalroomdata 
+ let finalroomdata
 
  if (!arraysEqual(room.rdlast, roomdata)) {
 
@@ -309,12 +310,12 @@ function prepareRoomMessages(room) {
     msgArray.length = 0;
 
     if (finalroomdata) msgArray.push(PacketKeys["roomdata"], finalroomdata);
-    if (room.killfeed.length) msgArray.push(1, room.killfeed);
     if (Object.keys(changes).length) msgArray.push(PacketKeys["selfdata"], changes);
     if (p.nearbyanimations.length) msgArray.push(PacketKeys["animations"], p.nearbyanimations);
     if (p.newSeenObjectsStatic) msgArray.push(PacketKeys["objectupdates"], p.newSeenObjectsStatic);
     if (p.finalbullets) msgArray.push(PacketKeys["bulletdata"], p.finalbullets);
     if (p.pd.length) msgArray.push(PacketKeys["playerdata"], p.pd);
+    if (room.killfeed.length) msgArray.push(PacketKeys["killfeed"], room.killfeed);
 
     // Send message if changed
     if (!msgArray.length) {
