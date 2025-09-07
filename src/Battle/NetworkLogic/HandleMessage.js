@@ -156,11 +156,12 @@ function handleMovementData(data, player) {
   }
 }
 
+
 function updatePlayerDirection(player, direction) {
   player.direction = direction;
 
-  if (player.direction !== -180 && player.direction !== 0) {
-    player.direction2 = direction > 0 ? -90 : 90 // Adjust otherwise
+  if (player.direction != -180 && player.direction != 0) {
+    player.direction2 = direction > 0 ? -90 : 90 // Adjust otherwisew
 }
 
 }
@@ -174,6 +175,7 @@ async function handlePlayerMoveIntervalAll(room) {
     }
   });
 }
+
 
 
 module.exports = { handleMessage, handlePlayerMoveIntervalAll }
