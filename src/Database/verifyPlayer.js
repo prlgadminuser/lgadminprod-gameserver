@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const { DBuserCollection } = require("./mongoClient");
 
 async function verifyPlayer(token) {
+
   if (!token) {
     throw new Error("Unauthorized");
   }

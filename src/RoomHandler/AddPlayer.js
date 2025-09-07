@@ -101,7 +101,9 @@ async function AddPlayerToRoom(ws, gamemode, playerVerified) {
       respawns: room.respawns,
       emote: 0,
 
+      // gameObjectsUpdates static and updates
       seenObjectsIds: new Set(),
+      lastNearbyObjects: new Set(),
       // combat shooting
 
       lastShootTime: 0,
