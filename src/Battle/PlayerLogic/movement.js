@@ -49,9 +49,9 @@ function handleMovement(player, room) {
 
     // Apply updated position
    
-    player.x = newX;
-    player.y = newY;
-
+    
+   player.x = Math.round(newX * 100) / 100;
+   player.y = Math.round(newY * 100) / 100;
 
     if (player._gridKey) room.realtimegrid.updateObject(player, player.x, player.y);
 }
@@ -164,6 +164,7 @@ module.exports = {
   playerhitbox,
 
 }
+
 
 
 
