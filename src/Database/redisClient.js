@@ -1,7 +1,7 @@
 // src/database/redisClient.js
 const Redis = require("ioredis");
 const { rediskey } = require("@main/idbconfig");
-const { SERVER_INSTANCE_ID, REDIS_KEYS, HEARTBEAT_TTL_SECONDS, HEARTBEAT_INTERVAL_MS, playerCount } = require("@main/config");
+const { SERVER_INSTANCE_ID, REDIS_KEYS, HEARTBEAT_TTL_SECONDS, HEARTBEAT_INTERVAL_MS} = require("@main/config");
 const { playerLookup } = require("../RoomHandler/setup");
 
 const redisClient = new Redis(rediskey);
@@ -33,7 +33,7 @@ sub.on("message", (channel, message) => {
 });
 
 function startHeartbeat() {
- redisClient.setex(heartbeatKey, HEARTBEAT_TTL_SECONDS,   JSON.stringify({  timestamp: Date.now(),  playercount: playerCount,  }));
+ redisClient.setex(heartbeatKey, HEARTBEAT_TTL_SECONDS,   JSON.stringify({  timestamp: Date.now(),  playercount: global.playerCount,  }));
  setInterval(async () => {
       try {
         await redisClient.setex(
@@ -41,7 +41,7 @@ function startHeartbeat() {
           HEARTBEAT_TTL_SECONDS, 
           JSON.stringify({
     timestamp: Date.now(),
-    playercount: playerCount,
+    playercount: global.playerCount,
   })
 );
       } catch (error) {

@@ -1,6 +1,6 @@
 // src/handlers/webSocketHandler.js
 const { RateLimiterMemory } = require("rate-limiter-flexible");
-const { ALLOWED_ORIGINS, GAME_MODES, RATE_LIMITS, playerCount } = require("@main/config");
+const { ALLOWED_ORIGINS, GAME_MODES, RATE_LIMITS } = require("@main/config");
 const { verifyPlayer } = require("@src/Database/verifyPlayer");
 const { checkForMaintenance } = require("@src/Database/ChangePlayerStats");
 const { addSession, removeSession, checkExistingSession } = require("@src/Database/redisClient");
@@ -81,7 +81,7 @@ function setupWebSocketServer(wss, server) {
         return;
       }
 
-     // playerCount++
+     global.playerCount++
 
       const room = joinResult.room
       const playerId = joinResult.playerId
@@ -102,7 +102,7 @@ function setupWebSocketServer(wss, server) {
          playerLookup.delete(username);
         if (player) RemovePlayerFromRoom(room, player);
         await removeSession(username);
-       //   playerCount--
+        global.playerCount--
       });
     } catch (error) {
       console.error("Error during WebSocket connection:", error);

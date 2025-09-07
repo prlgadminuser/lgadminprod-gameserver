@@ -4,7 +4,7 @@ const { allowed_gamemodes } = require("./src/GameConfig/gamemodes");
 
 const HEARTBEAT_INTERVAL_MS = 1000000;
 
-let playerCount = 0
+global.playerCount = 0
 
 function serverid ()  {
 const serverid =  "xxxxxxxxxx".replace(/[xy]/g, function (c) {
@@ -16,7 +16,6 @@ return serverid
 }
 
 module.exports = {
-  playerCount,
   SERVER_INSTANCE_ID: serverid(), //uuidv4(),
   REDIS_KEYS: {
     USER_PREFIX: "battleuser:",
