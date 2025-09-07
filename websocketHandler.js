@@ -81,7 +81,7 @@ function setupWebSocketServer(wss, server) {
         return;
       }
 
-      playerCount++
+     // playerCount++
 
       const room = joinResult.room
       const playerId = joinResult.playerId
@@ -102,7 +102,7 @@ function setupWebSocketServer(wss, server) {
          playerLookup.delete(username);
         if (player) RemovePlayerFromRoom(room, player);
         await removeSession(username);
-          playerCount--
+       //   playerCount--
       });
     } catch (error) {
       console.error("Error during WebSocket connection:", error);
