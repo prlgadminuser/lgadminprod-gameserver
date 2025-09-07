@@ -260,7 +260,7 @@ function prepareRoomMessages(room) {
     const serialized = SerializePlayerData(p);
 
     // Use hash instead of full array equality for efficiency
-    const hash = serialized.join(","); // simple string hash
+  //  const hash = serialized.join(","); // simple string hash
    // p.dirty = hash !== p._lastSerializedHash;
     p._lastSerializedHash = hash;
 
