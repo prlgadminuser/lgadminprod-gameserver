@@ -262,7 +262,7 @@ function prepareRoomMessages(room) {
     // Use hash instead of full array equality for efficiency
   //  const hash = serialized.join(","); // simple string hash
    // p.dirty = hash !== p._lastSerializedHash;
-    p._lastSerializedHash = hash;
+  //  p._lastSerializedHash = hash;
 
     playerData.set(p.id, serialized);
   }
