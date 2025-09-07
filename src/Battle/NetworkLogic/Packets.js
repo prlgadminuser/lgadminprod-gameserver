@@ -209,7 +209,18 @@ function prepareRoomMessages(room) {
     room.zone,
   ];
 
-  const finalroomdata = !arraysEqual(room.rdlast, roomdata) ? (room.rdlast = roomdata) : undefined;
+ let finalroomdata 
+
+ if (!arraysEqual(room.rdlast, roomdata)) {
+
+   finalroomdata = roomdata
+   room.rdlast = roomdata
+ } else {
+
+  finalroomdata = undefined
+
+ }
+  
 
   // Reuse buffers for bullets and player data
   const playerData = room.playerDataBuffer 
