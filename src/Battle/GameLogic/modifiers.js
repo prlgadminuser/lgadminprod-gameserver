@@ -48,11 +48,11 @@ function regenerateHealth(room) {
 }
 
 function startDecreasingHealth(room, seconds) {
-  room.setRoomInterval(() => decreaseHealth(), seconds * 1000);
+  room.setRoomInterval(() => decreaseHealth(room), seconds * 1000);
 }
 
 function startRegeneratingHealth(room, seconds) {
-  room.setRoomInterval(() => regenerateHealth(), seconds * 1000);
+  room.setRoomInterval(() => regenerateHealth(room), seconds * 1000);
 }
 
 
