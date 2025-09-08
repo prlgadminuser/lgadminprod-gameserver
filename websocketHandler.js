@@ -83,7 +83,7 @@ if (playerLookup.has(username)) {
       if (existingConnection) {
         existingConnection.send("code:double");
         existingConnection.wsClose(1001, "Reassigned connection");
-        await new Promise((resolve) => existingConnection.once("close", resolve));
+      //  await new Promise((resolve) => existingConnection.once("close", resolve));
           playerLookup.delete(username);
       }
     } else {
@@ -151,3 +151,4 @@ server.on("upgrade", (request, socket, head) => {
 }
 
 module.exports = { setupWebSocketServer };
+
