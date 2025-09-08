@@ -17,18 +17,18 @@ function respawnplayer(room, player) {
   player.health = player.starthealth
 
   if (UseStartRespawnPoint) {
-  player.timeoutIds.push(setTimeout(() =>{
+    room.setRoomTimeout(() => {
   player.x = player.startspawn.x
    player.y = player.startspawn.y
-  }, 3000));
+  }, 3000);
 }
 
-  player.timeoutIds.push(setTimeout(() =>{
+  room.setRoomTimeout(() => {
      room.realtimegrid.addObject(player);
     player.spectating = false
     player.alive = true
     player.state = 1
-    }, 5000)); 
+    }, 5000); 
  }
 
  module.exports = {

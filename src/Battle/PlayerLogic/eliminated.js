@@ -3,7 +3,6 @@
 const { UpdatePlayerWins, UpdatePlayerPlace } = require("@main/src/Database/ChangePlayerStats");
 const { spawnAnimation } = require("@main/src/gameObjectEvents/animations");
 const { startSpectatingLogic } = require("./spectating");
-const { closeRoom } = require("@main/src/RoomHandler/closeRoom");
 const { game_win_rest_time } = require("@main/modules");
 
 
@@ -68,11 +67,9 @@ function eliminatePlayer(room, player) {
     clearTimeout(player.timeout);
   }
 
-  room.timeoutIds.push(
-    setTimeout(() => {
+  room.setRoomTimeout(() => {
       startSpectatingLogic(player, room);
     }, 3000)
-  );
 }
 
 // Helper function to check for the final win/end condition.
@@ -106,16 +103,16 @@ function checkGameEndCondition(room) {
       UpdatePlayerPlace(winner, 1, room);
     }
     // Set a timeout to close the room after a win.
-    room.timeoutIds.push(
-      setTimeout(() => closeRoom(room.roomId), game_win_rest_time)
-    );
+     room.setRoomTimeout(() => {
+        room.close(); 
+    }, game_win_rest_time)
   }
   // If no one is left, also close the room.
   else if (remainingTeamsOrPlayers.length === 0) {
-    room.timeoutIds.push(
-      setTimeout(() => closeRoom(room.roomId), game_win_rest_time)
-    );
-  }
+       room.setRoomTimeout(() => {
+    room.close();
+  }, game_win_rest_time);
+}
 }
 
 module.exports = { handleElimination, checkGameEndCondition, eliminatePlayer };

@@ -4,7 +4,6 @@ const {
   eliminatePlayer,
 } = require("../Battle/PlayerLogic/eliminated");
 const { UpdatePlayerKillsAndDamage } = require("../Database/ChangePlayerStats");
-const { closeRoom } = require("./closeRoom");
 const { playerLookup } = require("./setup");
 
 function RemovePlayerFromRoom(room, player) {
@@ -14,8 +13,6 @@ function RemovePlayerFromRoom(room, player) {
     eliminatePlayer(room, player);
   addEntryToKillfeed(room, 5, null, player.id, null);
 
-  player.timeoutIds?.forEach(clearTimeout);
-  player.intervalIds?.forEach(clearInterval);
   player.alive = false;
   player.eliminated = true;
 
@@ -28,34 +25,37 @@ function RemovePlayerFromRoom(room, player) {
     room.players.delete(player.playerId);
 
     if (room.players.size < 1) {
-      closeRoom(room.roomId);
+       room.close();
       return;
     }
 
   } else {
     if (room.players.size < 1) {
-      closeRoom(room.roomId);
+       room.close();
       return;
     }
 
     if (room.grid) checkGameEndCondition(room);
-
-    if (room && room.players.size > 1) {
-      room.timeoutIds.push(
-        setTimeout(() => {
-          if (room) {
-            room.players.delete(player.playerId);
-          }
-        }, 4000)
-      );
-    } else {
-      room.players.delete(player.playerId);
+    if (room) {
+  if (room.players.size > 1) {
+    room.setRoomTimeout(() => {
+      if (room) {
+        room.players.delete(player.playerId);
+        // optionally check if room is now empty
+        if (room.players.size < 1) {
+          room.close();
+        }
+      }
+    }, 4000);
+  } else {
+    room.players.delete(player.playerId);
+    if (room.players.size < 1) {
+      room.close();
     }
   }
-  if (room.players.size < 1) {
-    closeRoom(room.roomId);
-    return;
+
+    }
   }
 }
 
-module.exports = { RemovePlayerFromRoom };
+module.exports = { RemovePlayerFromRoom }

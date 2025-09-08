@@ -101,14 +101,14 @@ function initializeHealingCircles(room) {
   spawnHealingCircle(room);
 
   // Spawn a new healing circle every 30 seconds
-  room.intervalIds.push(setInterval(() => {
+    room.setRoomInterval(() => {
     spawnHealingCircle(room);
-  }, 30000));
+  }, 30000);
 
   // Update healing circles every 50ms
-  room.intervalIds.push(setInterval(() => {
+  room.setRoomInterval(() => {
     updateHealingCircles(50, room);
-  }, 50));
+  }, 50);
 }
 
 module.exports = {

@@ -1,5 +1,4 @@
 const { SpatialGrid, RealTimeObjectGrid, gridcellsize, room_max_open_time, game_start_time, NotSeenNearbyObjectsGrid } = require("@main/modules");
-const { closeRoom } = require("./closeRoom");
 const { playerchunkrenderer } = require("../Battle/PlayerLogic/playerchunks");
 const { SendPreStartMessage } = require("../Battle/NetworkLogic/Packets");
 const { UseZone } = require("../Battle/GameLogic/zone");
@@ -110,65 +109,67 @@ async function CreateTeams(room) {
     });
 }
 
+function startCountdown(room) {
+  const startTime = Date.now();
+  room.countdownInterval = setInterval(() => {
+    const elapsed = Date.now() - startTime;
+    const remaining = room_max_open_time  - elapsed;
 
+    if (remaining <= 0) {
+      clearInterval(room.countdownInterval);
+      room.countdown = "0:00";
+    } else {
+      const minutes = Math.floor(remaining / 1000 / 60);
+      const seconds = Math.floor((remaining / 1000) % 60);
+      room.countdown = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+    }
+  }, 1000);
+}
 
 async function startMatch(room, roomId) {
-  room.maxopentimeout = setTimeout(() => {
-    closeRoom(roomId);
-  }, room_max_open_time);
-
-  await SetupRoomStartGameData(room);
-
-  await setupRoomPlayers(room);
-  await CreateTeams(room);
-
-  playerchunkrenderer(room);
-  SendPreStartMessage(room);
-
   try {
-    room.intervalIds.push(
-      setTimeout(() => {
+    // Automatically close the room after max open time
+    room.maxopentimeout = room.setRoomTimeout(() => {
+      room.close();
+    }, room_max_open_time);
 
-        room.state = "countdown";
+    // Prepare room data and players
+    await SetupRoomStartGameData(room);
+    await setupRoomPlayers(room);
+    await CreateTeams(room);
 
-        room.timeoutIds.push(
-          setTimeout(() => {
-            if (!rooms.has(roomId)) return;
+    // Render players and send pre-start message
+    playerchunkrenderer(room);
+    SendPreStartMessage(room);
 
-            room.state = "playing";
+      room.setRoomTimeout(() => {
 
-            if (room.modifiers.has("countdown")) {
-              const countdownDuration = room_max_open_time;
-              const countdownStartTime = Date.now();
+    // Countdown phase before the game starts
+    room.state = "countdown";
 
-              room.countdownInterval = setInterval(() => {
-                const elapsedTime = Date.now() - countdownStartTime;
-                const remainingTime = countdownDuration - elapsedTime;
+    room.setRoomTimeout(() => {
+      if (!rooms.has(roomId)) return; // Room might have been closed
 
-                if (remainingTime <= 0) {
-                  clearInterval(room.countdownInterval);
-                  room.countdown = "0:00";
-                } else {
-                  const minutes = Math.floor(remainingTime / 1000 / 60);
-                  const seconds = Math.floor((remainingTime / 1000) % 60);
-                  room.countdown = `${minutes}:${seconds
-                    .toString()
-                    .padStart(2, "0")}`;
-                }
-              }, 1000);
-            }
+      room.state = "playing";
 
-            if (room.modifiers.has("HealingCircles"))     initializeHealingCircles(room);
-            if (room.modifiers.has("UseZone"))            UseZone(room);
-            if (room.modifiers.has("AutoHealthRestore"))  startRegeneratingHealth(room, 1);
-            if (room.modifiers.has("AutoHealthDamage"))   startDecreasingHealth(room, 1);
-          }, game_start_time)
-        );
-      }, 1000)
-    );
+      // Start countdown if the modifier is active
+      if (room.modifiers.has("countdown")) {
+        startCountdown(room);
+      }
+
+      // Initialize game modifiers
+      if (room.modifiers.has("HealingCircles")) initializeHealingCircles(room);
+      if (room.modifiers.has("UseZone")) UseZone(room);
+      if (room.modifiers.has("AutoHealthRestore")) startRegeneratingHealth(room, 1);
+      if (room.modifiers.has("AutoHealthDamage")) startDecreasingHealth(room, 1);
+
+    }, game_start_time); // Delay before game officially starts
+
+  }, 1000)
   } catch (err) {
     console.error(`Error starting match in room ${roomId}:`, err);
   }
 }
+
 
 module.exports = { startMatch }

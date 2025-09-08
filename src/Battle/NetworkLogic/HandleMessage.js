@@ -59,10 +59,10 @@ function handleMessage(room, player, message) {
       handleSwitchGun(data, player);
       break;
     case "6":
-      handleEmote(data, player);
+      handleEmote(data, player, room);
       break;
     case "7":
-      handleGadget(player);
+      handleGadget(room, player);
       break;
   }
 
@@ -111,28 +111,24 @@ function handleSwitchGun(data, player) {
   }
 }
 
-function handleEmote(data, player) {
+function handleEmote(data, player, room) {
   const emoteid = data[1];
   if (emoteid >= 1 && emoteid <= 4 && player.emote === 0) {
     player.emote = emoteid;
-    player.timeoutIds.push(
-      setTimeout(() => {
+      room.setRoomTimeout(() => {
         player.emote = 0;
       }, 3000)
-    );
   }
 }
 
-function handleGadget(player) {
+function handleGadget(room, player) {
   if (player.canusegadget && player.gadgetuselimit > 0) {
     player.canusegadget = false;
     player.gadgetuselimit--;
-    player.usegadget(player);
-    player.timeoutIds.push(
-      setTimeout(() => {
+    player.useGadget(player);
+     room.setRoomTimeout(() => {
         player.canusegadget = true;
       }, player.gadgetcooldown)
-    );
   }
 }
 const isValidDirection = (direction) => {

@@ -18,6 +18,8 @@ function isValidOrigin(origin) {
 
 const DisableConnectRateLimit = true
 
+const devmode = false
+
 
 async function handleUpgrade(request, socket, head, wss) {
   const ip = request.socket["true-client-ip"] || request.socket["x-forwarded-for"] || request.socket.remoteAddress;
@@ -64,7 +66,7 @@ function setupWebSocketServer(wss, server) {
       }
 
       const username = playerVerified.playerId;
-      const existingServerId = await checkExistingSession(username);
+     const existingServerId = await checkExistingSession(username);
 
       if (existingServerId) {
         ws.send(JSON.stringify({ type: "error", message: `User "${username}" is already connected.` }));
@@ -72,7 +74,9 @@ function setupWebSocketServer(wss, server) {
         return;
       }
 
-      await addSession(username);
+     if (!devmode) await addSession(username);
+
+     
       
       const joinResult = await AddPlayerToRoom(ws, gamemode, playerVerified);
       if (!joinResult) {
@@ -80,6 +84,8 @@ function setupWebSocketServer(wss, server) {
         ws.close(4001, "Invalid token or room full");
         return;
       }
+
+      
 
      global.playerCount++
 
@@ -101,7 +107,7 @@ function setupWebSocketServer(wss, server) {
       ws.on("close", async () => {
          playerLookup.delete(username);
         if (player) RemovePlayerFromRoom(room, player);
-        await removeSession(username);
+       if (!devmode) await removeSession(username);
         global.playerCount--
       });
     } catch (error) {

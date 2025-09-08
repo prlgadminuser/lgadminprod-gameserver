@@ -90,7 +90,6 @@ function playerchunkrenderer(room) {
    player.newSeenObjectsStatic = nearbyObjectUpdateStatic  
 
    })
-
    
   const AlivePlayers = roomplayers.filter(p => !p.spectating);
   AlivePlayers.forEach(player =>  

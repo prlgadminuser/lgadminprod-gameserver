@@ -4,15 +4,13 @@
   "description": "build = npm install ws http2 cors axios express-rate-limit lz-string limiter body-parser rate-limiter-flexible validator mongodb jsonwebtoken node-os-utils ioredis msgpack-lite",
   "main": "index.js",
   "type": "commonjs",
-
-   "_moduleAliases": {
+  "_moduleAliases": {
     "@main": ".",
     "@src": "src",
     "@GameConfig": "src/GameConfig",
     "@Battle": "src/Battle",
     "@RoomHandler": "src/RoomHandler"
   },
-
   "directories": {
     "test": "tests"
   },
@@ -42,7 +40,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",
-    "eslint": "^9.34.0",
+    "eslint": "^9.35.0",
     "globals": "^16.3.0"
   }
 }

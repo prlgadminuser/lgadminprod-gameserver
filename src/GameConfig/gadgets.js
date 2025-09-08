@@ -43,9 +43,11 @@ const gadgetconfig = {
             const boostedSpeed = player.speed + player.speed / 2;
             enableGadget(player, { speed: boostedSpeed });
 
-            player.timeoutIds.push(setTimeout(() => {
-                disableGadget(player);
-            }, 5000));
+            
+            room.setRoomTimeout(() => {
+              disableGadget(player);
+            }, 5000);
+
         }
     },
 
@@ -55,9 +57,9 @@ const gadgetconfig = {
         gadget(player) {
             enableGadget(player, { can_bullets_bounce: true });
 
-            player.timeoutIds.push(setTimeout(() => {
+             room.setRoomTimeout(() => {
                 disableGadget(player);
-            }, 20000));
+            }, 20000);
         }
     },
 };

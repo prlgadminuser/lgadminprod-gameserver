@@ -157,7 +157,7 @@ function SendPreStartMessage(room) {
 }
 
 function SerializePlayerData(p) {
-  const arr = p._serializeBuffer || (p._serializeBuffer = new Array(7));
+  const arr = p.serializeBuffer
   arr[0] = p.id;
   arr[1] = encodePosition(p.x);
   arr[2] = encodePosition(p.y);
@@ -239,7 +239,7 @@ function prepareRoomMessages(room) {
       centerY + 180
     );
 
-    let finalBullets = p._bulletBuffer || (p._bulletBuffer = []);
+    let finalBullets = p.bulletBuffer;
     finalBullets.length = 0;
 
     if (nearbyBullets) {
@@ -275,7 +275,7 @@ function prepareRoomMessages(room) {
     const selfdata = BuildSelfData(p);
 
     const changes = {};
-    const lastSelf = p.selflastmsg || {};
+    const lastSelf = p.selflastmsg;
     for (const k in selfdata) {
       if (selfdata[k] !== lastSelf[k]) changes[k] = selfdata[k];
     }
@@ -284,12 +284,11 @@ function prepareRoomMessages(room) {
     if (p.spectating) handleSpectatorMode(p, room);
 
     if (!p.spectating) {
-      const filteredPlayers = p._filteredPlayersBuffer || (p._filteredPlayersBuffer = []);
+      const filteredPlayers = p.filteredPlayersBuffer
       filteredPlayers.length = 0;
 
-      const previousData = p.pdHashes || {};
+      const previousData = p.pdHashes;
       const currentData = {};
-
       for (const nearbyId of p.nearbyplayersids) {
         const data = playerData.get(nearbyId);
         if (!data) continue;
@@ -305,9 +304,11 @@ function prepareRoomMessages(room) {
       p.pdHashes = currentData;
     }
 
+
     // --- Message assembly with buffer reuse ---
-    const msgArray = p._msgBuffer || (p._msgBuffer = []);
+    const msgArray = p.msgBuffer;
     msgArray.length = 0;
+
 
     if (finalroomdata) msgArray.push(PacketKeys["roomdata"], finalroomdata);
     if (Object.keys(changes).length) msgArray.push(PacketKeys["selfdata"], changes);

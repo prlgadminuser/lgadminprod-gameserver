@@ -31,7 +31,6 @@ function removeRoomFromIndex(room) {
     roomIndex.delete(key);
   }
 
-
 }
 
 module.exports = {getAvailableRoom, addRoomToIndex, removeRoomFromIndex }

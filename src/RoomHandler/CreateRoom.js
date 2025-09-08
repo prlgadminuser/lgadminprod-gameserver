@@ -1,23 +1,8 @@
 const { random_mapkeys, mapsconfig, game_tick_rate, player_idle_timeout, deepCopy, matchmaking_timeout } = require("@main/modules");
-const { rooms, closeRoom } = require("./setup");
+const { rooms } = require("./setup");
 const { BulletManager } = require("../Battle/WeaponLogic/bullets");
-const { addRoomToIndex } = require("./roomIndex");
+const { addRoomToIndex, removeRoomFromIndex } = require("./roomIndex");
 const { prepareRoomMessages, sendRoomMessages } = require("../Battle/NetworkLogic/Packets");
-const { handlePlayerMoveIntervalAll } = require("../Battle/NetworkLogic/HandleMessage");
-const { playerchunkrenderer } = require("../Battle/PlayerLogic/playerchunks");
-const { HandleAfflictions } = require("../Battle/WeaponLogic/bullets-effects");
-
-function setRoomTimeout(room, fn, ms) {
-  const id = setTimeout(fn, ms);
-  room.timeoutIds.push(id);
-  return id;
-}
-
-function setRoomInterval(room, fn, ms) {
-  const id = setInterval(fn, ms);
-  room.intervalIds.push(id);
-  return id;
-}
 
 
 
@@ -44,7 +29,7 @@ function cleanupRoom(roomId) {
     !room.players ||
     room.players.size === 0
   ) {
-    closeRoom(roomId);
+    room.close();
   }
 }
 
@@ -71,179 +56,227 @@ function clearAndRemoveCompletedTimeouts(timeoutArray, clearFn) {
   });
 }
 
-function createRoom(roomId, gamemode, gmconfig, splevel) {
-  //splevel comes from the first players skillpoints number in the room
-  let mapid;
-  if (gmconfig.custom_map) {
-    mapid = `${gmconfig.custom_map}`;
-  } else {
-    const randomIndex = Math.floor(Math.random() * random_mapkeys.length);
-    mapid = random_mapkeys[randomIndex];
+
+
+class Room {
+  constructor(roomId, gamemode, gmconfig, splevel) {
+    // Select map
+    let mapid;
+    if (gmconfig.custom_map) {
+      mapid = `${gmconfig.custom_map}`;
+    } else {
+      const randomIndex = Math.floor(Math.random() * random_mapkeys.length);
+      mapid = random_mapkeys[randomIndex];
+    }
+
+    const mapdata = mapsconfig.get(mapid);
+    if (!mapdata) console.error("map does not exist");
+
+    // Core room state
+    this.roomId = roomId;
+    this.state = "waiting";
+    this.sp_level = splevel;
+    this.maxplayers = gmconfig.maxplayers;
+    this.gamemode = gamemode;
+    this.IsTeamMode = gmconfig.teamsize > 1;
+    this.matchtype = gmconfig.matchtype;
+    this.players = new Map();
+    this.eliminatedTeams = [];
+    this.currentplayerid = 0;
+    this.killfeed = [];
+    this.objects = [];
+    this.winner = -1;
+    this.countdown = undefined;
+    this.rdlast = [];
+    this.gameconfig = gmconfig
+
+    // Bullets + status
+    this.bullets = new Map();
+    this.activeAfflictions = [];
+
+    // Game configuration
+    this.modifiers = gmconfig.modifiers;
+    this.respawns = gmconfig.respawns_allowed;
+    this.place_counts = gmconfig.placereward;
+    this.ss_counts = gmconfig.seasoncoinsreward;
+    this.teamsize = gmconfig.teamsize;
+    this.weapons_modifiers_override = gmconfig.weapons_modifiers_override;
+
+    // Map data
+    this.mapdata = mapdata;
+    this.map = mapid;
+    this.mapHeight = mapdata.height;
+    this.mapWidth = mapdata.width;
+    this.spawns = mapdata.spawns;
+    this.walls = mapdata.walls;
+    this.zoneStartX = -mapdata.width;
+    this.zoneStartY = -mapdata.height;
+    this.zoneEndX = mapdata.width;
+    this.zoneEndY = mapdata.height;
+    this.zone = 0;
+
+    // Optional dummies
+    if (gmconfig.can_hit_dummies && mapdata.dummies) {
+      this.dummies = deepCopy(mapdata.dummies);
+    }
+
+    // Config
+    this.config = {
+      canCollideWithDummies: gmconfig.can_hit_dummies,
+      canCollideWithPlayers: gmconfig.can_hit_players,
+    };
+
+    // Managers + helpers
+    this.bulletManager = new BulletManager(this);
+    this.playerDataBuffer = new Map();
+    this.intervalIds = [];
+    this.timeoutIds = [];
+    this.lastglobalping = 0;
+
+    // Register room globally
+    addRoomToIndex(this);
+    rooms.set(roomId, this);
+
+    // Setup timers/intervals
+    this.initIntervals();
   }
 
-  const mapdata = mapsconfig.get(mapid);
 
-  if (!mapdata) console.error("map does not exist");
-
-  const room = {
-    // Game State
-    roomId: roomId,
-    state: "waiting",
-    sp_level: splevel,
-    maxplayers: gmconfig.maxplayers,
-    gamemode: gamemode,
-    IsTeamMode: gmconfig.teamsize > 1,
-    matchtype: gmconfig.matchtype,
-    players: new Map(),
-    eliminatedTeams: [],
-    currentplayerid: 0, // for creating playerids start at 0
-
-    killfeed: [],
-    objects: [],
-
-    winner: -1,
-    countdown: null,
-
-    // bullets handler
-    bullets: new Map(),
-    activeAfflictions: [],
-
-    // Game Configuration
-    modifiers: gmconfig.modifiers,
-    respawns: gmconfig.respawns_allowed,
-    place_counts: gmconfig.placereward,
-    ss_counts: gmconfig.seasoncoinsreward,
-    teamsize: gmconfig.teamsize,
-    weapons_modifiers_override: gmconfig.weapons_modifiers_override,
-
-    // Map Configuration
-    mapdata: mapdata,
-    map: mapid,
-    mapHeight: mapdata.height,
-    mapWidth: mapdata.width,
-    spawns: mapdata.spawns,
-    walls: mapdata.walls, // Could be mapped differently if needed
-    zoneStartX: -mapdata.width,
-    zoneStartY: -mapdata.height,
-    zoneEndX: mapdata.width,
-    zoneEndY: mapdata.height,
-    zone: 0,
-
-    // Destruction
-   // destroyedWalls: [],
-
-   //reuse 
-    playerDataBuffer: new Map(),
-
-    // clear interval ids
-    intervalIds: [],
-    timeoutIds: [],
-
-    lastglobalping: 0,
-  };
-
-  if (gmconfig.can_hit_dummies && mapdata.dummies) {
-    room.dummies = deepCopy(mapdata.dummies); //dummy crash fix
+  addPlayer(playerId, player) {
+    this.players.set(playerId, player);
   }
 
-  const roomConfig = {
-    canCollideWithDummies: gmconfig.can_hit_dummies, // Disable collision with dummies
-    canCollideWithPlayers: gmconfig.can_hit_players, // Enable collision with players
-  };
+   hasWinner() {
+    return this.winner !== -1;
+  }
 
-  room.config = roomConfig;
+   canStartGame() {
+    return this.players.size >= this.maxplayers && this.state === "waiting";
+  }
 
-  room.bulletManager = new BulletManager(room);
+   setRoomTimeout(fn, ms) {
+    const id = setTimeout(fn, ms);
+    this.timeoutIds.push(id);
+    return id;
+  }
 
-  addRoomToIndex(room);
-  rooms.set(roomId, room);
+  setRoomInterval(fn, ms) {
+    const id = setInterval(fn, ms);
+    this.intervalIds.push(id);
+    return id;
+  }
 
-  room.intervalIds.push(
-    setInterval(() => {
-      const now = Date.now();
 
-      for (const player of room.players.values()) {
-        if (player.lastPing <= now - player_idle_timeout || !player.wsOpen()) {
-          player.wsClose(4200, "disconnected_inactivity");
-        }
+  clearTimers() {
+    this.intervalIds.forEach(clearInterval);
+    this.timeoutIds.forEach(clearTimeout);
+
+    clearInterval(this.xcleaninterval);
+    clearInterval(this.timeoutdelaysending);
+    clearInterval(this.countdownInterval);
+    clearTimeout(this.matchmaketimeout);
+    clearTimeout(this.maxopentimeout);
+
+    this.intervalIds = [];
+    this.timeoutIds = [];
+  }
+
+  // Clean up all players
+  cleanupPlayers() {
+    this.players.forEach(player => {
+      // Close player connection
+      player.wsClose();
+
+      // Clear bullets / state
+      player.bullets?.clear();
+
+      // Update player stats if needed
+      if (player.kills > 0 || player.damage > 0) {
+        UpdatePlayerKillsAndDamage(player, player.kills, player.damage);
       }
-    }, player_idle_timeout / 2)
-  );
+    });
+  }
 
-  room.xcleaninterval = setInterval(() => {
-    if (room) {
-      // Clear room's timeout and interval arrays
-      if (room.timeoutIds) {
-        room.timeoutIds = clearAndRemoveCompletedTimeouts(
-          room.timeoutIds,
+  // Fully close the room
+  close() {
+    if (this.state === "closed") return;
+
+    // Stop timers
+    this.clearTimers();
+
+    // Cleanup players
+    this.cleanupPlayers();
+    this.players.clear();
+
+    // Remove from global registries
+    removeRoomFromIndex(this);
+    rooms.delete(this.roomId);
+
+    this.state = "closed";
+   // console.log(`Room ${this.roomId} closed`);
+  }
+
+  initIntervals() {
+    // Idle player cleanup
+    this.intervalIds.push(
+      setInterval(() => {
+        const now = Date.now();
+        for (const player of this.players.values()) {
+          if (player.lastPing <= now - player_idle_timeout || !player.wsOpen()) {
+            player.wsClose(4200, "disconnected_inactivity");
+          }
+        }
+      }, player_idle_timeout / 2)
+    );
+
+    // Cleanup expired intervals/timeouts
+    this.xcleaninterval = setInterval(() => {
+      if (this.timeoutIds) {
+        this.timeoutIds = clearAndRemoveCompletedTimeouts(
+          this.timeoutIds,
           clearTimeout
         );
       }
-      if (room.intervalIds) {
-        room.intervalIds = clearAndRemoveInactiveTimers(
-          room.intervalIds,
+      if (this.intervalIds) {
+        this.intervalIds = clearAndRemoveInactiveTimers(
+          this.intervalIds,
           clearInterval
         );
       }
+    }, 5000);
 
-      // Clear player-specific timeouts and intervals
-      room.players.forEach((player) => {
-        if (player.timeoutIds) {
-          player.timeoutIds = clearAndRemoveCompletedTimeouts(
-            player.timeoutIds,
-            clearTimeout
-          );
-        }
-        if (player.intervalIds) {
-          player.intervalIds = clearAndRemoveInactiveTimers(
-            player.intervalIds,
-            clearInterval
-          );
-        }
+    // Matchmaking timeout
+    this.matchmaketimeout = setTimeout(() => {
+      this.players.forEach((player) => {
+        player.send("matchmaking_timeout");
       });
-    }
-  }, 5000);
+     this.close();
+    }, matchmaking_timeout);
 
-  room.matchmaketimeout = setTimeout(() => {
-    room.players.forEach((player) => {
-      player.send("matchmaking_timeout");
-    });
+    // Game tick loop
+    this.intervalIds.push(
+      setInterval(() => {
+        prepareRoomMessages(this);
+        this.timeoutdelaysending = setTimeout(() => {
+          sendRoomMessages(this);
+        }, 2);
+      }, game_tick_rate)
+    );
 
-    closeRoom(roomId);
-  }, matchmaking_timeout);
+    // Cleanup cycle
+   /* this.timeoutIds.push(
+      setTimeout(() => {
+        this.intervalIds.push(
+          setInterval(() => {
+            cleanupRoom(this);
+          }, 1000)
+        );
+      }, 10000)
+    );
 
-  // Start sending batched messages at regular intervals
-  // in ms
-
-
-  room.intervalIds.push(
-    setInterval(() => {
-    //  console.time('myFunction');
-      prepareRoomMessages(room);
-    // console.timeEnd('myFunction');
-      room.timeoutdelaysending = setTimeout(() => {
-        sendRoomMessages(room);
-      }, 2);
-    }, game_tick_rate)
-  );
-
-  // room.intervalId = intervalId;
-  room.timeoutIds.push(
-    setTimeout(() => {
-      room.intervalIds.push(
-        setInterval(() => {
-          if (room) {
-            cleanupRoom(room);
-          }
-        }, 1000)
-      );
-    }, 10000)
-  );
-
-  // Countdown timer update every second
-
-  // console.log("Room", room.roomId, "created")
-  return room;
+    */
+  }
 }
 
-module.exports = { createRoom };
+
+module.exports = { Room };

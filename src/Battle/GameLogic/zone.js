@@ -179,18 +179,12 @@ function UseZone(room) {
 
   room.zonephases = phases;
   room.currentPhase = 0;
-  room.phaseStartTime = new Date().getTime();
+  room.phaseStartTime = new Date().getTime(),
 
-  room.shrinkInterval = room.intervalIds.push(
-    setInterval(() => smoothZoneMovement(room), 33)
-  );
-
-  room.damageInterval = room.intervalIds.push(
-    setInterval(() => dealDamage(room), 1000)
-  );
+  room.shrinkInterval = room.setRoomInterval(() => smoothZoneMovement(room), 33);
+  room.damageInterval = room.setRoomInterval(() => dealDamage(room), 1000);
 }
-
 
 module.exports = {
   UseZone,
-};
+}

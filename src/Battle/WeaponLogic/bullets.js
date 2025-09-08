@@ -416,9 +416,9 @@ function handleBulletFired(room, player, gunType) {
 }
 
   // Reset shooting state after cooldown
-  room.timeoutIds.push(setTimeout(() => {
+    room.setRoomTimeout(() => {
     player.shooting = false;
-  }, gun.cooldown));
+  }, gun.cooldown);
 }
 
 
