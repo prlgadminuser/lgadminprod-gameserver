@@ -285,7 +285,6 @@ function prepareRoomMessages(room) {
 
     if (!p.spectating) {
       const filteredPlayers = p.filteredPlayersBuffer
-      filteredPlayers.length = 0;
 
       const previousData = p.pdHashes;
       const currentData = {};
@@ -299,7 +298,7 @@ function prepareRoomMessages(room) {
         currentData[nearbyId] = dataHash;
       }
 
-      if (filteredPlayers.length) p.latestnozeropd = filteredPlayers;
+      if (filteredPlayers.length > 0) p.latestnozeropd = filteredPlayers;
       p.pd = filteredPlayers;
       p.pdHashes = currentData;
     }
@@ -353,6 +352,7 @@ function sendRoomMessages(room) {
     }
   });
 }
+
 
 
 module.exports = { SendPreStartMessage, prepareRoomMessages, sendRoomMessages }
