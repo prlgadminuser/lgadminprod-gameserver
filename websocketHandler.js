@@ -67,7 +67,14 @@ function setupWebSocketServer(wss, server) {
 
       const username = playerVerified.playerId;
 
-    const existingSid = await checkExistingSession(username);
+      let existingSid;
+
+if (playerLookup.has(username)) {
+  existingSid = SERVER_INSTANCE_ID; // Local session exists
+} else {
+  // Check Redis for existing session
+  existingSid = await checkExistingSession(username);
+}
 
   if (existingSid) {
     if (existingSid === SERVER_INSTANCE_ID) {
