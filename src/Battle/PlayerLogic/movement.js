@@ -47,8 +47,8 @@ function handleMovement(player, room) {
     newY = Math.max(-mapHeight, Math.min(mapHeight, newY));
 
     // Apply updated position
-   player.x = Math.round(newX * 100) / 100;
-   player.y = Math.round(newY * 100) / 100;
+   player.x = Math.round(newX * 10) / 10;
+   player.y = Math.round(newY * 10) / 10;
   // player.x = newX;
   // player.y = newY;
 
@@ -164,6 +164,7 @@ module.exports = {
   playerhitbox,
 
 }
+
 
 
 
