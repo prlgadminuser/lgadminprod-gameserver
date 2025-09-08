@@ -3,7 +3,7 @@ const { rooms } = require("./setup");
 const { BulletManager } = require("../Battle/WeaponLogic/bullets");
 const { addRoomToIndex, removeRoomFromIndex } = require("./roomIndex");
 const { prepareRoomMessages, sendRoomMessages } = require("../Battle/NetworkLogic/Packets");
-
+const { UpdatePlayerKillsAndDamage } = require("../Database/ChangePlayerStats");
 
 
 function cleanupRoom(roomId) {
