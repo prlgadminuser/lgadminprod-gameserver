@@ -17,19 +17,39 @@ sub.subscribe(`server:${SERVER_INSTANCE_ID}`, (err) => {
   else console.log("Subscribed to bans channel.");
 });
 
-function kickPlayer(username) {
-  const player = playerLookup.get(username);
 
-  if (player && player.wsClose) {
+function kickPlayerBan(username) {
+   const player = playerLookup.get(username);
+
+   if (player && player.wsClose) {
     player.send("client_kick");
     player.wsClose(4009, "You have been banned.");
   }
+  
 }
 
+function kickPlayerNewConnection(username) {
+   const player = playerLookup.get(username);
+
+   if (player && player.wsClose) {
+    player.send("code:double");
+    player.wsClose(4009, "Reasigned Connection");
+  }
+}
+
+
 sub.on("message", (channel, message) => {
-  const data = JSON.parse(message);
-  const username = data.uid
-  kickPlayer(username);
+    const data = JSON.parse(message);
+    const type = data.type;
+    const username = data.uid
+    switch (type) {
+      case "ban":
+        kickPlayerBan(username);
+        break;
+      case "disconnect":
+        kickPlayerNewConnection(username);    
+        break;
+    }
 });
 
 function startHeartbeat() {

@@ -1,6 +1,6 @@
 // src/handlers/webSocketHandler.js
 const { RateLimiterMemory } = require("rate-limiter-flexible");
-const { ALLOWED_ORIGINS, GAME_MODES, RATE_LIMITS } = require("@main/config");
+const { ALLOWED_ORIGINS, GAME_MODES, RATE_LIMITS, SERVER_INSTANCE_ID } = require("@main/config");
 const { verifyPlayer } = require("@src/Database/verifyPlayer");
 const { checkForMaintenance } = require("@src/Database/ChangePlayerStats");
 const { addSession, removeSession, checkExistingSession } = require("@src/Database/redisClient");
@@ -66,13 +66,27 @@ function setupWebSocketServer(wss, server) {
       }
 
       const username = playerVerified.playerId;
-     const existingServerId = await checkExistingSession(username);
 
-      if (existingServerId) {
-        ws.send(JSON.stringify({ type: "error", message: `User "${username}" is already connected.` }));
-        ws.close(4006, "code:double");
-        return;
+    const existingSid = await checkExistingSession(username);
+
+  if (existingSid) {
+    if (existingSid === SERVER_INSTANCE_ID) {
+      // Existing session is on THIS server → kick local connection
+      const existingConnection = playerLookup.get(username);
+      if (existingConnection) {
+        existingConnection.send("code:double");
+        existingConnection.wsClose(1001, "Reassigned connection");
+        await new Promise((resolve) => existingConnection.once("close", resolve));
+          playerLookup.delete(username);
       }
+    } else {
+      // Existing session is on ANOTHER server → publish an invalidation event
+      await redisClient.publish(
+        `server:${existingSid}`,
+        JSON.stringify({ type: "disconnect", uid: username })
+      );
+    }
+  }
 
      if (!devmode) await addSession(username);
 
