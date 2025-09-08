@@ -286,6 +286,8 @@ function prepareRoomMessages(room) {
     if (!p.spectating) {
       const filteredPlayers = p.filteredPlayersBuffer
 
+      filteredPlayers.length = 0
+
       const previousData = p.pdHashes;
       const currentData = {};
       for (const nearbyId of p.nearbyplayersids) {
@@ -356,3 +358,4 @@ function sendRoomMessages(room) {
 
 
 module.exports = { SendPreStartMessage, prepareRoomMessages, sendRoomMessages }
+
