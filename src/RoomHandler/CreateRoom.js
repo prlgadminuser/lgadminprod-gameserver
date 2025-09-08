@@ -89,6 +89,7 @@ class Room {
     this.countdown = undefined;
     this.rdlast = [];
     this.gameconfig = gmconfig
+    this.playerspeed = gmconfig.playerspeed
 
     // Bullets + status
     this.bullets = new Map();

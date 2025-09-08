@@ -112,6 +112,7 @@ function SendPreStartMessage(room) {
     type: room.matchtype,
     modifiers: Array.from(room.modifiers), // set needs array converting
     sb: room.scoreboard,
+    plspeed: room.playerspeed,
   };
 
   for (const player of players) {
@@ -250,6 +251,7 @@ function prepareRoomMessages(room) {
           bullet.serialized.d,
           bullet.gunId,
           bullet.effect,
+          bullet.speed,
         ]);
       }
     }
@@ -356,6 +358,4 @@ function sendRoomMessages(room) {
 }
 
 
-
 module.exports = { SendPreStartMessage, prepareRoomMessages, sendRoomMessages }
-

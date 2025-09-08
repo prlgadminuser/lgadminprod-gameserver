@@ -162,10 +162,4 @@ module.exports = {
   handlePlayerCollision,
   handleDummyCollision,
   playerhitbox,
-
 }
-
-
-
-
-

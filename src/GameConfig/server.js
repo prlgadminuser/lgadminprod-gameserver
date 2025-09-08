@@ -22,8 +22,4 @@ function PlayerRateLimiter() {
   });
 }
 
-
 module.exports = { game_tick_rate, player_idle_timeout, maxPlayers, maxOpenRooms, matchmaking_timeout, game_start_time, game_win_rest_time, room_max_open_time, PlayerRateLimiter }
-
-
-
