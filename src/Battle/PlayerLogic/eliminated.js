@@ -52,7 +52,7 @@ function handleElimination(room, target) {
 
 // Helper function to handle the core elimination actions for a single player.
 function eliminatePlayer(room, player) {
-  spawnAnimation(room, player, "eliminated");
+  if (room.grid) spawnAnimation(room, player, "eliminated");
   player.eliminated = true;
   player.alive = false;
   player.state = 3;
