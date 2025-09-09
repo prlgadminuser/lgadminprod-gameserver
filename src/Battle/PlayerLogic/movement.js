@@ -47,10 +47,8 @@ function handleMovement(player, room) {
     newY = Math.max(-mapHeight, Math.min(mapHeight, newY));
 
     // Apply updated position
-   player.x = Math.round(newX * 100) / 100;
-   player.y = Math.round(newY * 100) / 100;
-  // player.x = newX;
-  // player.y = newY;
+  player.x = newX;
+  player.y = newY;
 
 
     if (player._gridKey) room.realtimegrid.updateObject(player, player.x, player.y);
@@ -162,4 +160,5 @@ module.exports = {
   handlePlayerCollision,
   handleDummyCollision,
   playerhitbox,
+
 }
