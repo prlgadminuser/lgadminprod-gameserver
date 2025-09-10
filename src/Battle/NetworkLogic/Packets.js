@@ -67,11 +67,8 @@ function BuildSelfData(p) {
     el: p.eliminations.length > 0 ? p.eliminations : undefined,
     spc: p.spectatingPlayerId,
     guns: p.loadout_formatted,
-    np: !arraysEqual(p.nearbyplayersids, p.lastplayerids) ? p.nearbyplayersids : undefined,
     ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
   };
-
-  p.lastplayerids = p.nearbyplayersids
 
   /*  if (p.allowweridsend) {
         selfdata.x = encodePosition(p.x);
