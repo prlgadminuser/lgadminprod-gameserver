@@ -34,7 +34,7 @@ const gamemodeconfig = {
     seasoncoins_rewardRange: [30, 5],
 
     playerhealth: 999999,
-    playerspeed: 2.5,
+    playerspeed: 1.65,
 
     modifiers: new Set(["countdown"]),
 
@@ -62,7 +62,7 @@ const gamemodeconfig = {
     respawns_allowed: 0,
 
     playerhealth: 100,
-    playerspeed: 2.4,
+    playerspeed: 1.65,
 
     modifiers: new Set(["UseZone", "AutoHealthRestore"]),
 
@@ -112,7 +112,7 @@ const gamemodeconfig = {
     respawns_allowed: 1,
 
     playerhealth: 50,
-    playerspeed: 2.4,
+    playerspeed: 1.6,
 
     modifiers: new Set([
       //  "UseZone",
@@ -191,9 +191,3 @@ module.exports = {
   gamemodeconfig: new Map(Object.entries(gamemodeconfig)),
   allowed_gamemodes,
 };
-
-
-
-
-
-

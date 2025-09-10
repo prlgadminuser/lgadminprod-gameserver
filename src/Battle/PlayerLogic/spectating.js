@@ -22,10 +22,6 @@ function handleSpectatorMode(player, room) {
   const now = Date.now();
   const currentTarget = player.spectatingTarget;
 
-  // Always update view if there is a target (even if eliminated)
-  if (currentTarget) {
-    updateSpectatingPlayer(player, currentTarget);
-  }
 
   // If current target just got eliminated → start a new 2s countdown
   if (currentTarget && currentTarget.eliminated && !player.pendingSwitchAt) {
@@ -41,26 +37,13 @@ function handleSpectatorMode(player, room) {
 
     if (nearestNonEliminated) {
       player.spectatingTarget = nearestNonEliminated;
+      player.spectatingPlayerId = targetPlayerId
       player.lastSpectateSwitch = now;
       player.pendingSwitchAt = null; // reset
     //  player.tick_send_allow = true
-      updateSpectatingPlayer(player, nearestNonEliminated);
       
     }
   }
-}
-
-function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
-  if (!targetPlayer) return;
-  spectatingPlayer.x = targetPlayer.x;
-  spectatingPlayer.y = targetPlayer.y;
-  spectatingPlayer.spectatingPlayerId = targetPlayer.id;
-  spectatingPlayer.spectatingTarget = targetPlayer;
-  spectatingPlayer.pd = targetPlayer.latestnozeropd;
-  spectatingPlayer.nearbyplayersids = targetPlayer.nearbyplayersids;
-  spectatingPlayer.hitmarkers = targetPlayer.hitmarkers;
-  spectatingPlayer.nearbyanimations = targetPlayer.nearbyanimations;
-  spectatingPlayer.finalbullets = targetPlayer.finalbullets;
 }
 
 function findNearestPlayer(eliminatedPlayer, players) {

@@ -302,24 +302,28 @@ function prepareRoomMessages(room) {
         currentData[nearbyId] = dataHash;
       }
 
-      if (filteredPlayers.length > 0) p.latestnozeropd = filteredPlayers;
       p.pd = filteredPlayers;
       p.pdHashes = currentData;
     }
+
 
 
     // --- Message assembly with buffer reuse ---
     const msgArray = p.msgBuffer;
     msgArray.length = 0;
 
+    const dataSource = spectatingTarget ? p.spectatingTarget : p;
 
+    // always send also for spectators
     if (finalroomdata) msgArray.push(PacketKeys["roomdata"], finalroomdata);
     if (Object.keys(changes).length) msgArray.push(PacketKeys["selfdata"], changes);
-    if (p.nearbyanimations.length) msgArray.push(PacketKeys["animations"], p.nearbyanimations);
     if (p.newSeenObjectsStatic) msgArray.push(PacketKeys["objectupdates"], p.newSeenObjectsStatic);
-    if (p.finalbullets) msgArray.push(PacketKeys["bulletdata"], p.finalbullets);
-    if (p.pd.length) msgArray.push(PacketKeys["playerdata"], p.pd);
     if (room.killfeed.length) msgArray.push(PacketKeys["killfeed"], room.killfeed);
+    
+    // for normal players and spectator handling
+    if (dataSource.nearbyanimations.length) msgArray.push(PacketKeys["animations"], dataSource.nearbyanimations);
+    if (dataSource.finalbullets) msgArray.push(PacketKeys["bulletdata"], dataSource.finalbullets);
+    if (dataSource.pd.length) msgArray.push(PacketKeys["playerdata"], dataSource.pd);
 
     // Send message if changed
     if (!msgArray.length) {
@@ -331,7 +335,9 @@ function prepareRoomMessages(room) {
         p.tick_send_allow = false;
       }
     } else {
-      p.lastcompressedmessage = compressMessage(msgArray);
+      const compressed = compressMessage(msgArray);
+      p.lastcompressedmessage = compressed;
+      p.lastnotemptymessage = compressed
       p.tick_send_allow = true;
       p.emptySent = false;
     }
