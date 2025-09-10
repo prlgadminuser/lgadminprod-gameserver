@@ -312,7 +312,7 @@ function prepareRoomMessages(room) {
     const msgArray = p.msgBuffer;
     msgArray.length = 0;
 
-    const dataSource = spectatingTarget ? p.spectatingTarget : p;
+    const dataSource = p.spectatingTarget ? p.spectatingTarget : p;
 
     // always send also for spectators
     if (finalroomdata) msgArray.push(PacketKeys["roomdata"], finalroomdata);
