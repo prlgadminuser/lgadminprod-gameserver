@@ -37,7 +37,7 @@ function handleSpectatorMode(player, room) {
 
     if (nearestNonEliminated) {
       player.spectatingTarget = nearestNonEliminated;
-      player.spectatingPlayerId = targetPlayerId
+      player.spectatingPlayerId = nearestNonEliminated.id
       player.lastSpectateSwitch = now;
       player.pendingSwitchAt = null; // reset
     //  player.tick_send_allow = true
