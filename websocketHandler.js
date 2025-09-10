@@ -3,7 +3,7 @@ const { RateLimiterMemory } = require("rate-limiter-flexible");
 const { ALLOWED_ORIGINS, GAME_MODES, RATE_LIMITS, SERVER_INSTANCE_ID } = require("@main/config");
 const { verifyPlayer } = require("@src/Database/verifyPlayer");
 const { checkForMaintenance } = require("@src/Database/ChangePlayerStats");
-const { addSession, removeSession, checkExistingSession } = require("@src/Database/redisClient");
+const { addSession, removeSession, checkExistingSession, redisClient } = require("@src/Database/redisClient");
 const { AddPlayerToRoom } = require("./src/RoomHandler/AddPlayer");
 const { handleMessage } = require("./src/Battle/NetworkLogic/HandleMessage");
 const { playerLookup } = require("./src/RoomHandler/setup");
@@ -151,4 +151,3 @@ server.on("upgrade", (request, socket, head) => {
 }
 
 module.exports = { setupWebSocketServer };
-
