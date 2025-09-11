@@ -74,6 +74,7 @@ function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
   if (!targetPlayer) return;
   spectatingPlayer.x = targetPlayer.x;
   spectatingPlayer.y = targetPlayer.y;
+  spectatingPlayer.pd = targetPlayer.latestnozeropd;
 }
 
 function startSpectatingLogic(player) {

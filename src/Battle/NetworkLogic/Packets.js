@@ -307,6 +307,8 @@ function prepareRoomMessages(room) {
         currentData[nearbyId] = dataHash;
       }
 
+      if (filteredPlayers.length > 0)  p.latestnozeropd = filteredPlayers;
+
       p.pd = filteredPlayers;
       p.pdHashes = currentData;
     }
@@ -328,7 +330,7 @@ function prepareRoomMessages(room) {
     // for normal players and spectator handling
     if (dataSource.nearbyanimations.length) msgArray.push(PacketKeys["animations"], dataSource.nearbyanimations);
     if (dataSource.finalbullets) msgArray.push(PacketKeys["bulletdata"], dataSource.finalbullets);
-    if (dataSource.pd.length) msgArray.push(PacketKeys["playerdata"], dataSource.pd);
+    if (p.pd.length) msgArray.push(PacketKeys["playerdata"], p.pd);
 
     // Send message if changed
     if (!msgArray.length) {

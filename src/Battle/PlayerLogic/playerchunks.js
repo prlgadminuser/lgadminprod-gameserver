@@ -79,8 +79,6 @@ function getNotSeenInLastTickRealTimeObjects(room, player, centerX, centerY) {
 }
 
 
-
-
 function playerchunkrenderer(room) {
 
   const roomplayers = Array.from(room.players.values())
