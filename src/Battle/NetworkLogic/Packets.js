@@ -55,7 +55,9 @@ const transformData = (data) => {
 
 function BuildSelfData(p) {
 
-  const dataSource = p.spectatingTarget ? p.spectatingTarget : p;
+//  const dataSource =  p.spectatingTarget ? p.spectatingTarget : p;
+
+const dataSource = p;
 
   const selfdata = {
     state: p.state,
