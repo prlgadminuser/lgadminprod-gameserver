@@ -54,6 +54,9 @@ const transformData = (data) => {
 
 
 function BuildSelfData(p) {
+
+  const dataSource = p.spectatingTarget ? p.spectatingTarget : p;
+
   const selfdata = {
     state: p.state,
     s: +p.shooting,
@@ -67,7 +70,7 @@ function BuildSelfData(p) {
     el: p.eliminations.length > 0 ? p.eliminations : undefined,
     spc: p.spectatingPlayerId,
     guns: p.loadout_formatted,
-    np: !arraysEqual2(p.nearbyplayersids, p.lastplayerids) ? p.nearbyplayersids : undefined,
+    np: !arraysEqual(dataSource.nearbyplayersids, dataSource.lastplayerids) ? dataSource.nearbyplayersids : undefined,
     ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
   };
   
