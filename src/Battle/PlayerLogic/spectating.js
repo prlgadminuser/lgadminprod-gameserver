@@ -22,6 +22,10 @@ function handleSpectatorMode(player, room) {
   const now = Date.now();
   const currentTarget = player.spectatingTarget;
 
+   if (currentTarget) {
+    updateSpectatingPlayer(player, currentTarget);
+  }
+
 
   // If current target just got eliminated → start a new 2s countdown
   if (currentTarget && currentTarget.eliminated && !player.pendingSwitchAt) {
@@ -41,6 +45,7 @@ function handleSpectatorMode(player, room) {
       player.lastSpectateSwitch = now;
       player.pendingSwitchAt = null; // reset
     //  player.tick_send_allow = true
+     updateSpectatingPlayer(player, nearestNonEliminated);
       
     }
   }
@@ -63,6 +68,12 @@ function findNearestPlayer(eliminatedPlayer, players) {
   });
 
   return nearestPlayer;
+}
+
+function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
+  if (!targetPlayer) return;
+  spectatingPlayer.x = targetPlayer.x;
+  spectatingPlayer.y = targetPlayer.y;
 }
 
 function startSpectatingLogic(player) {
