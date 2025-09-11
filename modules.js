@@ -34,6 +34,7 @@ const {
   deepCopy,
   generateHash,
   arraysEqual,
+  arraysEqual2
 } = require("@src/Battle/utils/hash");
 
 // ✅ one single export – configs & utils only
@@ -73,4 +74,5 @@ module.exports = {
   deepCopy,
   generateHash,
   arraysEqual,
+  arraysEqual2
 };

@@ -24,7 +24,7 @@ function deepEqual(a, b) {
 }
 
 
-function arraysEqual5(a, b) {
+function arraysEqual2(a, b) {
   if (a === b) return true;
   if (!a || !b) return false;
   if (a.length !== b.length) return false;
@@ -53,4 +53,4 @@ function deepCopy(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
-module.exports = {generateHash, arraysEqual, deepEqual, hashString, deepCopy}
+module.exports = {generateHash, arraysEqual, arraysEqual2, deepEqual, hashString, deepCopy}

@@ -1,4 +1,4 @@
-const { arraysEqual } = require("@main/modules");
+const { arraysEqual, arraysEqual2 } = require("@main/modules");
 const { compressMessage } = require("./compress");
 const { playerchunkrenderer } = require("../PlayerLogic/playerchunks");
 const { handlePlayerMoveIntervalAll } = require("@Battle/NetworkLogic/HandleMessage");
@@ -67,7 +67,7 @@ function BuildSelfData(p) {
     el: p.eliminations.length > 0 ? p.eliminations : undefined,
     spc: p.spectatingPlayerId,
     guns: p.loadout_formatted,
-    np: !arraysEqual(p.nearbyplayersids, p.lastplayerids) ? p.nearbyplayersids : undefined,
+    np: !arraysEqual2(p.nearbyplayersids, p.lastplayerids) ? p.nearbyplayersids : undefined,
     ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
   };
   
