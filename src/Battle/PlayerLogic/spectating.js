@@ -74,9 +74,9 @@ function updateSpectatingPlayer(spcPlayer, target) {
   if (!target) return;
   spcPlayer.spectatingTarget = target;
   spcPlayer.spectatingPlayerId = target.id
-  spcPlayer.x = targetPlayer.x;
-  spcPlayer.y = targetPlayer.y;
-  spcPlayer.pd = targetPlayer.latestnozeropd;
+  spcPlayer.x = target.x;
+  spcPlayer.y = target.y;
+  spcPlayer.pd = target.latestnozeropd;
 }
 
 function startSpectatingLogic(player) {
