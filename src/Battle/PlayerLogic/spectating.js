@@ -70,11 +70,13 @@ function findNearestPlayer(eliminatedPlayer, players) {
   return nearestPlayer;
 }
 
-function updateSpectatingPlayer(spectatingPlayer, targetPlayer) {
-  if (!targetPlayer) return;
-  spectatingPlayer.x = targetPlayer.x;
-  spectatingPlayer.y = targetPlayer.y;
-  spectatingPlayer.pd = targetPlayer.latestnozeropd;
+function updateSpectatingPlayer(spcPlayer, target) {
+  if (!target) return;
+  spcPlayer.spectatingTarget = target;
+  spcPlayer.spectatingPlayerId = target.id
+  spcPlayer.x = targetPlayer.x;
+  spcPlayer.y = targetPlayer.y;
+  spcPlayer.pd = targetPlayer.latestnozeropd;
 }
 
 function startSpectatingLogic(player) {
