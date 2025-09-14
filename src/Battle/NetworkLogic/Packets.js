@@ -251,12 +251,13 @@ function prepareRoomMessages(room) {
     if (nearbyBullets) {
       for (const bullet of nearbyBullets.values()) {
         finalBullets.push([
-          bullet.id,
+           bullet.id,
           bullet.serialized.x,
           bullet.serialized.y,
           bullet.serialized.d,
           bullet.gunId,
           bullet.effect,
+          bullet.speed
         ]);
       }
     }
@@ -369,6 +370,7 @@ function sendRoomMessages(room) {
     }
   });
 }
+
 
 
 module.exports = { SendPreStartMessage, prepareRoomMessages, sendRoomMessages }
