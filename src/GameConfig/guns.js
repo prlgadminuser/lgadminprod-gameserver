@@ -14,8 +14,8 @@ const gunsconfig = {
     height: 7,
     useplayerangle: true,
     bullets: [
-      { angle: 0, speed: 30, delay: 0, offset: 0 },
-      { angle: 0, speed: 30, delay: 70, offset: 10 },
+      { angle: 0, speed: 18, delay: 0, offset: 0 },
+      { angle: 0, speed: 18, delay: 70, offset: 10 },
 
       /* { angle: 90, speed: 13, delay: 0, offset: 0 },
        { angle: 0, speed: 13, delay: 0, offset: 0 },
@@ -42,7 +42,7 @@ const gunsconfig = {
       //   "DestroyWalls"
     ]),
     cooldown: 800,
-    distance: 250,
+    distance: 100,
     maxexistingtime: 500,
     damage: 10,
     width: 27,
@@ -50,14 +50,14 @@ const gunsconfig = {
     useplayerangle: true,
     //can_bullets_bounce: false,
     bullets: [
-      { angle: -5, speed: 27, delay: 0, offset: 0 },
-      { angle: 0, speed: 27, delay: 0, offset: 0 },
-      { angle: 5, speed: 27, delay: 0, offset: 0 },
+      { angle: -5, speed: 17, delay: 0, offset: 0 },
+      { angle: 0, speed: 17, delay: 0, offset: 0 },
+      { angle: 5, speed: 17, delay: 0, offset: 0 },
     ],
     damageconfig: [
       { threshold: 25, damageMultiplier: 1 },
-      { threshold: 55, damageMultiplier: 0.8 },
-      { threshold: 100, damageMultiplier: 0.30 }
+      { threshold: 55, damageMultiplier: 0.7 },
+      { threshold: 80, damageMultiplier: 0.4 }
     ],
   },
 
@@ -75,7 +75,7 @@ const gunsconfig = {
     useplayerangle: true,
     //  can_bullets_bounce: true,
     bullets: [
-      { angle: 0, speed: 37, delay: 0, offset: 0 },
+      { angle: 0, speed: 23, delay: 0, offset: 0 },
 
 
     ],
@@ -101,9 +101,9 @@ const gunsconfig = {
     useplayerangle: true,
     //can_bullets_bounce: true,
     bullets: [
-      { angle: 0, speed: 35, delay: 0, offset: 0 },
-      { angle: 2, speed: 34, delay: 50, offset: 3 },
-      { angle: -2, speed: 34, delay: 100, offset: 6 }
+      { angle: 0, speed: 24, delay: 0, offset: 0 },
+      { angle: 2, speed: 24, delay: 50, offset: 3 },
+      { angle: -2, speed: 24, delay: 100, offset: 6 }
     ],
     damageconfig: [
       // { threshold: 50, damageMultiplier: 1 },
