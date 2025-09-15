@@ -33,8 +33,8 @@ const gamemodeconfig = {
     skillpoints_rewardRange: [10, -5], 
     seasoncoins_rewardRange: [30, 5],
 
-    playerhealth: 999999,
-    playerspeed: 1.65,
+    playerhealth: 187,
+    playerspeed: 2.4,
 
     modifiers: new Set(["countdown"]),
 
@@ -62,7 +62,7 @@ const gamemodeconfig = {
     respawns_allowed: 0,
 
     playerhealth: 100,
-    playerspeed: 1.65,
+    playerspeed: 2.4,
 
     modifiers: new Set(["UseZone", "AutoHealthRestore"]),
 
@@ -90,7 +90,7 @@ const gamemodeconfig = {
     respawns_allowed: 0,
 
     playerhealth: 150,
-    playerspeed: 1.6,
+    playerspeed: 2.4,
 
     modifiers: new Set(["UseZone", "AutoHealthRestore"]),
 
@@ -112,7 +112,7 @@ const gamemodeconfig = {
     respawns_allowed: 1,
 
     playerhealth: 50,
-    playerspeed: 1.6,
+    playerspeed: 2.4,
 
     modifiers: new Set([
       //  "UseZone",
@@ -139,7 +139,7 @@ const gamemodeconfig = {
     respawns_allowed: Infinity,
 
     playerhealth: 100,
-    playerspeed: 1.6,
+    playerspeed: 2.4,
 
     placereward: [7, -2],
     seasoncoinsreward: [17, 10],
@@ -163,7 +163,7 @@ const gamemodeconfig = {
     respawns_allowed: 0,
 
     playerhealth: 200,
-    playerspeed: 1.6,
+    playerspeed: 2.4,
 
     placereward: [10, 8, 6, 4, -1, -2, -5],
     seasoncoinsreward: [25, 17, 12, 10, 7, 5, 4],
