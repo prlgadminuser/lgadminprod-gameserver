@@ -6,7 +6,6 @@ const { isCollisionWithBullet, findCollidedWall, adjustBulletDirection, isCollis
 const { handleDummyCollision, handlePlayerCollision } = require("../PlayerLogic/movement");
 const { AddNewUnseenObject } = require("@main/src/gameObjectEvents/utils");
 
-
 const playerWidth = playerhitbox.width
 const playerHeight = playerhitbox.height
 
@@ -143,7 +142,7 @@ class BulletManager {
       position: initialPosition,
       serialized: roundeddata,
       direction: angle,
-      speed: bulletData.speed / 2,
+      speed: bulletData.speed,
       height: bulletData.height,
       width: bulletData.width,
       maxTime: bulletData.maxtime,
@@ -400,7 +399,7 @@ function handleBulletFired(room, player, gunType) {
 
    for (const bulletConfig of gun.bullets) {
   room.bulletManager.scheduleBullet(player, {
-    speed: Math.round(bulletConfig.speed * 1.4),
+    speed: Math.round(bulletConfig.speed),
     offset: bulletConfig.offset,
     damage: gun.damage,
     angle: gun.useplayerangle ? bulletConfig.angle + baseAngle : bulletConfig.angle,

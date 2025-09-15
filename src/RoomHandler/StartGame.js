@@ -30,7 +30,8 @@ async function SetupRoomStartGameData(room) {
   room.itemgrid = new SpatialGrid(gridcellsize); // grid system for items
   room.realtimegrid = new RealTimeObjectGrid(100);
   room.bulletgrid = new RealTimeObjectGrid(60);
-  room.notSeenObjectgrid = new NotSeenNearbyObjectsGrid(80),
+  room.notSeenStaticObjectgrid = new NotSeenNearbyObjectsGrid(80),
+  room.notSeenRealtimeObjectgrid = new NotSeenNearbyObjectsGrid(80),
   room.grid = cloneSpatialGrid(room.mapdata.grid);
 }
 

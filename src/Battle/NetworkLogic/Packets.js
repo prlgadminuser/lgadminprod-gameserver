@@ -4,11 +4,8 @@ const { playerchunkrenderer } = require("../PlayerLogic/playerchunks");
 const { handlePlayerMoveIntervalAll } = require("@Battle/NetworkLogic/HandleMessage");
 const { handleSpectatorMode } = require("../PlayerLogic/spectating");
 const { HandleAfflictions } = require("../WeaponLogic/bullets-effects");
+const { encodePosition } = require("../utils/game");
 
-function encodePosition(num) {
-  return Math.round(num * 10); // keep 2 decimals
-  // Math.floor(p.x * 10)
-}
 
 function getTeamIds(room, player) {
     // 1. Get the player's team object from the room's teams map.
@@ -251,7 +248,7 @@ function prepareRoomMessages(room) {
     if (nearbyBullets) {
       for (const bullet of nearbyBullets.values()) {
         finalBullets.push([
-           bullet.id,
+          bullet.id,
           bullet.serialized.x,
           bullet.serialized.y,
           bullet.serialized.d,
@@ -370,7 +367,6 @@ function sendRoomMessages(room) {
     }
   });
 }
-
 
 
 module.exports = { SendPreStartMessage, prepareRoomMessages, sendRoomMessages }

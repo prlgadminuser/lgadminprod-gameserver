@@ -57,16 +57,16 @@ const gamemodeconfig = {
     can_hit_dummies: false,
     can_hit_players: true,
 
-    maxplayers: 10,
+    maxplayers: 6,
     teamsize: 1,
     respawns_allowed: 0,
 
-    playerhealth: 100000,
-    playerspeed: 2.4,
+    playerhealth: 100,
+    playerspeed: 1.65,
 
-    modifiers: new Set(["AutoHealthRestore", "UseZone"]),
+    modifiers: new Set(["UseZone", "AutoHealthRestore"]),
 
-    weapons_modifiers_override: new Set([]),
+    weapons_modifiers_override: new Set(["UseZone", "AutoHealthRestore"]),
 
     placereward_next: {
       1: { skillpoints: 13, coins: 25 },
@@ -90,7 +90,7 @@ const gamemodeconfig = {
     respawns_allowed: 0,
 
     playerhealth: 150,
-    playerspeed: 2.4,
+    playerspeed: 1.6,
 
     modifiers: new Set(["UseZone", "AutoHealthRestore"]),
 
@@ -111,8 +111,8 @@ const gamemodeconfig = {
     teamsize: 1,
     respawns_allowed: 1,
 
-    playerhealth: 100,
-    playerspeed: 2.4,
+    playerhealth: 50,
+    playerspeed: 1.6,
 
     modifiers: new Set([
       //  "UseZone",
@@ -191,15 +191,3 @@ module.exports = {
   gamemodeconfig: new Map(Object.entries(gamemodeconfig)),
   allowed_gamemodes,
 };
-
-
-
-
-
-
-
-
-
-
-
-

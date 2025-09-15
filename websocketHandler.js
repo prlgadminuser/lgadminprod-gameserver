@@ -55,6 +55,7 @@ function setupWebSocketServer(wss, server) {
 
 
       if (!token || !gamemode || !GAME_MODES.has(gamemode) || !isValidOrigin(origin)) {
+        ws.send("gamemode_not_allowed")
         ws.close(4004, "Unauthorized");
         return;
       }

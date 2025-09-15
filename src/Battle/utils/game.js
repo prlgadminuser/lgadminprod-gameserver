@@ -11,4 +11,9 @@ const isValidDirection = (direction) => {
   return !isNaN(numericDirection) && validDirections.includes(numericDirection);
 };
 
-module.exports = { getDistance, validDirections, isValidDirection}
+function encodePosition(num) {
+  return Math.round(num * 10); // keep 2 decimals
+  // Math.floor(p.x * 10)
+}
+
+module.exports = { getDistance, validDirections, isValidDirection, encodePosition}

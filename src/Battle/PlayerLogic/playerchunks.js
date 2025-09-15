@@ -34,7 +34,7 @@ function getNotSeenStaticObjects(room, player, centerX, centerY) {
   const yMax = centerY + yThreshold;
 
  
-  const visible = room.notSeenObjectgrid.getObjectsInAreaStatic(xMin, xMax, yMin, yMax, player.seenObjectsIds);
+  const visible = room.notSeenStaticObjectgrid.getObjectsInAreaStatic(xMin, xMax, yMin, yMax, player.seenObjectsIds);
   visible.forEach(obj => player.seenObjectsIds.add(obj.id));
 
    const formattedObjects = visible.length > 0
@@ -58,7 +58,7 @@ function getNotSeenInLastTickRealTimeObjects(room, player, centerX, centerY) {
   const yMax = centerY + yThreshold;
 
   // 1. Get nearby objects from spatial grid
-  const nearby = room.notSeenObjectgrid.getObjectsInArea(xMin, xMax, yMin, yMax);
+  const nearby = room.notSeenStaticObjectgrid.getObjectsInArea(xMin, xMax, yMin, yMax);
 
   const newSpawns = [];
    const newNearbySet = new Set();
