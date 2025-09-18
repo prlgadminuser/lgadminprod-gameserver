@@ -37,6 +37,7 @@ module.exports = {
     "https://html-classic.itch.zone",
     "null",
     "https://turbowarp.org",
+    "https://staging.turbowarp.org",
     "https://liquemgames.itch.io/sr",
     "https://s-r.netlify.app",
     "https://uploads.ungrounded.net",
@@ -50,4 +51,5 @@ module.exports = {
     CONNECTION: { points: 1, duration: 1 },
     MESSAGE: { points: 30, duration: 1 }, // 30 messages per second
   },
+
 };
