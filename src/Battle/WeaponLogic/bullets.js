@@ -177,8 +177,6 @@ class BulletManager {
 
       const nextPos = bullet.nextPosition();
 
-      bullet.position = nextPos;
-
       bullet.FormatForSending() 
    
        this.room.bulletgrid.updateObject(bullet, nextPos.x, nextPos.y);
@@ -281,6 +279,8 @@ class BulletManager {
         }
        if (hitDummy) continue;
       }
+
+    bullet.position = nextPos;
 
 
     if (bullet.new) bullet.effect = 1;          // just fired
