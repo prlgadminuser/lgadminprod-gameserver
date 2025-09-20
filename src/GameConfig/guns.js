@@ -3,8 +3,8 @@ const gunsconfig = {
 
   1: {  // Default pistol
     modifiers: new Set([
-      // "CanBounce",
-       "DestroyWalls"
+      "CanBounce",
+      // "DestroyWalls"
     ]),
     cooldown: 500,
     distance: 300,
@@ -38,8 +38,8 @@ const gunsconfig = {
 
   2: { // Default Shotgun
     modifiers: new Set([
-      //   "CanBounce",
-      //   "DestroyWalls"
+         "CanBounce",
+      //  "DestroyWalls"
     ]),
     cooldown: 800,
     distance: 100,
@@ -63,8 +63,8 @@ const gunsconfig = {
 
   3: { // Default Sniper
     modifiers: new Set([
-      // "CanBounce",
-      // "DestroyWalls"
+       "CanBounce",
+     // "DestroyWalls"
     ]),
     cooldown: 600,
     distance: 1200,
@@ -89,8 +89,8 @@ const gunsconfig = {
 
   4: {  // XNITRO SMG
     modifiers: new Set([
-     // "CanBounce",
-      //  "DestroyWalls"
+      "CanBounce",
+     //  "DestroyWalls"
     ]),
     cooldown: 300,
     distance: 350,
@@ -201,3 +201,4 @@ module.exports = {
   //gunsconfig: new Map(Object.entries(gunsconfig)),
   gunskeys: Object.keys(gunsconfig)
 };
+
