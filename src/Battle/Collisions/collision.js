@@ -130,83 +130,12 @@ function getCollidedWallsWithBullet(grid, x, y, height, width, direction) {
 }
 
 
-
-function toDegrees(radians) {
-  return radians * (180 / Math.PI);
-}
-
-
-function findCollidedWalls(grid, x, y, height, width) { 
-  const xMin = x - width;
-  const xMax = x + width;
-  const yMin = y - height;
-  const yMax = y + height;
-
-  const nearbyWalls = grid.getObjectsInArea(xMin, xMax, yMin, yMax);
-
-  return nearbyWalls.filter((wall) => {
-    const wallLeft = wall.x - halfBlockSize;
-    const wallRight = wall.x + halfBlockSize;
-    const wallTop = wall.y - halfBlockSize;
-    const wallBottom = wall.y + halfBlockSize;
-
-    // Check for an axis-aligned bounding box collision
-    return (
-      xMax > wallLeft &&
-      xMin < wallRight &&
-      yMax > wallTop &&
-      yMin < wallBottom
-    );
-  });
-}
-
-
 /**
  * Adjusts the bullet's direction to simulate a reflection off a wall.
  * This function assumes an axis-aligned bounding box collision model.
  * @param {Bullet} bullet The bullet object.
  * @param {Object} wall The wall object the bullet collided with.
  */
-function adjustBulletDirection(bullet, wall) {
-    // Convert the current direction to a vector for easier reflection.
-    const incomingVector = {
-        x: Math.cos(toRadians(bullet.direction)),
-        y: Math.sin(toRadians(bullet.direction)),
-    };
-
-    const wallLeft = wall.x - halfBlockSize;
-    const wallRight = wall.x + halfBlockSize;
-    const wallTop = wall.y - halfBlockSize;
-    const wallBottom = wall.y + halfBlockSize;
-
-    // Determine the side of the wall that was hit and reflect the vector.
-    // We check which axis the bullet is most likely colliding with to determine the reflection.
-    // This is a simple, effective method for axis-aligned collisions.
-
-    // Calculate the distance to each face of the wall.
-    const distToLeft = Math.abs(bullet.position.x - wallLeft);
-    const distToRight = Math.abs(bullet.position.x - wallRight);
-    const distToTop = Math.abs(bullet.position.y - wallTop);
-    const distToBottom = Math.abs(bullet.position.y - wallBottom);
-
-    const isHorizontalCollision = Math.min(distToLeft, distToRight) < Math.min(distToTop, distToBottom);
-
-    if (isHorizontalCollision) {
-        // Reflect across the y-axis (horizontal wall) by negating the y component.
-        incomingVector.x *= -1;
-    } else {
-        // Reflect across the x-axis (vertical wall) by negating the x component.
-        incomingVector.y *= -1;
-    }
-
-    // Convert the reflected vector back to a direction angle and update the bullet.
-    const reflectionAngleRad = Math.atan2(incomingVector.y, incomingVector.x);
-    let reflectionAngleDeg = toDegrees(reflectionAngleRad);
-
-    // Normalize the angle to be between 0 and 360.
-    bullet.direction = reflectionAngleDeg;
-}
-
 
 function toRadians(degrees) {
   return (degrees * Math.PI) / 180;
@@ -253,7 +182,5 @@ module.exports = {
   getCollidedWallsWithBullet,
   isCollisionWithCachedWalls,
   wallblocksize,
-  adjustBulletDirection,
-  findCollidedWalls,
   isCollisionWithPlayer,
 };
