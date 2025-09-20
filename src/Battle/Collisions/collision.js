@@ -101,8 +101,7 @@ function isCollisionWithPlayer(
   return doPolygonsIntersect(bulletCorners, playerCorners);
 }
 
-
-function isCollisionWithBullet(grid, x, y, height, width, direction) {
+function getCollidedWallsWithBullet(grid, x, y, height, width, direction) {
   const bulletCorners = getBulletCorners({ x, y }, width, height, direction);
 
   const xMin = Math.min(...bulletCorners.map((c) => c.x));
@@ -111,6 +110,8 @@ function isCollisionWithBullet(grid, x, y, height, width, direction) {
   const yMax = Math.max(...bulletCorners.map((c) => c.y));
 
   const nearbyWalls = grid.getObjectsInArea(xMin, xMax, yMin, yMax);
+
+  const collidedWalls = [];
 
   for (const wall of nearbyWalls) {
     const wallCorners = [
@@ -121,41 +122,44 @@ function isCollisionWithBullet(grid, x, y, height, width, direction) {
     ];
 
     if (doPolygonsIntersect(bulletCorners, wallCorners)) {
-      return true;
+      collidedWalls.push(wall);
     }
   }
 
-  return false;
+  return collidedWalls;
 }
+
+
 
 function toDegrees(radians) {
   return radians * (180 / Math.PI);
 }
 
 
-function findCollidedWall(grid, x, y, height, width) {
-    const xMin = x - width;
-    const xMax = x + width;
-    const yMin = y - height;
-    const yMax = y + height;
+function findCollidedWalls(grid, x, y, height, width) { 
+  const xMin = x - width;
+  const xMax = x + width;
+  const yMin = y - height;
+  const yMax = y + height;
 
-    const nearbyWalls = grid.getObjectsInArea(xMin, xMax, yMin, yMax);
+  const nearbyWalls = grid.getObjectsInArea(xMin, xMax, yMin, yMax);
 
-    return nearbyWalls.find((wall) => {
-        const wallLeft = wall.x - halfBlockSize;
-        const wallRight = wall.x + halfBlockSize;
-        const wallTop = wall.y - halfBlockSize;
-        const wallBottom = wall.y + halfBlockSize;
+  return nearbyWalls.filter((wall) => {
+    const wallLeft = wall.x - halfBlockSize;
+    const wallRight = wall.x + halfBlockSize;
+    const wallTop = wall.y - halfBlockSize;
+    const wallBottom = wall.y + halfBlockSize;
 
-        // Check for an axis-aligned bounding box collision
-        return (
-            xMax > wallLeft &&
-            xMin < wallRight &&
-            yMax > wallTop &&
-            yMin < wallBottom
-        );
-    });
+    // Check for an axis-aligned bounding box collision
+    return (
+      xMax > wallLeft &&
+      xMin < wallRight &&
+      yMax > wallTop &&
+      yMin < wallBottom
+    );
+  });
 }
+
 
 /**
  * Adjusts the bullet's direction to simulate a reflection off a wall.
@@ -246,10 +250,10 @@ function projectPolygon(polygon, axis) {
 
 
 module.exports = {
-  isCollisionWithBullet,
+  getCollidedWallsWithBullet,
   isCollisionWithCachedWalls,
   wallblocksize,
   adjustBulletDirection,
-  findCollidedWall,
+  findCollidedWalls,
   isCollisionWithPlayer,
 };
