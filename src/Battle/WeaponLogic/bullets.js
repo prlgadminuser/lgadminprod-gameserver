@@ -10,6 +10,8 @@ const playerWidth = playerhitbox.width
 const playerHeight = playerhitbox.height
 
 
+
+
 class Vec2 {
   constructor(x, y) {
     this.x = x;
@@ -184,8 +186,8 @@ class BulletManager {
       let newEffect = 0
      
       // Collision with walls
-      if (isCollisionWithBullet(this.room.grid, nextPos.x, nextPos.y, bullet.height + 3, bullet.width + 3, bullet.direction - 90)) {
-        const collidedWall = findCollidedWall(this.room.grid, nextPos.x, nextPos.y, bullet.height + 3, bullet.width + 3, bullet.direction - 90);
+      if (isCollisionWithBullet(this.room.grid, nextPos.x, nextPos.y, bullet.height, bullet.width, bullet.direction - 90)) {
+        const collidedWall = findCollidedWall(this.room.grid, nextPos.x, nextPos.y, bullet.height, bullet.width, bullet.direction - 90);
         if (collidedWall) {
           if (GunHasModifier("DestroyWalls", this.room, bullet.modifiers)) {
             DestroyWall(collidedWall, this.room);
@@ -206,6 +208,8 @@ class BulletManager {
           continue;
         }
       }
+
+      bullet.position = nextPos;
     
       // Collision with players
       if (this.room.config && this.room.winner === -1) {
@@ -279,8 +283,6 @@ class BulletManager {
         }
        if (hitDummy) continue;
       }
-
-           bullet.position = nextPos;
 
     if (bullet.new) bullet.effect = 1;          // just fired
     else if (bullet.effect) bullet.effect = newEffect; // collision/bounce
@@ -425,4 +427,3 @@ module.exports = {
   BulletManager,
   handleBulletFired
 };
-
