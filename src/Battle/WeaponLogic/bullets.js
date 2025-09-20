@@ -184,8 +184,8 @@ class BulletManager {
       let newEffect = 0
      
       // Collision with walls
-      if (isCollisionWithBullet(this.room.grid, nextPos.x, nextPos.y, bullet.height, bullet.width, bullet.direction - 90)) {
-        const collidedWall = findCollidedWall(this.room.grid, nextPos.x, nextPos.y, bullet.height, bullet.width, bullet.direction - 90);
+      if (isCollisionWithBullet(this.room.grid, nextPos.x, nextPos.y, bullet.height + 1, bullet.width + 1, bullet.direction - 90)) {
+        const collidedWall = findCollidedWall(this.room.grid, nextPos.x, nextPos.y, bullet.height + 1, bullet.width + 1, bullet.direction - 90);
         if (collidedWall) {
           if (GunHasModifier("DestroyWalls", this.room, bullet.modifiers)) {
             DestroyWall(collidedWall, this.room);
@@ -280,8 +280,7 @@ class BulletManager {
        if (hitDummy) continue;
       }
 
-    bullet.position = nextPos;
-
+           bullet.position = nextPos;
 
     if (bullet.new) bullet.effect = 1;          // just fired
     else if (bullet.effect) bullet.effect = newEffect; // collision/bounce
