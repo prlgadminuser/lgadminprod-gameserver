@@ -14,56 +14,53 @@ const { AddNewUnseenObject } = require("@main/src/gameObjectEvents/utils");
 const playerWidth = playerhitbox.width;
 const playerHeight = playerhitbox.height;
 
-const halfBlockSize = 40
+const halfBlockSize = 40;
 
 function adjustBulletDirection(bullet, wall) {
+  const bulletVector = Vec2.fromAngle(bullet.direction - 90); // current velocity vector
 
-    const bulletVector = Vec2.fromAngle(bullet.direction - 90); // current velocity vector
+  // Define wall rectangle
+  const wallLeft = wall.x - halfBlockSize;
+  const wallRight = wall.x + halfBlockSize;
+  const wallTop = wall.y - halfBlockSize;
+  const wallBottom = wall.y + halfBlockSize;
 
-    // Define wall rectangle
-    const wallLeft = wall.x - halfBlockSize;
-    const wallRight = wall.x + halfBlockSize;
-    const wallTop = wall.y - halfBlockSize;
-    const wallBottom = wall.y + halfBlockSize;
+  // Compute distances to each wall side
+  const distLeft = Math.abs(bullet.position.x - wallLeft);
+  const distRight = Math.abs(bullet.position.x - wallRight);
+  const distTop = Math.abs(bullet.position.y - wallTop);
+  const distBottom = Math.abs(bullet.position.y - wallBottom);
 
-    // Compute distances to each wall side
-    const distLeft = Math.abs(bullet.position.x - wallLeft);
-    const distRight = Math.abs(bullet.position.x - wallRight);
-    const distTop = Math.abs(bullet.position.y - wallTop);
-    const distBottom = Math.abs(bullet.position.y - wallBottom);
+  const minDistX = Math.min(distLeft, distRight);
+  const minDistY = Math.min(distTop, distBottom);
 
-    const minDistX = Math.min(distLeft, distRight);
-    const minDistY = Math.min(distTop, distBottom);
+  // Determine collision normal
+  let normal;
+  if (minDistX < minDistY) {
+    // Horizontal collision → normal points along X axis
+    normal = { x: 1, y: 0 };
+    if (distRight < distLeft) normal.x = -1; // hit right side
+  } else {
+    // Vertical collision → normal points along Y axis
+    normal = { x: 0, y: 1 };
+    if (distBottom < distTop) normal.y = -1; // hit bottom
+  }
 
-    // Determine collision normal
-    let normal;
-    if (minDistX < minDistY) {
-        // Horizontal collision → normal points along X axis
-        normal = { x: 1, y: 0 };
-        if (distRight < distLeft) normal.x = -1; // hit right side
-    } else {
-        // Vertical collision → normal points along Y axis
-        normal = { x: 0, y: 1 };
-        if (distBottom < distTop) normal.y = -1; // hit bottom
-    }
+  // Reflect the vector: R = V - 2*(V·N)*N
+  const dot = bulletVector.x * normal.x + bulletVector.y * normal.y;
+  const reflected = {
+    x: bulletVector.x - 2 * dot * normal.x,
+    y: bulletVector.y - 2 * dot * normal.y,
+  };
 
-    // Reflect the vector: R = V - 2*(V·N)*N
-    const dot = bulletVector.x * normal.x + bulletVector.y * normal.y;
-    const reflected = {
-        x: bulletVector.x - 2 * dot * normal.x,
-        y: bulletVector.y - 2 * dot * normal.y,
-    };
+  // Reduce speed slightly to avoid ping-pong sticking
+  bullet.direction =
+    Math.atan2(reflected.y, reflected.x) * (180 / Math.PI) + 90;
 
-    // Reduce speed slightly to avoid ping-pong sticking
-    bullet.direction = Math.atan2(reflected.y, reflected.x) * (180 / Math.PI) + 90;
-
-    // Move bullet slightly out of wall to prevent repeated collision
-    bullet.position.x += reflected.x * 0.5;
-    bullet.position.y += reflected.y * 0.5;
+  // Move bullet slightly out of wall to prevent repeated collision
+  bullet.position.x += reflected.x * 0.5;
+  bullet.position.y += reflected.y * 0.5;
 }
-
-
-
 
 
 
@@ -92,7 +89,6 @@ class Vec2 {
     return Math.sqrt(dx * dx + dy * dy);
   }
 }
-
 
 // ---------- Bullet Class ----------
 class Bullet {
@@ -229,6 +225,8 @@ class BulletManager {
 
       const nextPos = bullet.nextPosition();
 
+      bullet.position = nextPos;
+
       bullet.FormatForSending();
 
       this.room.bulletgrid.updateObject(bullet, nextPos.x, nextPos.y);
@@ -237,41 +235,38 @@ class BulletManager {
 
       // Collision with walls
 
-        const collidedWalls = getCollidedWallsWithBullet(
-  this.room.grid,
-  nextPos.x,
-  nextPos.y,
-  bullet.height,
-  bullet.width,
-  bullet.direction - 90
-);
+      const collidedWalls = getCollidedWallsWithBullet(
+        this.room.grid,
+        nextPos.x,
+        nextPos.y,
+        bullet.height,
+        bullet.width,
+        bullet.direction - 90
+      );
 
-if (collidedWalls.length > 0) {
-    const wall = collidedWalls[0];
+      if (collidedWalls.length > 0) {
+        const wall = collidedWalls[0];
 
-    if (GunHasModifier("DestroyWalls", this.room, bullet.modifiers)) {
-        DestroyWall(wall, this.room);
-        bullet.effect = 3;
-    } else if (GunHasModifier("DestroyWalls(DestroyBullet)", this.room, bullet.modifiers)) {
-        DestroyWall(wall, this.room);
-        toRemove.push(id);
-    } else if (GunHasModifier("CanBounce", this.room, bullet.modifiers)) {
-        // Skip bouncing if we already bounced this wall in previous tick
-        if (!bullet._lastBouncedWall || bullet.lastBouncedWall !== wall.id) {
-            adjustBulletDirection(bullet, wall);
-            bullet.lastBouncedWall = wall.id;
-            bullet.effect = 2;
+        if (GunHasModifier("DestroyWalls", this.room, bullet.modifiers)) {
+          DestroyWall(wall, this.room);
+          newEffect = 3;
+        } else if (
+          GunHasModifier(
+            "DestroyWalls(DestroyBullet)",
+            this.room,
+            bullet.modifiers
+          )
+        ) {
+          DestroyWall(wall, this.room);
+          toRemove.push(id);
+        } else if (GunHasModifier("CanBounce", this.room, bullet.modifiers)) {
+          adjustBulletDirection(bullet, wall);
+          newEffect = 2;
+        } else {
+          toRemove.push(id);
         }
-    } else {
-        toRemove.push(id);
-    }
-    continue; // skip moving bullet for this tick
-} else {
-    bullet.lastBouncedWall = null; // reset once no wall collision
-}
-
-
-      bullet.position = nextPos;
+        continue; // skip moving bullet for this tick
+      }
 
       // Collision with players
       if (this.room.config && this.room.winner === -1) {
@@ -530,7 +525,6 @@ function handleBulletFired(room, player, gunType) {
         damageconfig: gun.damageconfig || [],
         gunid: gunType,
         modifiers: gun.modifiers,
-        spinning_speed: gun.spinning_speed || undefined,
       },
       bulletConfig.delay
     );
@@ -545,5 +539,5 @@ function handleBulletFired(room, player, gunType) {
 module.exports = {
   BulletManager,
   handleBulletFired,
-  Vec2
+  Vec2,
 };

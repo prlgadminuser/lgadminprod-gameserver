@@ -130,13 +130,6 @@ function getCollidedWallsWithBullet(grid, x, y, height, width, direction) {
 }
 
 
-/**
- * Adjusts the bullet's direction to simulate a reflection off a wall.
- * This function assumes an axis-aligned bounding box collision model.
- * @param {Bullet} bullet The bullet object.
- * @param {Object} wall The wall object the bullet collided with.
- */
-
 function toRadians(degrees) {
   return (degrees * Math.PI) / 180;
 }
