@@ -387,14 +387,13 @@ class BulletManager {
       }
 
       if (bullet.new) bullet.effect = 1; // just fired
-       else if (!bullet.new) bullet.effect = newEffect; // collision/bounce
-      else bullet.effect = 0; // nothing special this tick
+      else if (!bullet.new) bullet.effect = newEffect; // collision/bounce
 
       bullet.new = false;
     }
 
     for (const id of toRemove) {
-      this.killBullet(id);
+      this.MarkOnlyKillBullet(id);
     }
   }
 
@@ -405,6 +404,13 @@ class BulletManager {
     this.room.bulletgrid.removeObject(bullet);
     bullet.kill();
     this.bullets.delete(bulletId);
+  }
+
+  MarkOnlyKillBullet(bulletId) {
+    const bullet = this.bullets.get(bulletId);
+    if (!bullet) return;
+
+    bullet.kill();
   }
 
   isAlly(ownerId, otherPlayer) {
@@ -541,4 +547,3 @@ module.exports = {
   handleBulletFired,
   Vec2,
 };
-
