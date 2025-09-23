@@ -388,6 +388,7 @@ class BulletManager {
 
       if (bullet.new) bullet.effect = 1; // just fired
       else if (!bullet.new) bullet.effect = newEffect; // collision/bounce
+      else bullet.effect = 0
 
       bullet.new = false;
     }
