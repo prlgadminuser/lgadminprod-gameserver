@@ -387,7 +387,7 @@ class BulletManager {
       }
 
       if (bullet.new) bullet.effect = 1; // just fired
-      else if (bullet.effect) bullet.effect = newEffect; // collision/bounce
+       else if (!bullet.new) bullet.effect = newEffect; // collision/bounce
       else bullet.effect = 0; // nothing special this tick
 
       bullet.new = false;
@@ -541,3 +541,4 @@ module.exports = {
   handleBulletFired,
   Vec2,
 };
+
