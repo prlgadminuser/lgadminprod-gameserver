@@ -394,7 +394,7 @@ class BulletManager {
     }
 
     for (const id of toRemove) {
-      this.MarkOnlyKillBullet(id);
+      this.killBullet(id);
     }
   }
 
