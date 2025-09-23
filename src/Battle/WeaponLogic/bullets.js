@@ -215,13 +215,14 @@ class BulletManager {
   update() {
     // collect deletions to avoid mutating the Map while iterating
     this.processScheduledBullets();
-    const toRemove = []; // array of [playerId, bulletId]
 
     for (const [id, bullet] of this.bullets.entries()) {
       if (!bullet || !bullet.alive || bullet.isExpired()) {
-        toRemove.push(id);
+         this.killBullet(id);
         continue;
       }
+
+        if (!bullet.alive) continue;
 
       const nextPos = bullet.nextPosition();
 
@@ -231,8 +232,7 @@ class BulletManager {
 
       this.room.bulletgrid.updateObject(bullet, nextPos.x, nextPos.y);
 
-      let newEffect = 0;
-
+      let newEffect = 0
       // Collision with walls
 
       const collidedWalls = getCollidedWallsWithBullet(
@@ -258,12 +258,12 @@ class BulletManager {
           )
         ) {
           DestroyWall(wall, this.room);
-          toRemove.push(id);
+          this.MarkOnlyKillBullet(id);
         } else if (GunHasModifier("CanBounce", this.room, bullet.modifiers)) {
           adjustBulletDirection(bullet, wall);
           newEffect = 2;
         } else {
-          toRemove.push(id);
+          this.MarkOnlyKillBullet(id);
         }
         continue; // skip moving bullet for this tick
       }
@@ -328,7 +328,7 @@ class BulletManager {
                 expires: Date.now() + 3000, // when this effect ends
               });
 
-              toRemove.push(id);
+              this.MarkOnlyKillBullet(id);
               hitSomething = true;
               break;
             }
@@ -378,7 +378,7 @@ class BulletManager {
               expires: Date.now() + 3000, // when this effect ends
             });
 
-            toRemove.push(id);
+            this.MarkOnlyKillBullet(id);
             hitDummy = true;
             break;
           }
@@ -391,10 +391,6 @@ class BulletManager {
       else bullet.effect = 0
 
       bullet.new = false;
-    }
-
-    for (const id of toRemove) {
-      this.killBullet(id);
     }
   }
 
