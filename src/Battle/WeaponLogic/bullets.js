@@ -403,10 +403,10 @@ class BulletManager {
     this.bullets.delete(bulletId);
   }
 
-  MarkOnlyKillBullet(bulletId) {
+   MarkOnlyKillBullet(bulletId) {
     const bullet = this.bullets.get(bulletId);
     if (!bullet) return;
-
+    bullet.effect = 4
     bullet.kill();
   }
 
@@ -544,3 +544,4 @@ module.exports = {
   handleBulletFired,
   Vec2,
 };
+
