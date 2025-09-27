@@ -215,14 +215,13 @@ class BulletManager {
   update() {
     // collect deletions to avoid mutating the Map while iterating
     this.processScheduledBullets();
+    const toRemove = []; // array of [playerId, bulletId]
 
     for (const [id, bullet] of this.bullets.entries()) {
       if (!bullet || !bullet.alive || bullet.isExpired()) {
-         this.killBullet(id);
+        toRemove.push(id);
         continue;
       }
-
-        if (!bullet.alive) continue;
 
       const nextPos = bullet.nextPosition();
 
@@ -232,7 +231,8 @@ class BulletManager {
 
       this.room.bulletgrid.updateObject(bullet, nextPos.x, nextPos.y);
 
-      let newEffect = 0
+      let newEffect = 0;
+
       // Collision with walls
 
       const collidedWalls = getCollidedWallsWithBullet(
@@ -258,12 +258,12 @@ class BulletManager {
           )
         ) {
           DestroyWall(wall, this.room);
-          this.MarkOnlyKillBullet(id);
+          toRemove.push(id);
         } else if (GunHasModifier("CanBounce", this.room, bullet.modifiers)) {
           adjustBulletDirection(bullet, wall);
           newEffect = 2;
         } else {
-          this.MarkOnlyKillBullet(id);
+          toRemove.push(id);
         }
         continue; // skip moving bullet for this tick
       }
@@ -328,7 +328,7 @@ class BulletManager {
                 expires: Date.now() + 3000, // when this effect ends
               });
 
-              this.MarkOnlyKillBullet(id);
+              toRemove.push(id);
               hitSomething = true;
               break;
             }
@@ -378,7 +378,7 @@ class BulletManager {
               expires: Date.now() + 3000, // when this effect ends
             });
 
-            this.MarkOnlyKillBullet(id);
+            toRemove.push(id);
             hitDummy = true;
             break;
           }
@@ -387,10 +387,14 @@ class BulletManager {
       }
 
       if (bullet.new) bullet.effect = 1; // just fired
-      else if (!bullet.new) bullet.effect = newEffect; // collision/bounce
-      else bullet.effect = 0
+      else if (bullet.effect) bullet.effect = newEffect; // collision/bounce
+      else bullet.effect = 0; // nothing special this tick
 
       bullet.new = false;
+    }
+
+    for (const id of toRemove) {
+      this.killBullet(id);
     }
   }
 
@@ -401,13 +405,6 @@ class BulletManager {
     this.room.bulletgrid.removeObject(bullet);
     bullet.kill();
     this.bullets.delete(bulletId);
-  }
-
-   MarkOnlyKillBullet(bulletId) {
-    const bullet = this.bullets.get(bulletId);
-    if (!bullet) return;
-    bullet.effect = 4
-    bullet.kill();
   }
 
   isAlly(ownerId, otherPlayer) {
@@ -544,4 +541,3 @@ module.exports = {
   handleBulletFired,
   Vec2,
 };
-
