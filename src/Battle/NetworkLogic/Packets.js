@@ -288,9 +288,7 @@ function prepareRoomMessages(room) {
 
       for (const nearbyId of p.nearbyplayersids) {
         const data = playerData.get(nearbyId);
-        if (!data && p.nearbyplayersidslast.includes(nearbyId)) continue;
-
-        filteredPlayers.push(data);
+        if (data || !p.nearbyplayersidslast.includes(nearbyId)) filteredPlayers.push(data); // if data is dirty or playerid is new from last tick then sent
       }
 
       if (filteredPlayers.length > 0)  p.latestnozeropd = filteredPlayers;
