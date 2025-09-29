@@ -246,7 +246,7 @@ class BulletManager {
       let newEffect = 0;
       let collided = false;
 
-      const nearbyWalls = nearbyObjects.filter((obj) => obj.type === "wall");
+      const nearbyWalls = Array.from(nearbyObjects).filter(obj => obj.type === "wall");
 
       const collidedWalls = getCollidedWallsWithBullet(
         // check which of potential walls collide exactly
