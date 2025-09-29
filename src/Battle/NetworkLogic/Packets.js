@@ -259,11 +259,16 @@ function prepareRoomMessages(room) {
     const serialized = SerializePlayerData(p);
 
     // Use hash instead of full array equality for efficiency
-  const hash = serialized.join(",");
+    const hash = serialized.join(",");
+
    p.dirty = hash !== p._lastSerializedHash;
    p._lastSerializedHash = hash;
 
-   if (p.dirty) playerData.set(p.id, serialized);
+   if (p.dirty) {
+    playerData.set(p.id, serialized);
+} else {
+    playerData.delete(p.id); // remove old data if player is not dirty
+}
   }
 
   // ONE PASS: build messages
@@ -289,6 +294,7 @@ function prepareRoomMessages(room) {
       for (const nearbyId of p.nearbyplayersids) {
         const data = playerData.get(nearbyId);
         if (data || !p.nearbyplayersidslast.includes(nearbyId)) filteredPlayers.push(data); // if data is dirty or playerid is new from last tick then sent
+
       }
 
       if (filteredPlayers.length > 0)  p.latestnozeropd = filteredPlayers;
