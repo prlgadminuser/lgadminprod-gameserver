@@ -6,7 +6,6 @@ const { initializeHealingCircles } = require("../gameObjectEvents/healingcircle"
 const { startDecreasingHealth, startRegeneratingHealth } = require("../Battle/GameLogic/modifiers");
 const { rooms } = require("./setup");
 
-
 function cloneGrid(original) {
   const clone = new GameGrid(
     original.width * original.cellSize,
@@ -22,9 +21,11 @@ function cloneGrid(original) {
     clone.objects.set(gid, objCopy);
   }
 
-  // Clone grid
-  for (const [key, set] of original.grid.entries()) {
-    clone.grid.set(key, new Set(set));
+  // Clone grid (2D array)
+  for (let x = 0; x < original.width; x++) {
+    for (let y = 0; y < original.height; y++) {
+      clone.grid[x][y] = new Set(original.grid[x][y]);
+    }
   }
 
   // Clone objectsCells
@@ -182,6 +183,7 @@ async function startMatch(room, roomId) {
     console.error(`Error starting match in room ${roomId}:`, err);
   }
 }
+
 
 
 module.exports = { startMatch }
