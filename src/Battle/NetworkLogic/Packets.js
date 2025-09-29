@@ -1,4 +1,4 @@
-const { arraysEqual, arraysEqual2 } = require("@main/modules");
+const { arraysEqual } = require("@main/modules");
 const { compressMessage } = require("./compress");
 const { playerchunkrenderer } = require("../PlayerLogic/playerchunks");
 const { handlePlayerMoveIntervalAll } = require("@Battle/NetworkLogic/HandleMessage");

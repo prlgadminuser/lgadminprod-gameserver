@@ -21,11 +21,9 @@ function cloneGrid(original) {
     clone.objects.set(gid, objCopy);
   }
 
-  // Clone grid (2D array)
-  for (let x = 0; x < original.width; x++) {
-    for (let y = 0; y < original.height; y++) {
-      clone.grid[x][y] = new Set(original.grid[x][y]);
-    }
+  // Clone grid
+  for (const [key, set] of original.grid.entries()) {
+    clone.grid.set(key, new Set(set));
   }
 
   // Clone objectsCells
@@ -35,6 +33,7 @@ function cloneGrid(original) {
 
   return clone;
 }
+
 
 
 function cloneGrid2(original) {
@@ -183,7 +182,6 @@ async function startMatch(room, roomId) {
     console.error(`Error starting match in room ${roomId}:`, err);
   }
 }
-
 
 
 module.exports = { startMatch }
