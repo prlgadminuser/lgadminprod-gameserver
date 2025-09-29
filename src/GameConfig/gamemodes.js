@@ -121,7 +121,7 @@ const gamemodeconfig = {
       "countdown"
     ]),
 
-    weapons_modifiers_override: new Set([]),
+    weapons_modifiers_override: new Set(["CanBounce"]),
 
     placereward: [0],
     seasoncoinsreward: [0],
@@ -191,3 +191,4 @@ module.exports = {
   gamemodeconfig: new Map(Object.entries(gamemodeconfig)),
   allowed_gamemodes,
 };
+
