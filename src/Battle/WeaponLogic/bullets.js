@@ -2,7 +2,6 @@
 const { gunsconfig, playerhitbox } = require("@main/modules");
 const {
   isCollisionWithPlayer,
-  getCollidedWallsWithBullet,
   getBulletCorners,
 } = require("../Collisions/collision");
 const {
@@ -232,21 +231,18 @@ class BulletManager {
     bullet.FormatForSending();
     this.room.grid.updateObject(bullet, nextPos.x, nextPos.y);
 
-    // Compute bullet bounding box once
-    const bulletCorners = getBulletCorners(
-      bullet,
-      bullet.width,
-      bullet.height,
-      bullet.direction - 90
-    );
-    const xMin = Math.min(...bulletCorners.map(c => c.x));
-    const xMax = Math.max(...bulletCorners.map(c => c.x));
-    const yMin = Math.min(...bulletCorners.map(c => c.y));
-    const yMax = Math.max(...bulletCorners.map(c => c.y));
 
+       const centerX = bullet.position.x;
+        const centerY = bullet.position.y;
+        const threshold = Math.max(bullet.width, bullet.height);
+        const xThreshold = threshold + playerWidth;
+        const yThreshold = threshold + playerHeight;
     // Single call to getObjectsInArea
     const nearbyObjects = this.room.grid.getObjectsInArea(
-      xMin, xMax, yMin, yMax
+          centerX - xThreshold,
+          centerX + xThreshold,
+          centerY - yThreshold,
+          centerY + yThreshold
     );
 
     let newEffect = 0;
