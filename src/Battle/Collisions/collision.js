@@ -101,15 +101,10 @@ function isCollisionWithPlayer(
   return doPolygonsIntersect(bulletCorners, playerCorners);
 }
 
-function getCollidedWallsWithBullet(grid, x, y, height, width, direction) {
+function getCollidedWallsWithBullet(walls, x, y, height, width, direction) {
   const bulletCorners = getBulletCorners({ x, y }, width, height, direction);
 
-  const xMin = Math.min(...bulletCorners.map((c) => c.x));
-  const xMax = Math.max(...bulletCorners.map((c) => c.x));
-  const yMin = Math.min(...bulletCorners.map((c) => c.y));
-  const yMax = Math.max(...bulletCorners.map((c) => c.y));
-
-  const nearbyWalls = grid.getObjectsInArea(xMin, xMax, yMin, yMax, "wall");
+  const nearbyWalls = walls
 
   const collidedWalls = [];
 

@@ -3,6 +3,7 @@ const { gunsconfig, playerhitbox } = require("@main/modules");
 const {
   isCollisionWithPlayer,
   getBulletCorners,
+  getCollidedWallsWithBullet,
 } = require("../Collisions/collision");
 const {
   handleDummyCollision,
@@ -60,8 +61,6 @@ function adjustBulletDirection(bullet, wall) {
   bullet.position.x += reflected.x * 0.5;
   bullet.position.y += reflected.y * 0.5;
 }
-
-
 
 class Vec2 {
   constructor(x, y) {
@@ -204,9 +203,9 @@ class BulletManager {
       ownerId: player.playerId,
     });
 
-    bullet.x = initialPosition.x
-    bullet.y = initialPosition.y
-    bullet.type = "bullet"
+    bullet.x = initialPosition.x;
+    bullet.y = initialPosition.y;
+    bullet.type = "bullet";
 
     this.bullets.set(id, bullet);
     this.room.grid.addObject(bullet);
@@ -214,50 +213,66 @@ class BulletManager {
     return bullet;
   }
 
- update() {
-  this.processScheduledBullets();
-  const toRemove = [];
+  update() {
+    this.processScheduledBullets();
+    const toRemove = [];
 
-  for (const [id, bullet] of this.bullets.entries()) {
-    if (!bullet || !bullet.alive || bullet.isExpired()) {
-      toRemove.push(id);
-      continue;
-    }
+    for (const [id, bullet] of this.bullets.entries()) {
+      if (!bullet || !bullet.alive || bullet.isExpired()) {
+        toRemove.push(id);
+        continue;
+      }
 
-    const nextPos = bullet.nextPosition();
-    bullet.position = nextPos;
-    bullet.x = nextPos.x;
-    bullet.y = nextPos.y;
-    bullet.FormatForSending();
-    this.room.grid.updateObject(bullet, nextPos.x, nextPos.y);
+      const nextPos = bullet.nextPosition();
+      bullet.position = nextPos;
+      bullet.x = nextPos.x;
+      bullet.y = nextPos.y;
+      bullet.FormatForSending();
+      this.room.grid.updateObject(bullet, nextPos.x, nextPos.y);
 
+      const centerX = bullet.position.x;
+      const centerY = bullet.position.y;
+      const threshold = Math.max(bullet.width, bullet.height);
+      const xThreshold = threshold + playerWidth;
+      const yThreshold = threshold + playerHeight;
+      // Single call to getObjectsInArea
+      const nearbyObjects = this.room.grid.getObjectsInArea(
+        centerX - xThreshold,
+        centerX + xThreshold,
+        centerY - yThreshold,
+        centerY + yThreshold
+      );
 
-       const centerX = bullet.position.x;
-        const centerY = bullet.position.y;
-        const threshold = Math.max(bullet.width, bullet.height);
-        const xThreshold = threshold + playerWidth;
-        const yThreshold = threshold + playerHeight;
-    // Single call to getObjectsInArea
-    const nearbyObjects = this.room.grid.getObjectsInArea(
-          centerX - xThreshold,
-          centerX + xThreshold,
-          centerY - yThreshold,
-          centerY + yThreshold
-    );
+      let newEffect = 0;
+      let collided = false;
 
-    let newEffect = 0;
-    let collided = false;
+      const nearbyWalls = nearbyObjects.filter((obj) => obj.type === "wall");
 
-    for (const obj of nearbyObjects) {
-      if (obj.type === "wall") {
+      const collidedWalls = getCollidedWallsWithBullet(
+        // check which of potential walls collide exactly
+        nearbyWalls,
+        nextPos.x,
+        nextPos.y,
+        bullet.height,
+        bullet.width,
+        bullet.direction - 90
+      );
+
+      for (const wall of collidedWalls) {
         if (GunHasModifier("DestroyWalls", this.room, bullet.modifiers)) {
-          DestroyWall(obj, this.room);
+          DestroyWall(wall, this.room);
           newEffect = 3;
-        } else if (GunHasModifier("DestroyWalls(DestroyBullet)", this.room, bullet.modifiers)) {
-          DestroyWall(obj, this.room);
+        } else if (
+          GunHasModifier(
+            "DestroyWalls(DestroyBullet)",
+            this.room,
+            bullet.modifiers
+          )
+        ) {
+          DestroyWall(wall, this.room);
           toRemove.push(id);
         } else if (GunHasModifier("CanBounce", this.room, bullet.modifiers)) {
-          adjustBulletDirection(bullet, obj);
+          adjustBulletDirection(bullet, wall);
           newEffect = 2;
         } else {
           toRemove.push(id);
@@ -266,41 +281,87 @@ class BulletManager {
         break;
       }
 
-      if (obj.type === "player" && obj.alive && obj.playerId !== bullet.ownerId && !this.isAlly(bullet.ownerId, obj)) {
-        if (isCollisionWithPlayer(bullet, obj, bullet.height, bullet.width, bullet.direction - 90)) {
-          const distTraveled = bullet.position.distanceTo(bullet.startPosition);
-          const finalDamage = calculateFinalDamage(distTraveled, bullet.maxDistance, bullet.damage, bullet.damageConfig);
-          handlePlayerCollision(this.room, this.room.players.get(bullet.ownerId), obj, finalDamage, bullet.gunId);
-          toRemove.push(id);
-          collided = true;
-          break;
+      for (const obj of nearbyObjects) {
+        if (
+          obj.type === "player" &&
+          obj.alive &&
+          obj.playerId !== bullet.ownerId &&
+          !this.isAlly(bullet.ownerId, obj)
+        ) {
+          if (
+            isCollisionWithPlayer(
+              bullet,
+              obj,
+              bullet.height,
+              bullet.width,
+              bullet.direction - 90
+            )
+          ) {
+            const distTraveled = bullet.position.distanceTo(
+              bullet.startPosition
+            );
+            const finalDamage = calculateFinalDamage(
+              distTraveled,
+              bullet.maxDistance,
+              bullet.damage,
+              bullet.damageConfig
+            );
+            handlePlayerCollision(
+              this.room,
+              this.room.players.get(bullet.ownerId),
+              obj,
+              finalDamage,
+              bullet.gunId
+            );
+            toRemove.push(id);
+            collided = true;
+            break;
+          }
+        }
+
+        if (obj.type === "dummy") {
+          if (
+            isCollisionWithPlayer(
+              bullet,
+              obj,
+              bullet.height,
+              bullet.width,
+              bullet.direction - 90
+            )
+          ) {
+            const distTraveled = bullet.position.distanceTo(
+              bullet.startPosition
+            );
+            const finalDamage = calculateFinalDamage(
+              distTraveled,
+              bullet.maxDistance,
+              bullet.damage,
+              bullet.damageConfig
+            );
+            handleDummyCollision(
+              this.room,
+              this.room.players.get(bullet.ownerId),
+              obj.id,
+              finalDamage
+            );
+            toRemove.push(id);
+            collided = true;
+            break;
+          }
         }
       }
 
-      if (obj.type === "dummy") {
-        if (isCollisionWithPlayer(bullet, obj, bullet.height, bullet.width, bullet.direction - 90)) {
-          const distTraveled = bullet.position.distanceTo(bullet.startPosition);
-          const finalDamage = calculateFinalDamage(distTraveled, bullet.maxDistance, bullet.damage, bullet.damageConfig);
-          handleDummyCollision(this.room, this.room.players.get(bullet.ownerId), obj.id, finalDamage);
-          toRemove.push(id);
-          collided = true;
-          break;
-        }
+      if (!collided) {
+        bullet.effect = bullet.new ? 1 : newEffect;
       }
+
+      bullet.new = false;
     }
 
-    if (!collided) {
-      bullet.effect = bullet.new ? 1 : newEffect;
+    for (const id of toRemove) {
+      this.killBullet(id);
     }
-
-    bullet.new = false;
   }
-
-  for (const id of toRemove) {
-    this.killBullet(id);
-  }
-}
-
 
   killBullet(bulletId) {
     const bullet = this.bullets.get(bulletId);
