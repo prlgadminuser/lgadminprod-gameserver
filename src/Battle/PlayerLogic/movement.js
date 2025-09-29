@@ -28,7 +28,8 @@ function handleMovement(player, room) {
         player.x - hitboxXMin,
         player.x + hitboxXMax,
         player.y - hitboxYMin,
-        player.y + hitboxYMax
+        player.y + hitboxYMax,
+        "wall",
     );
 
     // Calculate new position with collision check
@@ -49,11 +50,10 @@ function handleMovement(player, room) {
     // Apply updated position
    player.x = Math.round(newX * 100) / 100;
    player.y = Math.round(newY * 100) / 100;
+
   // player.x = newX;
   // player.y = newY;
-
-
-    if (player._gridKey) room.realtimegrid.updateObject(player, player.x, player.y);
+   room.grid.updateObject(player, player.x, player.y);
 }
 
 

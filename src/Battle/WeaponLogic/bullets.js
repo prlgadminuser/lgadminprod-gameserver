@@ -188,7 +188,6 @@ class BulletManager {
       y: Math.round(player.y),
       d: Math.round(angle),
     };
-
     const bullet = new Bullet({
       id,
       position: initialPosition,
@@ -206,8 +205,12 @@ class BulletManager {
       ownerId: player.playerId,
     });
 
+    bullet.x = initialPosition.x
+    bullet.y = initialPosition.y
+    bullet.type = "bullet"
+
     this.bullets.set(id, bullet);
-    this.room.bulletgrid.addObject(bullet);
+    this.room.grid.addObject(bullet);
 
     return bullet;
   }
@@ -215,24 +218,26 @@ class BulletManager {
   update() {
     // collect deletions to avoid mutating the Map while iterating
     this.processScheduledBullets();
-    const toRemove = []; // array of [playerId, bulletId]
 
     for (const [id, bullet] of this.bullets.entries()) {
       if (!bullet || !bullet.alive || bullet.isExpired()) {
-        toRemove.push(id);
+         this.killBullet(id);
         continue;
       }
+
+        if (!bullet.alive) continue;
 
       const nextPos = bullet.nextPosition();
 
       bullet.position = nextPos;
+      bullet.x = nextPos.x
+      bullet.y = nextPos.y
 
       bullet.FormatForSending();
 
-      this.room.bulletgrid.updateObject(bullet, nextPos.x, nextPos.y);
+     this.room.grid.updateObject(bullet, nextPos.x, nextPos.y);
 
-      let newEffect = 0;
-
+      let newEffect = 0
       // Collision with walls
 
       const collidedWalls = getCollidedWallsWithBullet(
@@ -258,12 +263,12 @@ class BulletManager {
           )
         ) {
           DestroyWall(wall, this.room);
-          toRemove.push(id);
+          this.MarkOnlyKillBullet(id);
         } else if (GunHasModifier("CanBounce", this.room, bullet.modifiers)) {
           adjustBulletDirection(bullet, wall);
           newEffect = 2;
         } else {
-          toRemove.push(id);
+          this.MarkOnlyKillBullet(id);
         }
         continue; // skip moving bullet for this tick
       }
@@ -278,11 +283,12 @@ class BulletManager {
         const xThreshold = threshold + playerWidth;
         const yThreshold = threshold + playerHeight;
 
-        const nearbyPlayers = this.room.realtimegrid.getObjectsInArea(
+        const nearbyPlayers = this.room.grid.getObjectsInArea(
           centerX - xThreshold,
           centerX + xThreshold,
           centerY - yThreshold,
-          centerY + yThreshold
+          centerY + yThreshold,
+          "player"
         );
 
         for (const otherPlayer of nearbyPlayers) {
@@ -328,7 +334,7 @@ class BulletManager {
                 expires: Date.now() + 3000, // when this effect ends
               });
 
-              toRemove.push(id);
+              this.MarkOnlyKillBullet(id);
               hitSomething = true;
               break;
             }
@@ -378,7 +384,7 @@ class BulletManager {
               expires: Date.now() + 3000, // when this effect ends
             });
 
-            toRemove.push(id);
+            this.MarkOnlyKillBullet(id);
             hitDummy = true;
             break;
           }
@@ -387,14 +393,10 @@ class BulletManager {
       }
 
       if (bullet.new) bullet.effect = 1; // just fired
-      else if (bullet.effect) bullet.effect = newEffect; // collision/bounce
-      else bullet.effect = 0; // nothing special this tick
+      else if (!bullet.new) bullet.effect = newEffect; // collision/bounce
+      else bullet.effect = 0
 
       bullet.new = false;
-    }
-
-    for (const id of toRemove) {
-      this.killBullet(id);
     }
   }
 
@@ -402,9 +404,16 @@ class BulletManager {
     const bullet = this.bullets.get(bulletId);
     if (!bullet) return;
 
-    this.room.bulletgrid.removeObject(bullet);
+    this.room.grid.removeObject(bullet);
     bullet.kill();
     this.bullets.delete(bulletId);
+  }
+
+   MarkOnlyKillBullet(bulletId) {
+    const bullet = this.bullets.get(bulletId);
+    if (!bullet) return;
+    bullet.effect = 4
+    bullet.kill();
   }
 
   isAlly(ownerId, otherPlayer) {
@@ -464,7 +473,8 @@ function GunHasModifier(name, room, modifiers) {
 function DestroyWall(wall, room) {
   room.grid.removeObject(wall);
   const obj = {
-    type: 1,
+    type: "static_obj",
+    id: wall.gid,
     x: wall.x,
     y: wall.y,
     sendx: wall.x / 10,

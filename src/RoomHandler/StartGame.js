@@ -1,4 +1,4 @@
-const { SpatialGrid, RealTimeObjectGrid, gridcellsize, room_max_open_time, game_start_time, NotSeenNearbyObjectsGrid } = require("@main/modules");
+const { GameGrid, room_max_open_time, game_start_time } = require("@main/modules");
 const { playerchunkrenderer } = require("../Battle/PlayerLogic/playerchunks");
 const { SendPreStartMessage } = require("../Battle/NetworkLogic/Packets");
 const { UseZone } = require("../Battle/GameLogic/zone");
@@ -7,32 +7,43 @@ const { startDecreasingHealth, startRegeneratingHealth } = require("../Battle/Ga
 const { rooms } = require("./setup");
 
 
-function cloneSpatialGridNotExpensive(original) {
-  let clone = new SpatialGrid(original.cellSize);
-  clone.grid = new Map(original.grid);
+function cloneGrid(original) {
+  const clone = new GameGrid(
+    original.width * original.cellSize,
+    original.height * original.cellSize,
+    original.cellSize
+  );
 
-  return clone;
-}
+  clone.nextId = original.nextId;
 
-function cloneSpatialGrid(original) {
-  const clone = new SpatialGrid(original.cellSize);
+  // Clone objects
+  for (const [gid, obj] of original.objects.entries()) {
+    const objCopy = { ...obj }; // shallow copy
+    clone.objects.set(gid, objCopy);
+  }
 
-  for (const [key, obj] of original.grid.entries()) {
-    // Store a shallow copy so modifications don't affect the original
-    clone.grid.set(key, { ...obj });
+  // Clone grid
+  for (const [key, set] of original.grid.entries()) {
+    clone.grid.set(key, new Set(set));
+  }
+
+  // Clone objectsCells
+  for (const [gid, cells] of original.objectsCells.entries()) {
+    clone.objectsCells.set(gid, new Set(cells));
   }
 
   return clone;
 }
 
 
+function cloneGrid2(original) {
+
+  return original;
+}
+
+
 async function SetupRoomStartGameData(room) {
-  room.itemgrid = new SpatialGrid(gridcellsize); // grid system for items
-  room.realtimegrid = new RealTimeObjectGrid(100);
-  room.bulletgrid = new RealTimeObjectGrid(60);
-  room.notSeenStaticObjectgrid = new NotSeenNearbyObjectsGrid(80),
-  room.notSeenRealtimeObjectgrid = new NotSeenNearbyObjectsGrid(80),
-  room.grid = cloneSpatialGrid(room.mapdata.grid);
+  room.grid = cloneGrid(room.mapdata.grid);
 }
 
 async function setupRoomPlayers(room) {
@@ -57,7 +68,7 @@ async function setupRoomPlayers(room) {
     // Increment the player number for the next player
     playerNumberID++;
 
-    room.realtimegrid.addObject(player);
+    room.grid.addObject(player);
   });
 }
 

@@ -2,11 +2,8 @@
 
 // map config
 const {
-  gridcellsize,
-  RealTimeObjectGrid,
-  SpatialGrid,
-  NotSeenNearbyObjectsGrid,
-} = require("@GameConfig/grids");
+  GameGrid,
+} = require("@GameConfig/grid");
 
 const { isValidDirection, playerhitbox } = require("@src/GameConfig/player");
 const { gamemodeconfig } = require("@src/GameConfig/gamemodes");
@@ -61,10 +58,7 @@ module.exports = {
   PlayerRateLimiter,
 
   // map config
-  gridcellsize,
-  RealTimeObjectGrid,
-  SpatialGrid,
-  NotSeenNearbyObjectsGrid,
+  GameGrid,
 
   // player config
   playerhitbox,

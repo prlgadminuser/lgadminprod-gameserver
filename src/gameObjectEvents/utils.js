@@ -1,7 +1,7 @@
 
 
 function AddNewUnseenObject(room, obj) {
-  room.notSeenStaticObjectgrid.addObject(obj);
+  room.grid.addObject(obj);
 }
 
 //   const obj = { type: "spray", x: player.x, y: player.y }

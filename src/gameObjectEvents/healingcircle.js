@@ -33,7 +33,7 @@ function spawnHealingCircle(room) {
     shrinkRate: 1,      // Integer shrink per update
   };
 
-  room.itemgrid.addObject(newCircle);
+  room.grid.addObject(newCircle);
   room.objects.push(newCircle);
 }
 

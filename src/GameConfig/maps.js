@@ -1,5 +1,5 @@
 
-const { gridcellsize, SpatialGrid } = require("@src/GameConfig/grids");
+const { GameGrid } = require("@src/GameConfig/grid");
 
 
 let mapsconfig = {
@@ -88,9 +88,13 @@ let mapsconfig = {
 // pre render grid
   mapsconfig.forEach((map) => {
 
-  const grid = new SpatialGrid(gridcellsize);
+  const grid = new GameGrid(map.width, map.height, 40);
   map.walls.forEach((wall, index) => {
-    const wallWithId = { ...wall, id: `wall_${index}` };
+    const wallWithId = { 
+      ...wall, 
+      id: `wall_${index}`, 
+      type: "wall"
+    };
     grid.addObject(wallWithId);
   });
   map.grid = grid;

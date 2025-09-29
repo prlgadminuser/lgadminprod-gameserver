@@ -94,7 +94,7 @@ class Room {
     // Bullets + status
     this.bullets = new Map();
     this.activeAfflictions = [];
-
+    
     // Game configuration
     this.modifiers = gmconfig.modifiers;
     this.respawns = gmconfig.respawns_allowed;

@@ -24,7 +24,7 @@ function respawnplayer(room, player) {
 }
 
   room.setRoomTimeout(() => {
-     room.realtimegrid.addObject(player);
+     room.grid.addObject(player);
     player.spectating = false
     player.alive = true
     player.state = 1

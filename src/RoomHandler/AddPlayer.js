@@ -4,6 +4,7 @@ const { Room } = require("./CreateRoom");
 const { startMatch } = require("./StartGame");
 const { RemovePlayerFromRoom } = require("./RemovePlayer");
 const { playerLookup } = require("./setup");
+const { TopologyDescriptionChangedEvent } = require("mongodb");
 
 
 function generateUUID() {
@@ -43,6 +44,7 @@ class Player {
     this.top_color = top_color;
 
     // Game state
+    this.type = "player"
     this.health = gamemodeSettings.playerhealth;
     this.starthealth = gamemodeSettings.playerhealth;
     this.speed = gamemodeSettings.playerspeed;

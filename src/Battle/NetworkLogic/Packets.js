@@ -232,15 +232,8 @@ function prepareRoomMessages(room) {
   for (const p of players) {
     if (p.spectating) continue;
 
-    // Nearby bullets
-    const centerX = p.x;
-    const centerY = p.y;
-    const nearbyBullets = room.bulletgrid.getObjectsInArea(
-      centerX - 300,
-      centerX + 300,
-      centerY - 180,
-      centerY + 180
-    );
+
+    const nearbyBullets = p.nearbybullets
 
     let finalBullets = p.bulletBuffer;
     finalBullets.length = 0;

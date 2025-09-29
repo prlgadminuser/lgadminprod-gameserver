@@ -25,37 +25,35 @@ function RemovePlayerFromRoom(room, player) {
     room.players.delete(player.playerId);
 
     if (room.players.size < 1) {
-       room.close();
+      room.close();
       return;
     }
-
   } else {
     if (room.players.size < 1) {
-       room.close();
+      room.close();
       return;
     }
 
     if (room.grid) checkGameEndCondition(room);
     if (room) {
-  if (room.players.size > 1) {
-    room.setRoomTimeout(() => {
-      if (room) {
+      if (room.players.size > 1) {
+        room.setRoomTimeout(() => {
+          if (room) {
+            room.players.delete(player.playerId);
+            // optionally check if room is now empty
+            if (room.players.size < 1) {
+              room.close();
+            }
+          }
+        }, 4000);
+      } else {
         room.players.delete(player.playerId);
-        // optionally check if room is now empty
         if (room.players.size < 1) {
           room.close();
         }
       }
-    }, 4000);
-  } else {
-    room.players.delete(player.playerId);
-    if (room.players.size < 1) {
-      room.close();
-    }
-  }
-
     }
   }
 }
 
-module.exports = { RemovePlayerFromRoom }
+module.exports = { RemovePlayerFromRoom };

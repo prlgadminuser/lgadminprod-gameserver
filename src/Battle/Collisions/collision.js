@@ -23,7 +23,7 @@ function isCollisionWithCachedWalls(walls, x, y) {
     const wallBottom = wall.y + halfBlockSize;
 
     if (xMax > wallLeft && xMin < wallRight & yMax > wallTop && yMin < wallBottom) {
-      return true;
+      return true
     }
   }
 
@@ -109,7 +109,7 @@ function getCollidedWallsWithBullet(grid, x, y, height, width, direction) {
   const yMin = Math.min(...bulletCorners.map((c) => c.y));
   const yMax = Math.max(...bulletCorners.map((c) => c.y));
 
-  const nearbyWalls = grid.getObjectsInArea(xMin, xMax, yMin, yMax);
+  const nearbyWalls = grid.getObjectsInArea(xMin, xMax, yMin, yMax, "wall");
 
   const collidedWalls = [];
 
