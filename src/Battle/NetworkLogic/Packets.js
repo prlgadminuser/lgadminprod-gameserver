@@ -263,7 +263,7 @@ function prepareRoomMessages(room) {
    p.dirty = hash !== p._lastSerializedHash;
    p._lastSerializedHash = hash;
 
-    playerData.set(p.id, serialized);
+   if (p.dirty) playerData.set(p.id, serialized);
   }
 
   // ONE PASS: build messages
@@ -287,9 +287,8 @@ function prepareRoomMessages(room) {
       filteredPlayers.length = 0
 
       for (const nearbyId of p.nearbyplayersids) {
-        if (!p.dirty && p.nearbyplayersidslast.includes(nearbyId)) continue;
         const data = playerData.get(nearbyId);
-        if (!data) continue;
+        if (!data && p.nearbyplayersidslast.includes(nearbyId)) continue;
 
         filteredPlayers.push(data);
       }
