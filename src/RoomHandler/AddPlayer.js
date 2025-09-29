@@ -61,6 +61,10 @@ class Player {
     this.seenObjectsIds = new Set(),
     this.lastNearbyObjects =  new Set(),
 
+    this._lastSerializedHash = 0
+    this.dirty = true
+    this.nearbyplayersidslast = []
+
 
     this.serializeBuffer = new Array(7)
     this.bulletBuffer = [];

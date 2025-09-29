@@ -259,9 +259,9 @@ function prepareRoomMessages(room) {
     const serialized = SerializePlayerData(p);
 
     // Use hash instead of full array equality for efficiency
-  //  const hash = serialized.join(","); // simple string hash
-   // p.dirty = hash !== p._lastSerializedHash;
-  //  p._lastSerializedHash = hash;
+  const hash = serialized.join(",");
+   p.dirty = hash !== p._lastSerializedHash;
+   p._lastSerializedHash = hash;
 
     playerData.set(p.id, serialized);
   }
@@ -286,22 +286,18 @@ function prepareRoomMessages(room) {
 
       filteredPlayers.length = 0
 
-      const previousData = p.pdHashes;
-      const currentData = {};
       for (const nearbyId of p.nearbyplayersids) {
+        if (!p.dirty && p.nearbyplayersidslast.includes(nearbyId)) continue;
         const data = playerData.get(nearbyId);
         if (!data) continue;
 
-        const dataHash = data.join(",");
-        if (previousData[nearbyId] !== dataHash) filteredPlayers.push(data);
-
-        currentData[nearbyId] = dataHash;
+        filteredPlayers.push(data);
       }
 
       if (filteredPlayers.length > 0)  p.latestnozeropd = filteredPlayers;
 
-      p.pd = filteredPlayers;
-      p.pdHashes = currentData;
+      p.pd = filteredPlayers
+      p.nearbyplayersidslast = p.nearbyplayersids
     }
 
 
