@@ -218,14 +218,13 @@ class BulletManager {
   update() {
     // collect deletions to avoid mutating the Map while iterating
     this.processScheduledBullets();
+    const toRemove = []; // array of [playerId, bulletId]
 
     for (const [id, bullet] of this.bullets.entries()) {
       if (!bullet || !bullet.alive || bullet.isExpired()) {
-         this.killBullet(id);
+        toRemove.push(id);
         continue;
       }
-
-        if (!bullet.alive) continue;
 
       const nextPos = bullet.nextPosition();
 
@@ -263,12 +262,12 @@ class BulletManager {
           )
         ) {
           DestroyWall(wall, this.room);
-          this.MarkOnlyKillBullet(id);
+          toRemove.push(id);
         } else if (GunHasModifier("CanBounce", this.room, bullet.modifiers)) {
-          adjustBulletDirection(bullet, wall);
+          toRemove.push(id);
           newEffect = 2;
         } else {
-          this.MarkOnlyKillBullet(id);
+          toRemove.push(id);
         }
         continue; // skip moving bullet for this tick
       }
@@ -334,7 +333,7 @@ class BulletManager {
                 expires: Date.now() + 3000, // when this effect ends
               });
 
-              this.MarkOnlyKillBullet(id);
+              toRemove.push(id);
               hitSomething = true;
               break;
             }
@@ -384,7 +383,7 @@ class BulletManager {
               expires: Date.now() + 3000, // when this effect ends
             });
 
-            this.MarkOnlyKillBullet(id);
+            toRemove.push(id);
             hitDummy = true;
             break;
           }
@@ -398,6 +397,10 @@ class BulletManager {
 
       bullet.new = false;
     }
+
+     for (const id of toRemove) {
+      this.killBullet(id);
+    }
   }
 
   killBullet(bulletId) {
@@ -407,13 +410,6 @@ class BulletManager {
     this.room.grid.removeObject(bullet);
     bullet.kill();
     this.bullets.delete(bulletId);
-  }
-
-   MarkOnlyKillBullet(bulletId) {
-    const bullet = this.bullets.get(bulletId);
-    if (!bullet) return;
-    bullet.effect = 4
-    bullet.kill();
   }
 
   isAlly(ownerId, otherPlayer) {
