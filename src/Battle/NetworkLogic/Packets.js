@@ -314,7 +314,7 @@ function prepareRoomMessages(room) {
     // always send also for spectators
     if (finalroomdata) msgArray.push(PacketKeys["roomdata"], finalroomdata);
     if (Object.keys(changes).length) msgArray.push(PacketKeys["selfdata"], changes);
-    if (p.newSeenObjectsStatic) msgArray.push(PacketKeys["objectupdates"], p.newSeenObjectsStatic);
+    if (p.newSeenObjectsStatic.length) msgArray.push(PacketKeys["objectupdates"], p.newSeenObjectsStatic);
     if (room.killfeed.length) msgArray.push(PacketKeys["killfeed"], room.killfeed);
     
     // for normal players and spectator handling

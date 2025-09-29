@@ -103,7 +103,7 @@ class GameGrid {
   }
 
   getObjectsInArea(xMin, xMax, yMin, yMax, includeOnly) {
-    const result = [];
+    const result = new Set()
     const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
 
     for (const key of keys) {
@@ -113,7 +113,7 @@ class GameGrid {
       for (const gid of set) {
         const obj = this.objects.get(gid);
         if (obj && (!includeOnly || includeOnly === obj.type)) {
-          result.push(obj);
+          result.add(obj);
         }
       }
     }
