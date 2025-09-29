@@ -1,8 +1,8 @@
 "use strict";
 
-const viewmultiplier = 0.7
-const xThreshold = 360 * viewmultiplier;
-const yThreshold = 180 * viewmultiplier;
+const viewmultiplier = 1
+const xThreshold = 420 * viewmultiplier;
+const yThreshold = 240 * viewmultiplier;
 
 function getPlayerViewObjects(room, player) {
   const centerX = player.x;
