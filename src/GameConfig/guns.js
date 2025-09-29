@@ -63,7 +63,7 @@ const gunsconfig = {
 
   3: { // Default Sniper
     modifiers: new Set([
-     //  "CanBounce",
+    "CanBounce",
       // "DestroyWalls"
     ]),
     cooldown: 600,
@@ -202,3 +202,4 @@ module.exports = {
   gunskeys: Object.keys(gunsconfig)
 
 };
+
