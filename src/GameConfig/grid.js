@@ -39,14 +39,6 @@ class GameGrid {
   const rect = toRectangle(obj);
   const keys = this._getKeysInArea(rect.min.x, rect.max.x, rect.min.y, rect.max.y);
 
-  // Check for overlaps
-  for (const key of keys) {
-    const cell = this.grid.get(key);
-    if (cell && cell.size > 0) {
-      throw new Error(`Cannot add object; cell ${key} is already occupied.`);
-    }
-  }
-
   // Assign gid if needed
   if (!obj.gid) obj.gid = this.nextId++;
   this.objects.set(obj.gid, obj);
