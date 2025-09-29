@@ -1,8 +1,8 @@
 "use strict";
 
-const viewmultiplier = 0.7
-const xThreshold = 360 * viewmultiplier;
-const yThreshold = 180 * viewmultiplier;
+const viewmultiplier = 0.9
+const xThreshold = 440 * viewmultiplier;
+const yThreshold = 250 * viewmultiplier;
 
 function getPlayerViewObjects(room, player) {
   const centerX = player.x;
@@ -92,3 +92,4 @@ module.exports = {
   playerchunkrenderer,
   getPlayersInRange
 };
+
