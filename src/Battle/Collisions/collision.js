@@ -176,4 +176,5 @@ module.exports = {
   isCollisionWithCachedWalls,
   wallblocksize,
   isCollisionWithPlayer,
+  getBulletCorners
 };
