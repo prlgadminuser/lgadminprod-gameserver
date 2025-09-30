@@ -253,7 +253,7 @@ if (nearbyBullets) {
           bullet.id,
           null, 
           null, 
-          bullet.serialized.d, 
+          null, 
           null,
           null,
           bullet.speed]);
@@ -388,4 +388,5 @@ function sendRoomMessages(room) {
 
 
 module.exports = { SendPreStartMessage, prepareRoomMessages, sendRoomMessages }
+
 
