@@ -60,6 +60,7 @@ class Player {
     this.emote = 0;
     this.seenObjectsIds = new Set(),
     this.lastNearbyObjects =  new Set(),
+    this.ticksSinceLastChunkUpdate = 100 // make number high so first chunk update occurs immediately
 
     this._lastSerializedHash = 0
     this.dirty = true

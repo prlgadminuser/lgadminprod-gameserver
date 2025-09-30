@@ -213,7 +213,7 @@ class BulletManager {
     return bullet;
   }
 
-  update() {
+   update() {
     // --- cleanup bullets marked last tick ---
     for (const [id, bullet] of this.bullets.entries()) {
       if (bullet._pendingRemoval) {
@@ -532,4 +532,3 @@ module.exports = {
   handleBulletFired,
   Vec2,
 };
-

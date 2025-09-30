@@ -5,6 +5,11 @@ const xThreshold = 420 * viewmultiplier;
 const yThreshold = 240 * viewmultiplier;
 
 function getPlayerViewObjects(room, player) {
+  
+  player.ticksSinceLastChunkUpdate++
+  if (player.ticksSinceLastChunkUpdate > 5) {
+   player.ticksSinceLastUpdate = 0;
+
   const centerX = player.x;
   const centerY = player.y;
 
@@ -20,7 +25,7 @@ function getPlayerViewObjects(room, player) {
   const otherPlayersIds = [];
   const nearbyBullets = [];
   const staticObjects = [];
-  const dirtyObjects = [];
+  const RealtimeObjects = [];
 
 
   for (const obj of nearbyObjects) {
@@ -48,7 +53,7 @@ function getPlayerViewObjects(room, player) {
       case "realtime_obj":
         // --- track other realtime spawns not seen in last tick ---
         if (!player.lastNearbyObjects.has(obj.id)) {
-          dirtyObjects.push([obj.id, obj.type, obj.x, obj.y, obj.hp, obj.rotation]);
+          RealtimeObjects.push([obj.id, obj.type, obj.x, obj.y, obj.hp, obj.rotation]);
         }
         break;
     }
@@ -60,7 +65,8 @@ function getPlayerViewObjects(room, player) {
   player.nearbyplayers = otherPlayers
   player.nearbybullets = nearbyBullets;
   player.newSeenObjectsStatic = staticObjects.length ? staticObjects : undefined;
-  player.newSpawns = dirtyObjects.length ? newSpawns : undefined;
+  player.newSeenRealtimeObjects = RealtimeObjects.length ? RealtimeObjects : undefined;
+}
 }
 
 function playerchunkrenderer(room) {
