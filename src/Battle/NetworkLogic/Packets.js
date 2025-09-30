@@ -233,26 +233,46 @@ function prepareRoomMessages(room) {
     if (p.spectating) continue;
 
 
-    const nearbyBullets = p.nearbybullets
+    const nearbyBullets = p.nearbybullets;
 
-    let finalBullets = p.bulletBuffer;
-    finalBullets.length = 0;
+let finalBullets = p.bulletBuffer;
+finalBullets.length = 0;
 
-    if (nearbyBullets) {
-      for (const bullet of nearbyBullets.values()) {
-        finalBullets.push([
-          bullet.id,
-          bullet.serialized.x,
-          bullet.serialized.y,
-          bullet.serialized.d,
-          bullet.gunId,
-          bullet.effect,
-          bullet.speed
-        ]);
-      }
+// Create a Set of previously sent bullet IDs
+const lastBulletIds = p.lastfinalbulletsSet || new Set();
+
+const newLastBulletIds = new Set();
+
+if (nearbyBullets) {
+  for (const bullet of nearbyBullets.values()) {
+    const alreadySent = lastBulletIds.has(bullet.id);
+
+    if (alreadySent) {
+      // Already sent → minimal data
+      finalBullets.push([bullet.id, bullet.serialized.d]);
+    } else {
+      // New bullet → full data
+      finalBullets.push([
+        bullet.id,
+        bullet.serialized.x,
+        bullet.serialized.y,
+        bullet.serialized.d,
+        bullet.gunId,
+        bullet.effect,
+        bullet.speed
+      ]);
     }
 
-    p.finalbullets = finalBullets.length ? finalBullets : undefined;
+    // Track for next tick
+    newLastBulletIds.add(bullet.id);
+  }
+}
+
+p.finalbullets = finalBullets.length ? finalBullets : undefined;
+
+// Save the Set for the next tick
+p.lastfinalbulletsSet = newLastBulletIds;
+
 
     if (!p.alive) continue;
 
@@ -357,6 +377,7 @@ function sendRoomMessages(room) {
     }
   });
 }
+
 
 
 module.exports = { SendPreStartMessage, prepareRoomMessages, sendRoomMessages }
