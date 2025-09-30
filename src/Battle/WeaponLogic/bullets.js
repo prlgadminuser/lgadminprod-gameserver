@@ -213,14 +213,7 @@ class BulletManager {
     return bullet;
   }
 
-   update() {
-    // --- cleanup bullets marked last tick ---
-    for (const [id, bullet] of this.bullets.entries()) {
-      if (bullet._pendingRemoval) {
-        this.killBullet(id);
-      }
-    }
-
+  update() {
     this.processScheduledBullets();
     const toRemove = [];
 
@@ -242,6 +235,7 @@ class BulletManager {
       const threshold = Math.max(bullet.width, bullet.height);
       const xThreshold = threshold + playerWidth;
       const yThreshold = threshold + playerHeight;
+      // Single call to getObjectsInArea
       const nearbyObjects = this.room.grid.getObjectsInArea(
         centerX - xThreshold,
         centerX + xThreshold,
@@ -255,6 +249,7 @@ class BulletManager {
       const nearbyWalls = Array.from(nearbyObjects).filter(obj => obj.type === "wall");
 
       const collidedWalls = getCollidedWallsWithBullet(
+        // check which of potential walls collide exactly
         nearbyWalls,
         nextPos.x,
         nextPos.y,
@@ -319,18 +314,18 @@ class BulletManager {
               bullet.gunId
             );
 
-            if (bullet.afflictionConfig) {
-              this.room.activeAfflictions.push({
-                shootingPlayer: this.room.players.get(bullet.ownerId),
-                target: otherPlayer,
-                target_type: "player",
-                damage: afflictionConfig.damage,
-                speed: afflictionConfig.waitTime,
-                gunid: bullet.gunId,
-                nextTick: Date.now() + afflictionConfig.waitTime,
-                expires: Date.now() + afflictionConfig.activeTime,
-              });
-            }
+           if (bullet.afflictionConfig) {
+            this.room.activeAfflictions.push({
+              shootingPlayer: this.room.players.get(bullet.ownerId),
+              target: otherPlayer,
+              target_type: "player",
+              damage: afflictionConfig.damage,
+              speed: afflictionConfig.waitTime, // interval between hits in ms
+              gunid: bullet.gunId,
+              nextTick: Date.now() + afflictionConfig.waitTime, // first tick time
+              expires: Date.now() + afflictionConfig.activeTime, // when this effect ends
+            });
+           }
 
             toRemove.push(id);
             collided = true;
@@ -377,14 +372,8 @@ class BulletManager {
       bullet.new = false;
     }
 
-    // mark bullets for deletion → one tick later they are killed
     for (const id of toRemove) {
-      const bullet = this.bullets.get(id);
-      if (bullet && bullet.alive) {
-        bullet.effect = 4;       // notify client
-        bullet.alive = false;    // stop further processing
-        bullet._pendingRemoval = true; // cleanup next tick
-      }
+      this.killBullet(id);
     }
   }
 
