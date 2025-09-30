@@ -17,6 +17,7 @@ function getPlayerViewObjects(room, player) {
   const nearbyObjects = room.grid.getObjectsInArea(xMin, xMax, yMin, yMax);
 
   const otherPlayers = [];
+  const otherPlayersIds = [];
   const nearbyBullets = [];
   const staticObjects = [];
   const dirtyObjects = [];
@@ -27,7 +28,8 @@ function getPlayerViewObjects(room, player) {
     switch (obj.type) {
 
       case "player":
-          otherPlayers.push(obj.id);
+          otherPlayers.push(obj);
+          otherPlayersIds.push(obj.id);
         
         break;
 
@@ -54,18 +56,11 @@ function getPlayerViewObjects(room, player) {
 
 
   // --- 2. Assign results back to player ---
-  player.nearbyplayersids = otherPlayers;
+  player.nearbyplayersids = otherPlayersIds;
+  player.nearbyplayers = otherPlayers
   player.nearbybullets = nearbyBullets;
   player.newSeenObjectsStatic = staticObjects.length ? staticObjects : undefined;
   player.newSpawns = dirtyObjects.length ? newSpawns : undefined;
-
-  // Optionally return bundled data
-  return {
-    players: player.nearbyplayersids,
-    bullets: player.nearbybullets,
-    newStatic: player.newSeenObjectsStatic,
-    newSpawns: player.newSpawns,
-  };
 }
 
 function playerchunkrenderer(room) {

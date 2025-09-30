@@ -264,11 +264,7 @@ function prepareRoomMessages(room) {
    p.dirty = hash !== p._lastSerializedHash;
    p._lastSerializedHash = hash;
 
-   if (p.dirty) {
-    playerData.set(p.id, serialized);
-} else {
-    playerData.delete(p.id); // remove old data if player is not dirty
-}
+   playerData.set(p.id, serialized);
   }
 
   // ONE PASS: build messages
@@ -291,10 +287,12 @@ function prepareRoomMessages(room) {
 
       filteredPlayers.length = 0
 
-      for (const nearbyId of p.nearbyplayersids) {
-        const data = playerData.get(nearbyId);
-        if (data || !p.nearbyplayersidslast.includes(nearbyId)) filteredPlayers.push(data); // if data is dirty or playerid is new from last tick then sent
+      for (const player of p.nearbyplayers) {
+        if (player.dirty || !p.nearbyplayersidslast.includes(player.id)) {          
+          const data = playerData.get(player.id); 
+          filteredPlayers.push(data); // if data is dirty or playerid is new from last tick then sent
 
+        }
       }
 
       if (filteredPlayers.length > 0)  p.latestnozeropd = filteredPlayers;

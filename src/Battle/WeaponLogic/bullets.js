@@ -313,6 +313,20 @@ class BulletManager {
               finalDamage,
               bullet.gunId
             );
+
+           if (bullet.afflictionConfig) {
+            this.room.activeAfflictions.push({
+              shootingPlayer: this.room.players.get(bullet.ownerId),
+              target: otherPlayer,
+              target_type: "player",
+              damage: afflictionConfig.damage,
+              speed: afflictionConfig.waitTime, // interval between hits in ms
+              gunid: bullet.gunId,
+              nextTick: Date.now() + afflictionConfig.waitTime, // first tick time
+              expires: Date.now() + afflictionConfig.activeTime, // when this effect ends
+            });
+           }
+
             toRemove.push(id);
             collided = true;
             break;

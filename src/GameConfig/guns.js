@@ -63,7 +63,7 @@ const gunsconfig = {
 
   3: { // Default Sniper
     modifiers: new Set([
-    "CanBounce",
+     //  "CanBounce",
       // "DestroyWalls"
     ]),
     cooldown: 600,
@@ -73,7 +73,7 @@ const gunsconfig = {
     width: 33,
     height: 7,
     useplayerangle: true,
-   can_bullets_bounce: true,
+    //  can_bullets_bounce: true,
     bullets: [
       { angle: 0, speed: 23, delay: 0, offset: 0 },
 
@@ -200,6 +200,4 @@ module.exports = {
   gunsconfig,
   //gunsconfig: new Map(Object.entries(gunsconfig)),
   gunskeys: Object.keys(gunsconfig)
-
 };
-
