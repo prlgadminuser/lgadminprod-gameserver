@@ -249,7 +249,14 @@ if (nearbyBullets) {
 
     if (alreadySent) {
       // Already sent → minimal data
-      finalBullets.push([bullet.id, bullet.serialized.d]);
+      finalBullets.push([
+          bullet.id,
+          null, 
+          null, 
+          bullet.serialized.d, 
+          null,
+          null,
+          bullet.speed]);
     } else {
       // New bullet → full data
       finalBullets.push([
@@ -381,3 +388,4 @@ function sendRoomMessages(room) {
 
 
 module.exports = { SendPreStartMessage, prepareRoomMessages, sendRoomMessages }
+
