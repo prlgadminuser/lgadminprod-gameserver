@@ -233,42 +233,33 @@ function prepareRoomMessages(room) {
     if (p.spectating) continue;
 
     const nearbyBullets = p.nearbybullets;
-    // Reuse the player's existing buffer
-    const finalBullets = p.bulletBuffer;
-    finalBullets.length = 0;
-    // Reuse the Set for tracking bullet IDs instead of creating a new one each tick
-    const lastBulletIds = p.lastfinalbulletsSet;
-    const newLastBulletIds = lastBulletIds;
-    newLastBulletIds.clear();
+    let finalBullets = p.bulletBuffer;
+    finalBullets.length = 0; // Create a Set of previously sent bullet IDs
+    const lastBulletIds = p.lastfinalbulletsSet
+
+    const newLastBulletIds = new Set();
 
     if (nearbyBullets) {
-        for (const bullet of nearbyBullets.values()) {
-            const alreadySent = lastBulletIds.has(bullet.id);
-
-            if (alreadySent) {
-                // Already sent → minimal data
-                finalBullets.push([bullet.id]);
-            } else {
-                // New bullet → full data
-                finalBullets.push([
-                    bullet.id,
-                    bullet.serialized.x,
-                    bullet.serialized.y,
-                    bullet.serialized.d,
-                    bullet.gunId,
-                    bullet.effect,
-                    bullet.speed,
-                ]);
-            }
-
-            // Track for next tick
-            newLastBulletIds.add(bullet.id);
+      for (const bullet of nearbyBullets.values()) {
+        const alreadySent = lastBulletIds.has(bullet.id);
+        if (alreadySent) {
+          finalBullets.push([bullet.id]);
+        } else {
+          finalBullets.push([
+            bullet.id,
+            bullet.serialized.x,
+            bullet.serialized.y,
+            bullet.serialized.d,
+            bullet.gunId,
+            bullet.effect,
+            bullet.speed,
+          ]);
         }
+        newLastBulletIds.add(bullet.id);
+      }
     }
 
-    p.finalbullets = finalBullets.length ? finalBullets : undefined;
-
-    // Save the Set reference for reuse next tick
+    p.finalbullets = finalBullets.length ? finalBullets : undefined; 
     p.lastfinalbulletsSet = newLastBulletIds;
 
     if (!p.alive) continue;
