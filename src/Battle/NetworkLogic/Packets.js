@@ -232,48 +232,59 @@ function prepareRoomMessages(room) {
   for (const p of players) {
     if (p.spectating) continue;
 
-
     const nearbyBullets = p.nearbybullets;
-const finalBullets = p.bulletBuffer;
-finalBullets.length = 0;
 
-if (nearbyBullets) {
-  for (const bullet of nearbyBullets) {
-    const alreadySeen = p.lastNearbyBullets.has(bullet.id);
+    let finalBullets = p.bulletBuffer;
+    finalBullets.length = 0;
 
-    if (alreadySeen) {
-      // Minimal data for bullets already seen
-      finalBullets.push([bullet.id]);
-    } else {
-      // Full data for new bullets
-      finalBullets.push([
-        bullet.id,
-        bullet.serialized.x,
-        bullet.serialized.y,
-        bullet.serialized.d,
-        bullet.gunId,
-        bullet.effect,
-        bullet.speed
-      ]);
+    // Create a Set of previously sent bullet IDs
+    const lastBulletIds = p.lastfinalbulletsSet || new Set();
+
+    const newLastBulletIds = new Set();
+
+    if (nearbyBullets) {
+      for (const bullet of nearbyBullets.values()) {
+        const alreadySent = lastBulletIds.has(bullet.id);
+
+        if (alreadySent) {
+          // Already sent → minimal data
+          finalBullets.push([bullet.id]);
+        } else {
+          // New bullet → full data
+          finalBullets.push([
+            bullet.id,
+            bullet.serialized.x,
+            bullet.serialized.y,
+            bullet.serialized.d,
+            bullet.gunId,
+            bullet.effect,
+            bullet.speed,
+          ]);
+        }
+
+        // Track for next tick
+        newLastBulletIds.add(bullet.id);
+      }
     }
-  }
-}
 
-p.finalbullets = finalBullets.length ? finalBullets : undefined;
+    p.finalbullets = finalBullets.length ? finalBullets : undefined;
 
+    // Save the Set for the next tick
+    p.lastfinalbulletsSet = newLastBulletIds;
 
     if (!p.alive) continue;
 
     const serialized = SerializePlayerData(p);
 
-    // Use hash instead of full array equality for efficiency
-    const hash = serialized.join(",");
+    const hash = serialized.join();
 
-   p.dirty = hash !== p._lastSerializedHash;
-   p._lastSerializedHash = hash;
+    p.dirty = hash !== p._lastSerializedHash;
+    p._lastSerializedHash = hash;
 
-   playerData.set(p.id, serialized);
+    playerData.set(p.id, serialized);
   }
+
+
 
   // ONE PASS: build messages
   for (const p of players) {

@@ -69,7 +69,6 @@ class Player {
 
     this.serializeBuffer = new Array(7)
     this.bulletBuffer = [];
-    this.lastNearbyBullets = new Set();
     this.msgBuffer = [];
     this.filteredPlayersBuffer = [];
     this.selflastmsg = {};

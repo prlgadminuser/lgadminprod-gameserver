@@ -42,12 +42,6 @@ function getPlayerViewObjects(room, player) {
       case "bullet":
         nearbyBullets.push(obj);
 
-    if (!player.lastNearbyBullets.has(obj.id)) {
-      if (!player.newNearbyBullets) player.newNearbyBullets = [];
-      player.newNearbyBullets.push(obj);
-   }
-
-
         break;
 
       case "static_obj":
@@ -66,9 +60,6 @@ function getPlayerViewObjects(room, player) {
         break;
     }
   }
-
-  player.lastNearbyBullets.clear();
-for (const b of nearbyBullets) player.lastNearbyBullets.add(b.id);
 
   // --- 2. Assign results back to player ---
   player.nearbyplayersids = otherPlayersIds;
