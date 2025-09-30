@@ -233,43 +233,42 @@ function prepareRoomMessages(room) {
     if (p.spectating) continue;
 
     const nearbyBullets = p.nearbybullets;
-
-    let finalBullets = p.bulletBuffer;
+    // Reuse the player's existing buffer
+    const finalBullets = p.bulletBuffer;
     finalBullets.length = 0;
-
-    // Create a Set of previously sent bullet IDs
-    const lastBulletIds = p.lastfinalbulletsSet || new Set();
-
-    const newLastBulletIds = new Set();
+    // Reuse the Set for tracking bullet IDs instead of creating a new one each tick
+    const lastBulletIds = p.lastfinalbulletsSet;
+    const newLastBulletIds = lastBulletIds;
+    newLastBulletIds.clear();
 
     if (nearbyBullets) {
-      for (const bullet of nearbyBullets.values()) {
-        const alreadySent = lastBulletIds.has(bullet.id);
+        for (const bullet of nearbyBullets.values()) {
+            const alreadySent = lastBulletIds.has(bullet.id);
 
-        if (alreadySent) {
-          // Already sent → minimal data
-          finalBullets.push([bullet.id]);
-        } else {
-          // New bullet → full data
-          finalBullets.push([
-            bullet.id,
-            bullet.serialized.x,
-            bullet.serialized.y,
-            bullet.serialized.d,
-            bullet.gunId,
-            bullet.effect,
-            bullet.speed,
-          ]);
+            if (alreadySent) {
+                // Already sent → minimal data
+                finalBullets.push([bullet.id]);
+            } else {
+                // New bullet → full data
+                finalBullets.push([
+                    bullet.id,
+                    bullet.serialized.x,
+                    bullet.serialized.y,
+                    bullet.serialized.d,
+                    bullet.gunId,
+                    bullet.effect,
+                    bullet.speed,
+                ]);
+            }
+
+            // Track for next tick
+            newLastBulletIds.add(bullet.id);
         }
-
-        // Track for next tick
-        newLastBulletIds.add(bullet.id);
-      }
     }
 
     p.finalbullets = finalBullets.length ? finalBullets : undefined;
 
-    // Save the Set for the next tick
+    // Save the Set reference for reuse next tick
     p.lastfinalbulletsSet = newLastBulletIds;
 
     if (!p.alive) continue;

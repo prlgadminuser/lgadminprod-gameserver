@@ -66,6 +66,7 @@ class Player {
     this.dirty = true
     this.nearbyplayersidslast = []
 
+    this.lastfinalbulletsSet = new Set();
 
     this.serializeBuffer = new Array(7)
     this.bulletBuffer = [];
