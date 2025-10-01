@@ -34,7 +34,7 @@ const gamemodeconfig = {
     seasoncoins_rewardRange: [30, 5],
 
     playerhealth: 187,
-    playerspeed: 2.4,
+    playerspeed: 7,
 
     modifiers: new Set(["countdown"]),
 
@@ -49,7 +49,7 @@ const gamemodeconfig = {
     placereward: [10, 8, 6, -1, -5],
     seasoncoinsreward: [25, 17, 12, 10, 7],
 
-    custom_map: "prism_party",
+    custom_map: "skilloween",
   },
 
 
@@ -57,7 +57,7 @@ const gamemodeconfig = {
     can_hit_dummies: false,
     can_hit_players: true,
 
-    maxplayers: 10,
+    maxplayers: 6,
     teamsize: 1,
     respawns_allowed: 0,
 
@@ -112,7 +112,7 @@ const gamemodeconfig = {
     respawns_allowed: 1,
 
     playerhealth: 50,
-    playerspeed: 2.8,
+    playerspeed: 2.4,
 
     modifiers: new Set([
       //  "UseZone",
@@ -191,6 +191,3 @@ module.exports = {
   gamemodeconfig: new Map(Object.entries(gamemodeconfig)),
   allowed_gamemodes,
 };
-
-
-

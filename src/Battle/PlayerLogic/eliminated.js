@@ -10,7 +10,7 @@ const { game_win_rest_time } = require("@main/modules");
 function handleElimination(room, target) {
   if (room.state !== "playing" || room.winner !== -1) return;
 
-  const eliminatedPlayer = room.players.get(target.playerId);
+  const eliminatedPlayer = target;
   if (!eliminatedPlayer || eliminatedPlayer.eliminated) return;
 
   // Execute the core elimination actions for the player.
@@ -57,7 +57,7 @@ function eliminatePlayer(room, player) {
   player.alive = false;
   player.state = 3;
   player.moving = false;
-  if (room.realtimegrid) room.realtimegrid.removeObject(player);
+  if (room.grid) room.grid.removeObject(player);
 
   // Clear any active intervals/timeouts for the player.
   if (player.moveInterval) {
