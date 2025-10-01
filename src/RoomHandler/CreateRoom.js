@@ -260,7 +260,7 @@ class Room {
         prepareRoomMessages(this);
         this.timeoutdelaysending = setTimeout(() => {
           sendRoomMessages(this);
-        }, 2);
+        }, 5);
       }, game_tick_rate)
     );
 
@@ -281,3 +281,4 @@ class Room {
 
 
 module.exports = { Room };
+
