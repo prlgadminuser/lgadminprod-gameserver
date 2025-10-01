@@ -235,9 +235,16 @@ function prepareRoomMessages(room) {
     const nearbyBullets = p.nearbybullets;
     let finalBullets = p.bulletBuffer;
     finalBullets.length = 0; // Create a Set of previously sent bullet IDs
+    const lastBulletIds = p.lastfinalbulletsSet
+
+    const newLastBulletIds = new Set();
 
     if (nearbyBullets) {
       for (const bullet of nearbyBullets.values()) {
+        const alreadySent = lastBulletIds.has(bullet.id);
+        if (alreadySent) {
+          finalBullets.push([bullet.id]);
+        } else {
           finalBullets.push([
             bullet.id,
             bullet.serialized.x,
@@ -247,10 +254,13 @@ function prepareRoomMessages(room) {
             bullet.effect,
             bullet.speed,
           ]);
+        }
+        newLastBulletIds.add(bullet.id);
       }
     }
 
     p.finalbullets = finalBullets.length ? finalBullets : undefined; 
+    p.lastfinalbulletsSet = newLastBulletIds;
 
     if (!p.alive) continue;
 
@@ -359,4 +369,3 @@ function sendRoomMessages(room) {
 
 
 module.exports = { SendPreStartMessage, prepareRoomMessages, sendRoomMessages }
-
