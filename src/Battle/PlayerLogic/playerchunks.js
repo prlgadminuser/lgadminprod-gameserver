@@ -5,10 +5,6 @@ const xThreshold = 420 * viewmultiplier;
 const yThreshold = 240 * viewmultiplier;
 
 function getPlayerViewObjects(room, player) {
-  
-  player.ticksSinceLastChunkUpdate++
-  if (player.ticksSinceLastChunkUpdate > 5) {
-   player.ticksSinceLastChunkUpdate = 0;
 
   const centerX = player.x;
   const centerY = player.y;
@@ -68,7 +64,6 @@ function getPlayerViewObjects(room, player) {
   player.newSeenObjectsStatic = staticObjects.length ? staticObjects : undefined;
   player.newSeenRealtimeObjects = RealtimeObjects.length ? RealtimeObjects : undefined;
 }
-}
 
 function playerchunkrenderer(room) {
   const roomplayers = Array.from(room.players.values());
@@ -93,4 +88,5 @@ module.exports = {
   playerchunkrenderer,
   getPlayersInRange
 };
+
 
