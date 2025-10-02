@@ -1,4 +1,9 @@
-const { toRectangle } = require("../Battle/utils/math");
+function toRectangle(hitbox) {
+  return {
+    min: { x: hitbox.x, y: hitbox.y },
+    max: { x: hitbox.x + (hitbox.width || 0), y: hitbox.y + (hitbox.height || 0) }
+  };
+}
 
 class GameGrid {
   constructor(width, height, cellSize = 40) {
@@ -13,17 +18,13 @@ class GameGrid {
   }
 
   getCellKey(x, y) {
-    const cell = this._roundToCells(x, y);
-    return `${cell.x},${cell.y}`;
+    return `${Math.floor(x / this.cellSize)},${Math.floor(y / this.cellSize)}`;
   }
 
   _getKeysInArea(xMin, xMax, yMin, yMax) {
     const keys = [];
-    const start = this._roundToCells(xMin, yMin);
-    const end = this._roundToCells(xMax, yMax);
-
-    for (let x = start.x; x <= end.x; x++) {
-      for (let y = start.y; y <= end.y; y++) {
+    for (let x = Math.floor(xMin / this.cellSize); x <= Math.floor(xMax / this.cellSize); x++) {
+      for (let y = Math.floor(yMin / this.cellSize); y <= Math.floor(yMax / this.cellSize); y++) {
         keys.push(`${x},${y}`);
       }
     }
@@ -31,24 +32,27 @@ class GameGrid {
   }
 
   addObject(obj) {
-    if (typeof obj.x !== "number" || typeof obj.y !== "number") {
-      throw new Error("Object must have numeric 'x' and 'y' properties.");
-    }
-
-    const rect = toRectangle(obj);
-    const keys = this._getKeysInArea(rect.min.x, rect.max.x, rect.min.y, rect.max.y);
-
-    if (!obj.gid) obj.gid = this.nextId++;
-    this.objects.set(obj.gid, obj);
-
-    const objCells = new Set();
-    for (const key of keys) {
-      if (!this.grid.has(key)) this.grid.set(key, new Set());
-      this.grid.get(key).add(obj.gid);
-      objCells.add(key);
-    }
-    this.objectsCells.set(obj.gid, objCells);
+  if (typeof obj.x !== "number" || typeof obj.y !== "number") {
+    throw new Error("Object must have numeric 'x' and 'y' properties.");
   }
+
+  const rect = toRectangle(obj);
+  const keys = this._getKeysInArea(rect.min.x, rect.max.x, rect.min.y, rect.max.y);
+
+  // Assign gid if needed
+  if (!obj.gid) obj.gid = this.nextId++;
+  this.objects.set(obj.gid, obj);
+
+  // Add to cells
+  const objCells = new Set();
+  for (const key of keys) {
+    if (!this.grid.has(key)) this.grid.set(key, new Set());
+    this.grid.get(key).add(obj.gid);
+    objCells.add(key);
+  }
+  this.objectsCells.set(obj.gid, objCells);
+}
+
 
   removeObject(obj) {
     if (!obj?.gid) return;
@@ -72,9 +76,10 @@ class GameGrid {
     if (!obj.gid) return;
 
     const oldCells = this.objectsCells.get(obj.gid) || new Set();
-    const newCellKey = this.getCellKey(newX, newY);
+    const newKey = this.getCellKey(newX, newY);
 
-    if (!oldCells.has(newCellKey) || oldCells.size > 1) {
+    // Only re-add if object crosses into new cells
+    if (!oldCells.has(newKey) || oldCells.size > 1) {
       this.removeObject(obj);
       obj.x = newX;
       obj.y = newY;
@@ -90,7 +95,7 @@ class GameGrid {
   }
 
   getObjectsInArea(xMin, xMax, yMin, yMax, includeOnly) {
-    const result = new Set();
+    const result = new Set()
     const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
 
     for (const key of keys) {
@@ -107,14 +112,7 @@ class GameGrid {
 
     return result;
   }
-
-  _roundToCells(x, y) {
-    const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
-    return {
-      x: clamp(Math.floor(x / this.cellSize), 0, this.width),
-      y: clamp(Math.floor(y / this.cellSize), 0, this.height)
-    };
-  }
 }
+
 
 module.exports = { GameGrid };
