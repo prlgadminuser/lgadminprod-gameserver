@@ -9,9 +9,9 @@ const { spawnAnimation } = require("@main/src/gameObjectEvents/animations");
 const { playerhitbox } = require("@main/modules");
 
   const added_hitbox = 5;
-  const hitboxXMin = playerhitbox.xMin - added_hitbox;
+  const hitboxXMin = playerhitbox.xMin + added_hitbox;
   const hitboxXMax = playerhitbox.xMax + added_hitbox;
-  const hitboxYMin = playerhitbox.yMin - added_hitbox;
+  const hitboxYMin = playerhitbox.yMin + added_hitbox;
   const hitboxYMax = playerhitbox.yMax + added_hitbox;
 
 function handleMovement(player, room) {

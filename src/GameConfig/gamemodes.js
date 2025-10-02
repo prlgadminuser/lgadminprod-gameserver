@@ -34,7 +34,7 @@ const gamemodeconfig = {
     seasoncoins_rewardRange: [30, 5],
 
     playerhealth: 187,
-    playerspeed: 7,
+    playerspeed: 3,
 
     modifiers: new Set(["countdown"]),
 

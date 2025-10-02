@@ -1,9 +1,4 @@
-function toRectangle(hitbox) {
-  return {
-    min: { x: hitbox.x, y: hitbox.y },
-    max: { x: hitbox.x + (hitbox.width || 0), y: hitbox.y + (hitbox.height || 0) }
-  };
-}
+
 
 class GameGrid {
   constructor(width, height, cellSize = 40) {
@@ -21,38 +16,23 @@ class GameGrid {
     return `${Math.floor(x / this.cellSize)},${Math.floor(y / this.cellSize)}`;
   }
 
-  _getKeysInArea(xMin, xMax, yMin, yMax) {
-    const keys = [];
-    for (let x = Math.floor(xMin / this.cellSize); x <= Math.floor(xMax / this.cellSize); x++) {
-      for (let y = Math.floor(yMin / this.cellSize); y <= Math.floor(yMax / this.cellSize); y++) {
-        keys.push(`${x},${y}`);
-      }
-    }
-    return keys;
-  }
-
   addObject(obj) {
-  if (typeof obj.x !== "number" || typeof obj.y !== "number") {
-    throw new Error("Object must have numeric 'x' and 'y' properties.");
-  }
+    if (typeof obj.x !== "number" || typeof obj.y !== "number") {
+      throw new Error("Object must have numeric 'x' and 'y' properties.");
+    }
 
-  const rect = toRectangle(obj);
-  const keys = this._getKeysInArea(rect.min.x, rect.max.x, rect.min.y, rect.max.y);
+    // Only one cell per object
+    const key = this.getCellKey(obj.x, obj.y);
 
-  // Assign gid if needed
-  if (!obj.gid) obj.gid = this.nextId++;
-  this.objects.set(obj.gid, obj);
+    // Assign gid if needed
+    if (!obj.gid) obj.gid = this.nextId++;
+    this.objects.set(obj.gid, obj);
 
-  // Add to cells
-  const objCells = new Set();
-  for (const key of keys) {
+    // Add to cell
     if (!this.grid.has(key)) this.grid.set(key, new Set());
     this.grid.get(key).add(obj.gid);
-    objCells.add(key);
+    this.objectsCells.set(obj.gid, new Set([key]));
   }
-  this.objectsCells.set(obj.gid, objCells);
-}
-
 
   removeObject(obj) {
     if (!obj?.gid) return;
@@ -75,11 +55,11 @@ class GameGrid {
   updateObject(obj, newX, newY) {
     if (!obj.gid) return;
 
-    const oldCells = this.objectsCells.get(obj.gid) || new Set();
+    const oldKey = [...(this.objectsCells.get(obj.gid) || new Set())][0];
     const newKey = this.getCellKey(newX, newY);
 
-    // Only re-add if object crosses into new cells
-    if (!oldCells.has(newKey) || oldCells.size > 1) {
+    // Only update grid if object moved to a different cell
+    if (oldKey !== newKey) {
       this.removeObject(obj);
       obj.x = newX;
       obj.y = newY;
@@ -95,17 +75,25 @@ class GameGrid {
   }
 
   getObjectsInArea(xMin, xMax, yMin, yMax, includeOnly) {
-    const result = new Set()
-    const keys = this._getKeysInArea(xMin, xMax, yMin, yMax);
+    const result = []
 
-    for (const key of keys) {
-      const set = this.grid.get(key);
-      if (!set) continue;
+    // Iterate only cells overlapping the area
+    const xStart = Math.floor(xMin / this.cellSize);
+    const xEnd = Math.floor(xMax / this.cellSize);
+    const yStart = Math.floor(yMin / this.cellSize);
+    const yEnd = Math.floor(yMax / this.cellSize);
 
-      for (const gid of set) {
-        const obj = this.objects.get(gid);
-        if (obj && (!includeOnly || includeOnly === obj.type)) {
-          result.add(obj);
+    for (let x = xStart; x <= xEnd; x++) {
+      for (let y = yStart; y <= yEnd; y++) {
+        const key = `${x},${y}`;
+        const set = this.grid.get(key);
+        if (!set) continue;
+
+        for (const gid of set) {
+          const obj = this.objects.get(gid);
+          if (obj && (!includeOnly || includeOnly === obj.type)) {
+            result.push(obj);
+          }
         }
       }
     }
@@ -113,6 +101,5 @@ class GameGrid {
     return result;
   }
 }
-
 
 module.exports = { GameGrid };
