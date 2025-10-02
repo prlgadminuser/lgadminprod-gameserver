@@ -32,8 +32,6 @@ function handleMovement(player, room) {
         "wall",
     );
 
-    console.log(nearbyWalls)
-
     // Calculate new position with collision check
     let newX = isCollisionWithCachedWalls(nearbyWalls, player.x + deltaX, player.y)
         ? player.x
