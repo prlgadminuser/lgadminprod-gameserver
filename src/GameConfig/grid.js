@@ -111,8 +111,8 @@ class GameGrid {
   _roundToCells(x, y) {
     const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
     return {
-      x: clamp(Math.floor(x / this.cellSize), 0, this.width - 1),
-      y: clamp(Math.floor(y / this.cellSize), 0, this.height - 1)
+      x: clamp(Math.floor(x / this.cellSize), 0, this.width),
+      y: clamp(Math.floor(y / this.cellSize), 0, this.height)
     };
   }
 }
