@@ -8,7 +8,7 @@ function getPlayerViewObjects(room, player) {
   
   player.ticksSinceLastChunkUpdate++
   if (player.ticksSinceLastChunkUpdate > 5) {
-   player.ticksSinceLastUpdate = 0;
+   player.ticksSinceLastChunkUpdate = 0;
 
   const centerX = player.x;
   const centerY = player.y;
@@ -93,3 +93,4 @@ module.exports = {
   playerchunkrenderer,
   getPlayersInRange
 };
+
