@@ -1,10 +1,7 @@
 "use strict";
 
 const { playerhitbox } = require("@main/modules");
-
-const wallblocksize = 40;
-const halfBlockSize = wallblocksize / 2;
-
+const { rectCircleIntersection, rectRectIntersection } = require("../utils/math");
 
 const playerHalfWidth = playerhitbox.width
 const playerHalfHeight = playerhitbox.height
@@ -17,18 +14,51 @@ function isCollisionWithCachedWalls(walls, x, y) {
   const yMax = y + playerhitbox.yMax;
 
   for (const wall of walls) {
-    const wallLeft = wall.x - halfBlockSize;
-    const wallRight = wall.x + halfBlockSize;
-    const wallTop = wall.y - halfBlockSize;
-    const wallBottom = wall.y + halfBlockSize;
+    const halfWidth = wall.width / 2;
+    const halfHeight = wall.height / 2;
+    const wallhitboxtype = wall.hitboxtype ? wall.hitboxtype : "rect"
 
-    if (xMax > wallLeft && xMin < wallRight & yMax > wallTop && yMin < wallBottom) {
-      return true
+    switch (wallhitboxtype) {
+
+      case "circle": {
+        const radius = Math.min(halfWidth, halfHeight);
+        if (
+          rectCircleIntersection(xMin, xMax, yMin, yMax, wall.x, wall.y, radius)
+        ) {
+          return true;
+        }
+        break;
+      }
+
+
+      case "rect": {
+        const wallLeft = wall.x - halfWidth;
+        const wallRight = wall.x + halfWidth;
+        const wallTop = wall.y - halfHeight;
+        const wallBottom = wall.y + halfHeight;
+
+        if (
+          rectRectIntersection(
+            xMin,
+            xMax,
+            yMin,
+            yMax,
+            wallLeft,
+            wallRight,
+            wallTop,
+            wallBottom
+          )
+        ) {
+          return true;
+        }
+        break;
+      }
     }
   }
 
   return false;
 }
+
 
 
 function isHeadHit(bullet, player, height, width) {
@@ -101,19 +131,20 @@ function isCollisionWithPlayer(
   return doPolygonsIntersect(bulletCorners, playerCorners);
 }
 
+
 function getCollidedWallsWithBullet(walls, x, y, height, width, direction) {
   const bulletCorners = getBulletCorners({ x, y }, width, height, direction);
-
-  const nearbyWalls = walls
-
   const collidedWalls = [];
 
-  for (const wall of nearbyWalls) {
+  for (const wall of walls) {
+    const halfWidth = wall.width / 2;
+    const halfHeight = wall.height / 2;
+
     const wallCorners = [
-      { x: wall.x - halfBlockSize, y: wall.y - halfBlockSize },
-      { x: wall.x + halfBlockSize, y: wall.y - halfBlockSize },
-      { x: wall.x + halfBlockSize, y: wall.y + halfBlockSize },
-      { x: wall.x - halfBlockSize, y: wall.y + halfBlockSize },
+      { x: wall.x - halfWidth, y: wall.y - halfHeight },
+      { x: wall.x + halfWidth, y: wall.y - halfHeight },
+      { x: wall.x + halfWidth, y: wall.y + halfHeight },
+      { x: wall.x - halfWidth, y: wall.y + halfHeight },
     ];
 
     if (doPolygonsIntersect(bulletCorners, wallCorners)) {
@@ -166,10 +197,11 @@ function projectPolygon(polygon, axis) {
 }
 
 
+
+
 module.exports = {
   getCollidedWallsWithBullet,
   isCollisionWithCachedWalls,
-  wallblocksize,
   isCollisionWithPlayer,
   getBulletCorners
 };

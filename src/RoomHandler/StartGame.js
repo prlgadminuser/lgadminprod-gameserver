@@ -10,7 +10,6 @@ function cloneGrid(original) {
   const clone = new GameGrid(
     original.width * original.cellSize,
     original.height * original.cellSize,
-    original.cellSize
   );
 
   clone.nextId = original.nextId;

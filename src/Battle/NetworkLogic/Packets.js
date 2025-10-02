@@ -173,7 +173,7 @@ function SerializePlayerData(p) {
 
 const CachedEmptyMsg = compressMessage([]);
 
-function prepareRoomMessages(room) {
+function preparePlayerPackets(room) {
   const players = Array.from(room.players.values());
   const GameRunning = room.state === "playing" || room.state === "countdown";
 
@@ -359,7 +359,7 @@ function prepareRoomMessages(room) {
 
 
 
-function sendRoomMessages(room) {
+function sendPlayerPackets(room) {
   room.players.forEach((player) => {
     if (player.tick_send_allow) {
       player.send(player.lastcompressedmessage, { binary: true });
@@ -368,4 +368,4 @@ function sendRoomMessages(room) {
 }
 
 
-module.exports = { SendPreStartMessage, prepareRoomMessages, sendRoomMessages }
+module.exports = { SendPreStartMessage, preparePlayerPackets, sendPlayerPackets }

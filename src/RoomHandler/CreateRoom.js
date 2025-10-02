@@ -2,7 +2,7 @@ const { random_mapkeys, mapsconfig, game_tick_rate, player_idle_timeout, deepCop
 const { rooms } = require("./setup");
 const { BulletManager } = require("../Battle/WeaponLogic/bullets");
 const { addRoomToIndex, removeRoomFromIndex } = require("./roomIndex");
-const { prepareRoomMessages, sendRoomMessages } = require("../Battle/NetworkLogic/Packets");
+const { preparePlayerPackets, sendPlayerPackets } = require("../Battle/NetworkLogic/Packets");
 const { UpdatePlayerKillsAndDamage } = require("../Database/ChangePlayerStats");
 
 
@@ -257,9 +257,9 @@ class Room {
     // Game tick loop
     this.intervalIds.push(
       setInterval(() => {
-        prepareRoomMessages(this);
+        preparePlayerPackets(this);
         this.timeoutdelaysending = setTimeout(() => {
-          sendRoomMessages(this);
+          sendPlayerPackets(this);
         }, 2);
       }, game_tick_rate)
     );

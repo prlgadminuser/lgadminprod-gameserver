@@ -49,7 +49,7 @@ const gamemodeconfig = {
     placereward: [10, 8, 6, -1, -5],
     seasoncoinsreward: [25, 17, 12, 10, 7],
 
-    custom_map: "skilloween",
+    custom_map: "prism_party",
   },
 
 

@@ -1,6 +1,7 @@
 
+
 function generateHash(message) {
-  return JSON.stringify(message)
+  return JSON.stringify(message);
 }
 
 function arraysEqual(a, b) {
@@ -11,4 +12,4 @@ function deepCopy(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
-module.exports = {generateHash, arraysEqual, deepCopy}
+module.exports = { generateHash, arraysEqual, deepCopy };
