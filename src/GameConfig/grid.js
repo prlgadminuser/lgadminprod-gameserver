@@ -1,11 +1,12 @@
+
+
 class GameGrid {
   constructor(width, height, cellSize = 40) {
     this.cellSize = cellSize;
     this.width = Math.floor(width / cellSize);
     this.height = Math.floor(height / cellSize);
 
-    this.grid = new Map();         // key = "x,y", value = Set of gids (non-wall objects)
-    this.wallGrid = new Map();     // key = "x,y", value = Set of gids (walls only)
+    this.grid = new Map();         // key = "x,y", value = Set of gids
     this.objects = new Map();      // gid → object
     this.objectsCells = new Map(); // gid → Set of cell keys
     this.nextId = 1;
@@ -20,16 +21,16 @@ class GameGrid {
       throw new Error("Object must have numeric 'x' and 'y' properties.");
     }
 
+    // Only one cell per object
     const key = this.getCellKey(obj.x, obj.y);
 
+    // Assign gid if needed
     if (!obj.gid) obj.gid = this.nextId++;
     this.objects.set(obj.gid, obj);
 
-    // Put into walls or normal grid
-    const targetGrid = obj.type === "wall" ? this.wallGrid : this.grid;
-    if (!targetGrid.has(key)) targetGrid.set(key, new Set());
-    targetGrid.get(key).add(obj.gid);
-
+    // Add to cell
+    if (!this.grid.has(key)) this.grid.set(key, new Set());
+    this.grid.get(key).add(obj.gid);
     this.objectsCells.set(obj.gid, new Set([key]));
   }
 
@@ -39,11 +40,10 @@ class GameGrid {
     const cells = this.objectsCells.get(obj.gid);
     if (cells) {
       for (const key of cells) {
-        const targetGrid = obj.type === "wall" ? this.wallGrid : this.grid;
-        const set = targetGrid.get(key);
+        const set = this.grid.get(key);
         if (set) {
           set.delete(obj.gid);
-          if (set.size === 0) targetGrid.delete(key);
+          if (set.size === 0) this.grid.delete(key);
         }
       }
       this.objectsCells.delete(obj.gid);
@@ -58,6 +58,7 @@ class GameGrid {
     const oldKey = [...(this.objectsCells.get(obj.gid) || new Set())][0];
     const newKey = this.getCellKey(newX, newY);
 
+    // Only update grid if object moved to a different cell
     if (oldKey !== newKey) {
       this.removeObject(obj);
       obj.x = newX;
@@ -73,34 +74,32 @@ class GameGrid {
     return !!(obj?.gid && this.objects.has(obj.gid));
   }
 
- getObjectsInArea(xMin, xMax, yMin, yMax, includeOnly) {
-  const result = [];
+  getObjectsInArea(xMin, xMax, yMin, yMax, includeOnly) {
+    const result = []
 
-  const xStart = Math.floor(xMin / this.cellSize);
-  const xEnd = Math.floor(xMax / this.cellSize);
-  const yStart = Math.floor(yMin / this.cellSize);
-  const yEnd = Math.floor(yMax / this.cellSize);
+    // Iterate only cells overlapping the area
+    const xStart = Math.floor(xMin / this.cellSize);
+    const xEnd = Math.floor(xMax / this.cellSize);
+    const yStart = Math.floor(yMin / this.cellSize);
+    const yEnd = Math.floor(yMax / this.cellSize);
 
-  // Pick the correct grid
-  const targetGrid = includeOnly === "wall" ? this.wallGrid : this.grid;
+    for (let x = xStart; x <= xEnd; x++) {
+      for (let y = yStart; y <= yEnd; y++) {
+        const key = `${x},${y}`;
+        const set = this.grid.get(key);
+        if (!set) continue;
 
-  for (let x = xStart; x <= xEnd; x++) {
-    for (let y = yStart; y <= yEnd; y++) {
-      const key = `${x},${y}`;
-      const set = targetGrid.get(key);
-      if (!set) continue;
-
-      for (const gid of set) {
-        const obj = this.objects.get(gid);
-        if (obj && (!includeOnly || includeOnly === obj.type)) {
-          result.push(obj);
+        for (const gid of set) {
+          const obj = this.objects.get(gid);
+          if (obj && (!includeOnly || includeOnly === obj.type)) {
+            result.push(obj);
+          }
         }
       }
     }
-  }
 
-  return result;
-}
+    return result;
+  }
 }
 
 module.exports = { GameGrid };
