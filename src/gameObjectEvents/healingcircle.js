@@ -56,11 +56,12 @@ function updateHealingCircles(deltaTime, room) {
         const xThreshold = 100
         const yThreshold = 100
         
-        const nearbyPlayers = this.room.realtimegrid.getObjectsInArea(
+        const nearbyPlayers = this.room.grid.getObjectsInArea(
         centerX - xThreshold,
         centerX + xThreshold,
         centerY - yThreshold,
         centerY + yThreshold,
+        "player"
         );
 
     nearbyPlayers.forEach((player) => {

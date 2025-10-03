@@ -25,6 +25,10 @@ function cloneGrid(original) {
     clone.grid.set(key, new Set(set));
   }
 
+   for (const [key, set] of original.wallGrid.entries()) {
+    clone.wallGrid.set(key, new Set(set));
+  }
+
   // Clone objectsCells
   for (const [gid, cells] of original.objectsCells.entries()) {
     clone.objectsCells.set(gid, new Set(cells));

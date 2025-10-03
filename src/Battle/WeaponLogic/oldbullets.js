@@ -246,7 +246,9 @@ class BulletManager {
         centerX - xThreshold,
         centerX + xThreshold,
         centerY - yThreshold,
-        centerY + yThreshold
+        centerY + yThreshold,
+        null,
+        true,
       );
 
       let newEffect = 0;

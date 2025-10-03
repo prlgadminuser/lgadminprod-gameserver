@@ -19,7 +19,7 @@ function getPlayerViewObjects(room, player) {
   const yMax = centerY + yThreshold;
 
   // --- 1. Get all objects in the area ---
-  const nearbyObjects = room.grid.getObjectsInArea(xMin, xMax, yMin, yMax);
+  const nearbyObjects = room.grid.getObjectsInArea(xMin, xMax, yMin, yMax, null, false);
 
   const otherPlayers = [];
   const otherPlayersIds = [];
@@ -83,7 +83,7 @@ function getPlayersInRange(room, centerX, centerY) {
   const yMin = centerY - yThreshold;
   const yMax = centerY + yThreshold;
 
- const nearbyPlayers = room.grid.getObjectsInArea(xMin, xMax, yMin, yMax, "player");
+ const nearbyPlayers = room.grid.getObjectsInArea(xMin, xMax, yMin, yMax, "player", false);
 
   return nearbyPlayers;
 }
