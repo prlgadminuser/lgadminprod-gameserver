@@ -258,20 +258,16 @@ class Room {
     this.intervalIds.push(
       setInterval(() => {
           const startTime = performance.now(); // Start timing
-    preparePlayerPackets(this);
-    const endTime = performance.now(); // End timing
 
-    const duration = endTime - startTime;
-    if (duration > 5) {
-      console.log(`preparePlayerPackets took ${duration.toFixed(3)} ms`);
-    }
+        preparePlayerPackets(this);
 
-
+   const elapsed = performance.now() - startTime;
+    const delay = Math.max(0, 5 - elapsed); // adjust for time already spent
 
         
         this.timeoutdelaysending = setTimeout(() => {
           sendPlayerPackets(this);
-        }, 5);
+        }, delay);
       }, game_tick_rate)
     );
 
@@ -292,5 +288,6 @@ class Room {
 
 
 module.exports = { Room };
+
 
 
