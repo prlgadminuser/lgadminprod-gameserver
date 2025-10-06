@@ -15,8 +15,7 @@ const { playerhitbox } = require("@main/modules");
   const hitboxYMax = playerhitbox.yMax + added_hitbox;
 
 function handleMovement(player, room) {
-
-    const finalDirection = (player.direction - 90) * Math.PI / 180
+    const finalDirection = (player.direction - 90) * Math.PI / 180;
     const cos = Math.cos(finalDirection);
     const sin = Math.sin(finalDirection);
 
@@ -32,29 +31,41 @@ function handleMovement(player, room) {
         "wall",
     );
 
-    // Calculate new position with collision check
-    let newX = isCollisionWithCachedWalls(nearbyWalls, player.x + deltaX, player.y)
-        ? player.x
-        : player.x + deltaX;
+    // --- Step 1: Attempt full movement ---
+    let newX = player.x + deltaX;
+    let newY = player.y + deltaY;
 
-    let newY = isCollisionWithCachedWalls(nearbyWalls, player.x, player.y + deltaY)
-        ? player.y
-        : player.y + deltaY;
+    // --- Step 2: Check X collision separately ---
+    if (isCollisionWithCachedWalls(nearbyWalls, newX, player.y)) {
+        newX = player.x; // block X
+    }
 
-    // Clamp within map bounds
+    // --- Step 3: Check Y collision separately ---
+    if (isCollisionWithCachedWalls(nearbyWalls, player.x, newY)) {
+        newY = player.y; // block Y
+    }
+
+    // --- Step 4: Small nudge / buffer to avoid sticking in corners ---
+    const buffer = 0.1;
+    if (isCollisionWithCachedWalls(nearbyWalls, newX + Math.sign(deltaX)*buffer, newY)) {
+        newX = player.x;
+    }
+    if (isCollisionWithCachedWalls(nearbyWalls, newX, newY + Math.sign(deltaY)*buffer)) {
+        newY = player.y;
+    }
+
+    // --- Step 5: Clamp within map bounds ---
     const mapWidth = room.mapWidth;
     const mapHeight = room.mapHeight;
     newX = Math.max(-mapWidth, Math.min(mapWidth, newX));
     newY = Math.max(-mapHeight, Math.min(mapHeight, newY));
 
     // Apply updated position
-   player.x = newX;
-   player.y = newY;
-
-  // player.x = newX;
-  // player.y = newY;
-   room.grid.updateObject(player, player.x, player.y);
+    player.x = newX;
+    player.y = newY;
+    room.grid.updateObject(player, player.x, player.y);
 }
+
 
 
 
@@ -162,4 +173,5 @@ module.exports = {
   handlePlayerCollision,
   handleDummyCollision,
   playerhitbox,
+
 }
