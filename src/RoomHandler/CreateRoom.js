@@ -262,7 +262,7 @@ class Room {
     const endTime = performance.now(); // End timing
 
     const duration = endTime - startTime;
-    if (duration > 2) {
+    if (duration > 5) {
       console.log(`preparePlayerPackets took ${duration.toFixed(3)} ms`);
     }
 
@@ -271,7 +271,7 @@ class Room {
         
         this.timeoutdelaysending = setTimeout(() => {
           sendPlayerPackets(this);
-        }, 2);
+        }, 5);
       }, game_tick_rate)
     );
 
@@ -292,4 +292,5 @@ class Room {
 
 
 module.exports = { Room };
+
 
