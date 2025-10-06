@@ -257,17 +257,12 @@ class Room {
     // Game tick loop
     this.intervalIds.push(
       setInterval(() => {
-          const startTime = performance.now(); // Start timing
 
         preparePlayerPackets(this);
-
-   const elapsed = performance.now() - startTime;
-    const delay = Math.max(0, 5 - elapsed); // adjust for time already spent
-
         
         this.timeoutdelaysending = setTimeout(() => {
           sendPlayerPackets(this);
-        }, delay);
+        }, 5);
       }, game_tick_rate)
     );
 
@@ -288,6 +283,7 @@ class Room {
 
 
 module.exports = { Room };
+
 
 
 
