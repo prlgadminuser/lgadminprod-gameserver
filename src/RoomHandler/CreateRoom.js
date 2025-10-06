@@ -262,30 +262,38 @@ class Room {
 
     // Game tick loop
   startGameLoop(game_tick_rate) {
-  let nextTick = performance.now();
-  const tickRateMs = game_tick_rate;
+  const idealDt = game_tick_rate; // e.g., 25 ms for 40 Hz
+  this._tickTimes = [];
 
-  const loop = () => {
-    const now = performance.now();
-    const drift = now - nextTick;
+  const tick = () => {
+    const now = Date.now();
 
     // Run game logic
+    const tStart = now;
     preparePlayerPackets(this);
-    this.timeoutdelaysending = setTimeout(() => {
-      sendPlayerPackets(this);
-    }, 5);
 
-    // Schedule next frame compensating for drift
-    nextTick += tickRateMs;
+    this.timeoutdelaysending = setTimeout(() => sendPlayerPackets(this), 5);
 
-    const delay = Math.max(0, tickRateMs - drift);
+    // Track tick duration
+    const tickTime = Date.now() - tStart;
+    this._tickTimes.push(tickTime);
 
-     this.driftdelay1 = setTimeout(loop, delay);
+    if (this._tickTimes.length >= 200) {
+      const mspt = this._tickTimes.reduce((a,b) => a+b,0)/this._tickTimes.length;
+      const variance = this._tickTimes.reduce((a,b) => a + Math.pow(b - mspt,2),0) / this._tickTimes.length;
+      const stddev = Math.sqrt(variance);
+      console.log(`ms/tick: ${mspt.toFixed(2)} ± ${stddev.toFixed(2)} | Load: ${((mspt / idealDt)*100).toFixed(1)}%`);
+      this._tickTimes.length = 0;
+    }
+
+    // Schedule next tick with drift compensation
+    const delay = Math.max(0, idealDt - (Date.now() - now));
+    this.driftdelay1 = setTimeout(tick, delay);
   };
 
-  nextTick = performance.now() + tickRateMs;
-  this.driftdelay2 = setTimeout(loop, tickRateMs);
+  this.driftdelay2 = setTimeout(tick, idealDt);
 }
+
     // Cleanup cycle
    /* this.timeoutIds.push(
       setTimeout(() => {
@@ -303,3 +311,4 @@ class Room {
 
 
 module.exports = { Room };
+
