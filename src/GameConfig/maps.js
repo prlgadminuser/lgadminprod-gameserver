@@ -98,6 +98,7 @@ let mapsconfig = {
       ...wall, 
       id: `wall_${index}`, 
       type: "wall",
+      hitboxtype: "circle",
       width: 40,
       height: 40,
     };

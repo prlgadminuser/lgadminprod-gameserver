@@ -197,7 +197,7 @@ function preparePlayerPackets(room) {
     return;
   }
 
-  const aliveCount = players.reduce((c, p) => c + !p.eliminated, 0);
+  const aliveCount = players.reduce((c, p) => c + !p.eliminated, 0); // TODO
   room.bulletManager.update();
   HandleAfflictions(room);
   playerchunkrenderer(room);

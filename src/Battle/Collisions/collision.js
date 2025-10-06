@@ -20,17 +20,7 @@ function isCollisionWithCachedWalls(walls, x, y) {
 
     switch (wallhitboxtype) {
 
-      case "circle": {
-        const radius = Math.min(halfWidth, halfHeight);
-        if (
-          rectCircleIntersection(xMin, xMax, yMin, yMax, wall.x, wall.y, radius)
-        ) {
-          return true;
-        }
-        break;
-      }
-
-
+      
       case "rect": {
         const wallLeft = wall.x - halfWidth;
         const wallRight = wall.x + halfWidth;
@@ -48,6 +38,16 @@ function isCollisionWithCachedWalls(walls, x, y) {
             wallTop,
             wallBottom
           )
+        ) {
+          return true;
+        }
+        break;
+      }
+
+      case "circle": {
+        const radius = Math.min(halfWidth, halfHeight);
+        if (
+          rectCircleIntersection(xMin, xMax, yMin, yMax, wall.x, wall.y, radius)
         ) {
           return true;
         }

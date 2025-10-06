@@ -1,3 +1,6 @@
+
+const allow_cell_coverage = true
+
 class GameGrid {
   constructor(width, height, cellSize = 40) {
     this.cellSize = cellSize;
@@ -15,6 +18,36 @@ class GameGrid {
     return `${Math.floor(x / this.cellSize)},${Math.floor(y / this.cellSize)}`;
   }
 
+   getCellsForObject(obj) {
+  const width = obj.width || this.cellSize;
+  const height = obj.height || this.cellSize;
+
+  // Bounds
+  const xMin = obj.x - width / 2;
+  const xMax = obj.x + width / 2;
+  const yMin = obj.y - height / 2;
+  const yMax = obj.y + height / 2;
+
+  // Convert to cell indices
+  const xStart = Math.floor(xMin / this.cellSize);
+  const xEnd = Math.ceil(xMax / this.cellSize) - 1;
+  const yStart = Math.floor(yMin / this.cellSize);
+  const yEnd = Math.ceil(yMax / this.cellSize) - 1;
+
+  const cells = new Set();
+  for (let x = xStart; x <= xEnd; x++) {
+    for (let y = yStart; y <= yEnd; y++) {
+      cells.add(`${x},${y}`);
+    }
+  }
+
+  return cells;
+}
+
+
+
+
+
   addObject(obj) {
     if (typeof obj.x !== "number" || typeof obj.y !== "number") {
       throw new Error("Object must have numeric 'x' and 'y' properties.");
@@ -28,8 +61,12 @@ class GameGrid {
     // Put into walls or normal grid
     const targetGrid = obj.type === "wall" ? this.wallGrid : this.grid;
 
+   // const cells = this.getCellsForObject(obj);
+
+   // for (const key of cells) {
     if (!targetGrid.has(key)) targetGrid.set(key, new Set());
     targetGrid.get(key).add(obj.gid);
+ // }
 
     this.objectsCells.set(obj.gid, new Set([key]));
   }

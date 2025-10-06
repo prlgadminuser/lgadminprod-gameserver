@@ -257,12 +257,10 @@ class Room {
     // Game tick loop
     this.intervalIds.push(
       setInterval(() => {
-
         preparePlayerPackets(this);
-        
         this.timeoutdelaysending = setTimeout(() => {
           sendPlayerPackets(this);
-        }, 5);
+        }, 2);
       }, game_tick_rate)
     );
 
@@ -283,7 +281,3 @@ class Room {
 
 
 module.exports = { Room };
-
-
-
-
