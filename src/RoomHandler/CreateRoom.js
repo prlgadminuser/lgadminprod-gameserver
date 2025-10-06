@@ -177,6 +177,8 @@ class Room {
     clearInterval(this.countdownInterval);
     clearTimeout(this.matchmaketimeout);
     clearTimeout(this.maxopentimeout);
+    clearTimeout(this.driftdelay1)
+    clearTimeout(this.driftdelay2)
 
     this.intervalIds = [];
     this.timeoutIds = [];
@@ -254,16 +256,36 @@ class Room {
      this.close();
     }, matchmaking_timeout);
 
-    // Game tick loop
-    this.intervalIds.push(
-      setInterval(() => {
-        preparePlayerPackets(this);
-        this.timeoutdelaysending = setTimeout(() => {
-          sendPlayerPackets(this);
-        }, 2);
-      }, game_tick_rate)
-    );
+    this.startGameLoop(game_tick_rate);
+  }
 
+
+    // Game tick loop
+  startGameLoop(game_tick_rate) {
+  let nextTick = performance.now();
+  const tickRateMs = game_tick_rate;
+
+  const loop = () => {
+    const now = performance.now();
+    const drift = now - nextTick;
+
+    // Run game logic
+    preparePlayerPackets(this);
+    this.timeoutdelaysending = setTimeout(() => {
+      sendPlayerPackets(this);
+    }, 5);
+
+    // Schedule next frame compensating for drift
+    nextTick += tickRateMs;
+
+    const delay = Math.max(0, tickRateMs - drift);
+
+     this.driftdelay1 = setTimeout(loop, delay);
+  };
+
+  nextTick = performance.now() + tickRateMs;
+  this.driftdelay2 = setTimeout(loop, tickRateMs);
+}
     // Cleanup cycle
    /* this.timeoutIds.push(
       setTimeout(() => {
@@ -276,7 +298,7 @@ class Room {
     );
 
     */
-  }
+
 }
 
 

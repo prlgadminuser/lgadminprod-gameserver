@@ -15,8 +15,8 @@ const { playerhitbox } = require("@main/modules");
   const hitboxYMax = playerhitbox.yMax + added_hitbox;
 
 function handleMovement(player, room) {
-    const DEG2RAD = Math.PI / 180;
-    const finalDirection = (player.direction - 90) * DEG2RAD;
+
+    const finalDirection = (player.direction - 90) * Math.PI / 180
     const cos = Math.cos(finalDirection);
     const sin = Math.sin(finalDirection);
 
@@ -48,8 +48,8 @@ function handleMovement(player, room) {
     newY = Math.max(-mapHeight, Math.min(mapHeight, newY));
 
     // Apply updated position
-   player.x = Math.round(newX * 100) / 100;
-   player.y = Math.round(newY * 100) / 100;
+   player.x = newX;
+   player.y = newY;
 
   // player.x = newX;
   // player.y = newY;
