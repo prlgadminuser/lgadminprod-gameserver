@@ -34,7 +34,7 @@ function handleMovement(player, room) {
   const dir = player.direction - 90;
   const vec = DIRECTION_VECTORS[dir];
 
-   const x = player.x 
+  if (!vec) return
 
   const speed = player.speed;
 
