@@ -1,14 +1,13 @@
-module.exports = { 
+module.exports = {
+  toRectangle(hitbox) {
+    const w = hitbox.width || 0;
+    const h = hitbox.height || 0;
 
-toRectangle(hitbox) {
-  const w = hitbox.width || 0;
-  const h = hitbox.height || 0;
-
-  return {
-    min: { x: hitbox.x,     y: hitbox.y },
-    max: { x: hitbox.x + w, y: hitbox.y + h }
-  };
-},
+    return {
+      min: { x: hitbox.x, y: hitbox.y },
+      max: { x: hitbox.x + w, y: hitbox.y + h },
+    };
+  },
 
   getDistance(x1, y1, x2, y2) {
     return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
@@ -18,12 +17,7 @@ toRectangle(hitbox) {
 
   // Axis-Aligned Bounding Box (AABB) vs AABB
   rectRectIntersection(axMin, axMax, ayMin, ayMax, bxMin, bxMax, byMin, byMax) {
-    return (
-      axMax > bxMin &&
-      axMin < bxMax &&
-      ayMax > byMin &&
-      ayMin < byMax
-    );
+    return axMax > bxMin && axMin < bxMax && ayMax > byMin && ayMin < byMax;
   },
 
   // Rectangle vs Circle
@@ -43,6 +37,5 @@ toRectangle(hitbox) {
     const distSq = dx * dx + dy * dy;
     const rSum = ar + br;
     return distSq < rSum * rSum;
-  }
-
+  },
 };

@@ -34,7 +34,7 @@ const gamemodeconfig = {
     seasoncoins_rewardRange: [30, 5],
 
     playerhealth: 187,
-    playerspeed: 2.5,
+    playerspeed: 2,
 
     modifiers: new Set(["countdown"]),
 
@@ -49,7 +49,7 @@ const gamemodeconfig = {
     placereward: [10, 8, 6, -1, -5],
     seasoncoinsreward: [25, 17, 12, 10, 7],
 
-    custom_map: "prism_party",
+    custom_map: "skilloween",
   },
 
 
