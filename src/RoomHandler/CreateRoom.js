@@ -259,7 +259,7 @@ class Room {
     this.startGameLoop(game_tick_rate);
   }
 
-   startGameLoop3(game_tick_rate) {
+   startGameLoop2(game_tick_rate) {
   const idealDt = game_tick_rate; // e.g., 25 ms for 40 Hz
   this._tickTimes = [];
 
@@ -308,6 +308,7 @@ class Room {
       sendPlayerPackets(this);
     }, 5);
 
+
     // Schedule next frame compensating for drift
     nextTick += tickRateMs;
 
@@ -336,5 +337,3 @@ class Room {
 
 
 module.exports = { Room };
-
-

@@ -1,5 +1,6 @@
 "use strict";
 
+
 const { TeamPlayersActive } = require("@main/src/teamhandler/aliveteam");
 const { isCollisionWithCachedWalls } = require("../Collisions/collision");
 const { handleElimination } = require("./eliminated");
@@ -7,6 +8,7 @@ const { respawnplayer } = require("./respawn");
 const { addEntryToKillfeed } = require("../GameLogic/killfeed");
 const { spawnAnimation } = require("@main/src/gameObjectEvents/animations");
 const { playerhitbox } = require("@main/modules");
+const { encodePosition } = require("../utils/game");
 
   const added_hitbox = 5;
   const hitboxXMin = playerhitbox.xMin + added_hitbox;
@@ -14,50 +16,59 @@ const { playerhitbox } = require("@main/modules");
   const hitboxYMin = playerhitbox.yMin + added_hitbox;
   const hitboxYMax = playerhitbox.yMax + added_hitbox;
 
+  const SQRT1_2 = Math.SQRT1_2; // precalculate movement vectors
+
+  const DIRECTION_VECTORS = {
+  [-90]: { x:  0,       y: -1 },           // up
+  [0]:    { x:  1,       y:  0 },           // right
+  [-270]:   { x:  0,       y:  1 },           // down
+  [180]:  { x: -1,       y:  0 },           // left
+  [-180]: { x: -1,       y:  0 },           // same as 180
+  [-45]:   { x:  SQRT1_2, y: -SQRT1_2 },     // up-right
+  [-135]:  { x: -SQRT1_2, y: -SQRT1_2 },     // up-left
+  [45]:  { x:  SQRT1_2, y:  SQRT1_2 },     // down-right
+  [-225]: { x: -SQRT1_2, y:  SQRT1_2 }      // down-left
+};
+
 function handleMovement(player, room) {
+  const dir = player.direction - 90;
+  const vec = DIRECTION_VECTORS[dir];
 
-    const finalDirection = (player.direction - 90) * Math.PI / 180
-    const cos = Math.cos(finalDirection);
-    const sin = Math.sin(finalDirection);
+   const x = player.x 
 
-    const speed = player.speed;
-    const deltaX = speed * cos;
-    const deltaY = speed * sin;
+  const speed = player.speed;
 
-    const nearbyWalls = room.grid.getObjectsInArea(
-        player.x - hitboxXMin,
-        player.x + hitboxXMax,
-        player.y - hitboxYMin,
-        player.y + hitboxYMax,
-        "wall",
-    );
+  // Use exact precalculated direction vector
+  const deltaX = speed * vec.x;
+  const deltaY = speed * vec.y;
 
-    let newX = player.x + deltaX;
-    let newY = player.y + deltaY;
+  const nearbyWalls = room.grid.getObjectsInArea(
+    player.x - hitboxXMin,
+    player.x + hitboxXMax,
+    player.y - hitboxYMin,
+    player.y + hitboxYMax,
+    "wall",
+  );
 
-  
-     if (isCollisionWithCachedWalls(nearbyWalls, newX, player.y)) {
-        newX = player.x; // block X
-    }
+  let newX = player.x + deltaX;
+  let newY = player.y + deltaY;
 
-    if (isCollisionWithCachedWalls(nearbyWalls, player.x, newY)) {
-        newY = player.y; // block Y
-    }
-    
-    // Clamp within map bounds
-    const mapWidth = room.mapWidth;
-    const mapHeight = room.mapHeight;
-    newX = Math.max(-mapWidth, Math.min(mapWidth, newX));
-    newY = Math.max(-mapHeight, Math.min(mapHeight, newY));
+  if (isCollisionWithCachedWalls(nearbyWalls, newX, player.y)) newX = player.x;
+  if (isCollisionWithCachedWalls(nearbyWalls, player.x, newY)) newY = player.y;
 
-    // Apply updated position
-   player.x = newX
-  player.y = newY
+  const mapWidth = room.mapWidth;
+  const mapHeight = room.mapHeight;
+  newX = Math.max(-mapWidth, Math.min(mapWidth, newX));
+  newY = Math.max(-mapHeight, Math.min(mapHeight, newY));
+  // Clean rounding — no floating drift
+  player.x = Number(newX.toFixed(1));
+  player.y = Number(newY.toFixed(1));
 
-  // player.x = newX;
-  // player.y = newY;
-   room.grid.updateObject(player, player.x, player.y);
+ // console.log(encodePosition(x) - encodePosition(player.x))
+
+  room.grid.updateObject(player, player.x, player.y);
 }
+
 
 
 
@@ -165,5 +176,4 @@ module.exports = {
   handlePlayerCollision,
   handleDummyCollision,
   playerhitbox,
-
 }
