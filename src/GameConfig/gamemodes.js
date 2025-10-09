@@ -77,7 +77,7 @@ const gamemodeconfig = {
     skillpoints_rewardRange: [10, -5], 
     seasoncoins_rewardRange: [30, 5],
 
-    custom_map: "prism_party",
+    custom_map: "skilloween",
   },
 
 
@@ -191,4 +191,5 @@ module.exports = {
   gamemodeconfig: new Map(Object.entries(gamemodeconfig)),
   allowed_gamemodes,
 };
+
 
