@@ -11,7 +11,7 @@ function respawnplayer(room, player) {
   player.state = 2
   player.moving = false
   player.last_hitter = false
-  room.realtimegrid.removeObject(player);
+  room.grid.removeObject(player);
 
   player.respawns--
   player.health = player.starthealth
@@ -34,3 +34,4 @@ function respawnplayer(room, player) {
  module.exports = {
   respawnplayer,
 };
+
