@@ -38,10 +38,6 @@ let mapsconfig = {
       height: 1000,
       spawns: [
         { x: 0, y: 0 },
-        { x: 0, y: -700 },
-        { x: 300, y: 300 },
-        { x: 400, y: 400 },
-        { x: 400, y: 450 },
       ]  
     },
     
@@ -112,3 +108,4 @@ let mapsconfig = {
      random_mapkeys: Array.from(Object.keys(mapsconfig)).slice(0, -2)
 
 }
+
