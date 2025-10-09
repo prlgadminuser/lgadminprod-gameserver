@@ -34,4 +34,3 @@ function respawnplayer(room, player) {
  module.exports = {
   respawnplayer,
 };
-

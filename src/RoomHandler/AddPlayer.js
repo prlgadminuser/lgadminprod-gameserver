@@ -4,7 +4,6 @@ const { Room } = require("./CreateRoom");
 const { startMatch } = require("./StartGame");
 const { RemovePlayerFromRoom } = require("./RemovePlayer");
 const { playerLookup } = require("./setup");
-const { TopologyDescriptionChangedEvent } = require("mongodb");
 
 
 function generateUUID() {
@@ -15,8 +14,39 @@ function generateUUID() {
   });
 }
 
+
+// --- RoomPool.js ---
+class RoomPool {
+  constructor(RoomClass) {
+    this.pool = [];
+    this.RoomClass = RoomClass;
+  }
+
+  acquire(roomId, gamemode, settings, matchmakingValue) {
+    let room;
+    if (this.pool.length > 0) {
+      room = this.pool.pop();
+      room.reset(roomId, gamemode, settings, matchmakingValue);
+    } else {
+      room = new this.RoomClass(roomId, gamemode, settings, matchmakingValue);
+    }
+    return room;
+  }
+
+  release(room) {
+    // Clean references to players
+    room.resetToEmpty();
+    this.pool.push(room);
+  }
+}
+
+
 class Player {
   constructor(ws, playerVerified, room) {
+    this.reset(ws, playerVerified, room);
+  }
+
+  reset(ws, playerVerified, room) {
     const {
       playerId,
       nickname,
@@ -186,8 +216,10 @@ async function AddPlayerToRoom(ws, gamemode, playerVerified) {
       roomId = generateUUID();
       room = new Room(roomId, gamemode, gamemodeSettings, roomjoiningvalue);
     }
-
+      
     const newPlayer = new Player(ws, playerVerified, room);
+    //const newPlayer = playerPool.acquire(ws, playerVerified, room);
+   // playerPool.release(player);
 
     if (room && !room.canStartGame()) {
       room.addPlayer(newPlayer.playerId, newPlayer);
@@ -216,4 +248,4 @@ async function AddPlayerToRoom(ws, gamemode, playerVerified) {
 
 
 
-module.exports = { AddPlayerToRoom }
+module.exports = { AddPlayerToRoom, Player }
