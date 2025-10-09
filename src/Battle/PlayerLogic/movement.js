@@ -61,8 +61,8 @@ function handleMovement(player, room) {
   newX = Math.max(-mapWidth, Math.min(mapWidth, newX));
   newY = Math.max(-mapHeight, Math.min(mapHeight, newY));
   // Clean rounding — no floating drift
-  player.x = newX
-  player.y = newY
+    player.x = Number(newX.toFixed(1));
+  player.y = Number(newY.toFixed(1));
 
  // console.log(encodePosition(x) - encodePosition(player.x))
 
@@ -177,4 +177,5 @@ module.exports = {
   handleDummyCollision,
   playerhitbox,
 }
+
 
