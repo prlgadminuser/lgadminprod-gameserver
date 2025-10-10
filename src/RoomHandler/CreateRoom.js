@@ -259,7 +259,7 @@ class Room {
     this.startGameLoop(game_tick_rate);
   }
 
-   startGameLoop2(game_tick_rate) {
+   startGameLoop(game_tick_rate) {
   const idealDt = game_tick_rate; // e.g., 25 ms for 40 Hz
   this._tickTimes = [];
 
@@ -294,7 +294,7 @@ class Room {
 
 
     // Game tick loop
-  startGameLoop(game_tick_rate) {
+  startGameLoop2(game_tick_rate) {
   let nextTick = performance.now();
   const tickRateMs = game_tick_rate;
 
@@ -337,3 +337,4 @@ class Room {
 
 
 module.exports = { Room };
+
