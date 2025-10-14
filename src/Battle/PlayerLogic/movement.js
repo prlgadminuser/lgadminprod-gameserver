@@ -61,8 +61,8 @@ function handleMovement(player, room) {
   newX = Math.max(-mapWidth, Math.min(mapWidth, newX));
   newY = Math.max(-mapHeight, Math.min(mapHeight, newY));
   // Clean rounding — no floating drift
-  player.x = Math.round(newX * 10) / 10
-  player.y = Math.round(newY * 10) / 10
+  player.x = newX
+  player.y = newY
   //console.log(encodePosition(x) - encodePosition(player.x))
 
 
@@ -178,5 +178,6 @@ module.exports = {
   playerhitbox,
 
 }
+
 
 
