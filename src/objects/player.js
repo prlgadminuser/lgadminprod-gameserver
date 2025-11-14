@@ -2,7 +2,7 @@
 const { gadgetconfig } = require("../config/gadgets");
 const { playerhitbox } = require("../config/player");
 const { PlayerRateLimiter } = require("../config/server");
-const { UpdatePlayerPlace } = require("../Database/ChangePlayerStats");
+const { UpdatePlayerPlace } = require("../database/ChangePlayerStats");
 const { spawnAnimation } = require("../modifiers/animations");
 const { addEntryToKillfeed } = require("../modifiers/killfeed");
 const { startSpectatingLogic } = require("../PlayerLogic/spectating");
