@@ -97,7 +97,7 @@ class Bullet {
     damageConfig,
     gunId,
     modifiers,
-    ownerId,
+    owner,
   }) {
     this.id = id;
     this.position = position; // Vec2
@@ -111,7 +111,7 @@ class Bullet {
     this.damageConfig = damageConfig;
     this.gunId = Number(gunId);
     this.modifiers = modifiers;
-    this.ownerId = ownerId;
+    this.owner = owner;
     this.startPosition = position;
     this.spawnTime = Date.now();
     this.alive = true;
@@ -281,8 +281,8 @@ class BulletManager {
         if (
           obj.type === "player" &&
           obj.alive &&
-          obj.playerId !== bullet.ownerId &&
-          !this.isAlly(bullet.ownerId, obj)
+          obj !== bullet.owner &&
+          !this.isAlly(bullet.owner, obj)
         ) {
           if (
             isCollisionWithPlayer(
@@ -302,19 +302,14 @@ class BulletManager {
               bullet.damage,
               bullet.damageConfig
             );
-            handlePlayerCollision(
-              this.room,
-              this.room.players.get(bullet.ownerId),
-              obj,
-              finalDamage,
-              bullet.gunId
-            );
+
+            bullet.owner.HandleSelfBulletsOtherPlayerCollision(obj, finalDamage, bullet.gunId)
 
            if (bullet.afflictionConfig) {
             const afflictionConfig = bullet.afflictionConfig
             this.room.activeAfflictions.push({
-              shootingPlayer: this.room.players.get(bullet.ownerId),
-              target: otherPlayer,
+              shootingPlayer: bullet.owner,
+              target: obj,
               target_type: "player",
               damage: afflictionConfig.damage,
               speed: afflictionConfig.waitTime, // interval between hits in ms
@@ -351,7 +346,7 @@ class BulletManager {
             );
             handleDummyCollision(
               this.room,
-              this.room.players.get(bullet.ownerId),
+              bullet.owner,
               obj.id,
               finalDamage
             );
@@ -383,8 +378,7 @@ class BulletManager {
     this.bullets.delete(bulletId);
   }
 
-  isAlly(ownerId, otherPlayer) {
-    const owner = this.room.players.get(ownerId);
+  isAlly(owner, otherPlayer) {
     const other = otherPlayer;
 
     // If either player doesn't exist, they can't be allies.
@@ -412,7 +406,7 @@ class BulletManager {
     for (let i = this.scheduledBullets.length - 1; i >= 0; i--) {
       const scheduled = this.scheduledBullets[i];
       if (now >= scheduled.spawnTime) {
-        const player = this.room.players.get(scheduled.playerId);
+        const player = scheduled.owner;
         if (player) {
           this.spawnBullet(player, scheduled.bulletData);
         }
@@ -425,7 +419,7 @@ class BulletManager {
     const spawnTime = Date.now() + delayMs;
     this.scheduledBullets.push({
       spawnTime,
-      playerId: player.playerId,
+      owner: player,
       bulletData,
     });
   }
