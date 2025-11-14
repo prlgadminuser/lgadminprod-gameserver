@@ -194,7 +194,7 @@ class BulletManager {
       damageConfig: bulletData.damageconfig || [],
       gunId: bulletData.gunid,
       modifiers: bulletData.modifiers,
-      ownerId: player.playerId,
+      owner: player,
     });
 
     bullet.x = initialPosition.x;
