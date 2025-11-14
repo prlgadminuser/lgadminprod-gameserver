@@ -53,8 +53,7 @@ async function UpdatePlayerPlace(player, place2, room) {
               "stats.sp": { $max: [0, { $add: ["$stats.sp", skillpoints] }] },
             },
           },
-        ],
-        { hint: "account.username_1" } // <-- Using index hint
+        ], 
       );
     }
 
@@ -109,7 +108,6 @@ async function UpdatePlayerKillsAndDamage(player) {
       const incrementResult = await DBuserCollection.updateOne(
         { "account.username": username },
         updateObject,
-        { hint: "account.username_1" } // <-- Using index hint
       );
 
       if (
@@ -175,7 +173,6 @@ async function UpdatePlayerWins(player) {
     await DBuserCollection.updateOne(
       { "account.username": username },
       { $inc: { "stats.wins": wins } },
-      { hint: "account.username_1" }
     );
   } catch (error) {
     console.error("Error updating damage in the database:", error);
