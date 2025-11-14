@@ -1,14 +1,16 @@
 // server.js
 "use strict";
+
+require("dotenv").config();
 require("module-alias/register");
-//require("dotenv").config();
+
 
 const http = require("http");
 const WebSocket = require("ws");
-const { startHeartbeat } = require("@src/Database/redisClient");
-const { connectToMongoDB } = require("@src/Database/mongoClient");
-const { setupHttpServer } = require("@main/httpHandler");
-const { setupWebSocketServer } = require("@main/websocketHandler");
+const { setupHttpServer } = require("./httpHandler");
+const { setupWebSocketServer } = require("./websocketHandler");
+const { connectToMongoDB } = require("./src/database/mongoClient");
+const { startHeartbeat } = require("./src/database/redisClient");
 
 async function startServer() {
   try {
@@ -27,9 +29,9 @@ async function startServer() {
 
     setupWebSocketServer(wss, server);
 
-    const PORT = process.env.PORT || 8070;
+    const PORT = process.env.PORT || 8080;
     server.listen(PORT, () => {
-      console.log(`Server is listening on port ${PORT}`);
+      console.log(`Skilldown GameServer is listening on port ${PORT}`);
     });
   } catch (error) {
     console.error("Failed to start server:", error);

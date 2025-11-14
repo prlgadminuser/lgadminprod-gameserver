@@ -1,6 +1,5 @@
 // src/config.js
-const { v4: uuidv4 } = require("uuid");
-const { allowed_gamemodes } = require("./src/GameConfig/gamemodes");
+const { allowed_gamemodes } = require("./src/config/gamemodes");
 
 const HEARTBEAT_INTERVAL_MS = 1000000;
 

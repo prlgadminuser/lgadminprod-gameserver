@@ -1,13 +1,11 @@
 // src/handlers/webSocketHandler.js
 const { RateLimiterMemory } = require("rate-limiter-flexible");
 const { ALLOWED_ORIGINS, GAME_MODES, RATE_LIMITS, SERVER_INSTANCE_ID } = require("@main/config");
-const { verifyPlayer } = require("@src/Database/verifyPlayer");
-const { checkForMaintenance } = require("@src/Database/ChangePlayerStats");
-const { addSession, removeSession, checkExistingSession, redisClient } = require("@src/Database/redisClient");
-const { AddPlayerToRoom } = require("./src/RoomHandler/AddPlayer");
-const { handleMessage } = require("./src/Battle/NetworkLogic/HandleMessage");
-const { playerLookup } = require("./src/RoomHandler/setup");
-const { RemovePlayerFromRoom } = require("./src/RoomHandler/RemovePlayer");
+const { verifyPlayer } = require("./src/database/verifyPlayer");
+const { checkForMaintenance } = require("./src/database/ChangePlayerStats");
+const { addSession, removeSession, checkExistingSession, redisClient } = require("./src/database/redisClient");
+const { handleMessage } = require("./src/packets/HandleMessage");
+const { playerLookup, GetRoom } = require("./src/room/room");
 
 const connectionRateLimiter = new RateLimiterMemory(RATE_LIMITS.CONNECTION);
 
@@ -19,6 +17,7 @@ function isValidOrigin(origin) {
 const DisableConnectRateLimit = true
 
 const devmode = false
+
 
 
 async function handleUpgrade(request, socket, head, wss) {
@@ -49,6 +48,8 @@ function setupWebSocketServer(wss, server) {
         ws.close(4008, "maintenance");
         return;
       }
+
+    
           
       const [_, token, gamemode] = req.url.split("/");
       const origin = req.headers["sec-websocket-origin"] || req.headers.origin;
@@ -58,7 +59,10 @@ function setupWebSocketServer(wss, server) {
         ws.send("gamemode_not_allowed")
         ws.close(4004, "Unauthorized");
         return;
+        
       }
+
+      
 
       const playerVerified = await verifyPlayer(token);
       if (!playerVerified) {
@@ -96,18 +100,23 @@ if (playerLookup.has(username)) {
     }
   }
 
+
      if (!devmode) await addSession(username);
 
      
       
-      const joinResult = await AddPlayerToRoom(ws, gamemode, playerVerified);
+      const joinResult = await GetRoom(ws, gamemode, playerVerified);
       if (!joinResult) {
         await removeSession(username);
         ws.close(4001, "Invalid token or room full");
+        console.log("s")
+      
         return;
       }
 
+
       
+   
 
      global.playerCount++
 
@@ -128,7 +137,7 @@ if (playerLookup.has(username)) {
       ws.on("message", (message) => handleMessage(room, player, message));
       ws.on("close", async () => {
          playerLookup.delete(username);
-        if (player) RemovePlayerFromRoom(room, player);
+        if (player) player.room.removePlayer(player);
        if (!devmode) await removeSession(username);
         global.playerCount--
       });
