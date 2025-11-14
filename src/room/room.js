@@ -27,7 +27,7 @@ const { gamemodeconfig } = require("../config/gamemodes");
 
 function getAvailableRoom(gamemode, spLevel) {
   const key = `${gamemode}_${spLevel}`;
-  console.log(roomIndex)
+  //console.log(roomIndex)
   const roomList = roomIndex.get(key);
   if (!roomList) return null;
 
@@ -45,10 +45,6 @@ async function GetRoom(ws, gamemode, playerVerified) {
     const min_length = 4;
     const nickname = playerVerified.nickname;
     const gadgetselected = playerVerified.gadget || 1;
-
-        console.log("done")
-
-        console.log(gadgetselected)
 
 
     if (
@@ -711,7 +707,7 @@ async function startMatch(room, roomId) {
 
     // Render players and send pre-start message
     for (const player of room.players.values()) {
-     console.log(player.updateView())
+     player.updateView()
     }
 
    // playerchunkrenderer(room);
