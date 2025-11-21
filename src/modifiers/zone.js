@@ -5,7 +5,7 @@ const { addEntryToKillfeed } = require("./killfeed");
 const { playerhitbox } = require("../config/player");
 
 
-const RandomZone = false
+const RandomZone = true
 
 const PLAYER_WIDTH = playerhitbox.zonewidth
 const PLAYER_HEIGHT = playerhitbox.zoneheight
@@ -185,4 +185,5 @@ function UseZone(room) {
 
 module.exports = {
   UseZone,
+
 }
