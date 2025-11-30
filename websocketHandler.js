@@ -74,13 +74,10 @@ function setupWebSocketServer(wss, server) {
 
 
 
-     if (!devmode) await addSession(username);
-
      
       
       const joinResult = await GetRoom(ws, gamemode, playerVerified);
       if (!joinResult) {
-        await removeSession(username);
         ws.close(4001, "Invalid token or room full");
         console.log("s")
       
@@ -135,3 +132,4 @@ server.on("upgrade", (request, socket, head) => {
 
 
 module.exports = { setupWebSocketServer };
+
