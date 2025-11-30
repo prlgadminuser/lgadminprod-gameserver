@@ -72,33 +72,6 @@ function setupWebSocketServer(wss, server) {
 
       const username = playerVerified.playerId;
 
-      let existingSid;
-
-if (playerLookup.has(username)) {
-  existingSid = SERVER_INSTANCE_ID; // Local session exists
-} else {
-  // Check Redis for existing session
-  existingSid = await checkExistingSession(username);
-}
-
-  if (existingSid) {
-    if (existingSid === SERVER_INSTANCE_ID) {
-      // Existing session is on THIS server → kick local connection
-      const existingConnection = playerLookup.get(username);
-      if (existingConnection) {
-        existingConnection.send("code:double");
-        existingConnection.wsClose(1001, "Reassigned connection");
-      //  await new Promise((resolve) => existingConnection.once("close", resolve));
-          playerLookup.delete(username);
-      }
-    } else {
-      // Existing session is on ANOTHER server → publish an invalidation event
-      await redisClient.publish(
-        `server:${existingSid}`,
-        JSON.stringify({ type: "disconnect", uid: username })
-      );
-    }
-  }
 
 
      if (!devmode) await addSession(username);
@@ -159,5 +132,6 @@ server.on("upgrade", (request, socket, head) => {
   handleUpgrade(request, socket, head, wss);
 });
 }
+
 
 module.exports = { setupWebSocketServer };
