@@ -203,7 +203,6 @@ function preparePlayerPackets(room) {
   HandleAfflictions(room);
   
   for (const player of players) {
-
    player.updateView()
   }
 

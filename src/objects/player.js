@@ -162,6 +162,18 @@ class Player {
     return this.health <= 0 && this.respawns <= 0 && this.room.state === "playing";
   }
 
+
+  GiveAssistElimination(targetPlayer) {
+
+    const elimType = 1;
+    const ElimMessage = [elimType, targetPlayer.id];
+    this.eliminations.push(ElimMessage);
+   
+   this.kills += 1;
+  }
+
+
+
   HandleSelfBulletsOtherPlayerCollision(targetPlayer, damage, gunid) {
     const room = this.room; // current player's room (the shooter)
     const GUN_BULLET_DAMAGE = Math.min(damage, targetPlayer.health);
@@ -207,6 +219,7 @@ class Player {
       }
     }
   }
+
 
 
   update() {
@@ -366,6 +379,7 @@ class Player {
       console.error("Player not found or cannot use gadget");
     }
   }
+
 
   eliminate() {
     if (this.room.state !== "playing" || this.room.winner !== -1) return;
