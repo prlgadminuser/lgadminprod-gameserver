@@ -1,6 +1,6 @@
 // server.js
 "use strict";
-
+const dotenv = require("dotenv")
 require("dotenv").config();
 require("module-alias/register");
 
