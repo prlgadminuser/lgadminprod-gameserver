@@ -1,5 +1,5 @@
 
-const { TOKEN_KEY } = require("@main/ENV");
+const TOKEN_KEY = process.env.TOKEN_KEY
 const jwt = require("jsonwebtoken");
 const { DBuserCollection } = require("./mongoClient");
 
