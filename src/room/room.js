@@ -541,19 +541,23 @@ class Room {
     removeRoomFromIndex(this);
     clearTimeout(this.matchmaketimeout);
     await startMatch(this, this.roomId);
+
   }
+  
   // Cleanup cycle
-  /* this.timeoutIds.push(
+ /* this.timeoutIds.push(
       setTimeout(() => {
         this.intervalIds.push(
           setInterval(() => {
-            cleanupRoom(this);
+            this.cleanupRoom(this);
           }, 1000)
         );
       }, 10000)
     );
+  }
 
-    */
+  */
+    
 }
 
 
@@ -698,6 +702,7 @@ async function startMatch(room, roomId) {
     // Automatically close the room after max open time
     room.maxopentimeout = room.setRoomTimeout(() => {
       room.close();
+      console.log("Warning: Room time limit reached. Forced closed")
     }, room_max_open_time);
 
     // Prepare room data and players
