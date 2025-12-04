@@ -11,7 +11,7 @@ require("dotenv").config();
 // --- Application Specific Imports (Needed by the Worker) ---
 // Note: Adjusted path for setupWebSocketServer based on common Node.js project structure
 const { setupHttpServer } = require("./httpHandler");
-const { setupWebSocketServer } = require("./webSocketHandler"); 
+const { setupWebSocketServer } = require("./websocketHandler"); 
 const { connectToMongoDB } = require("./src/database/mongoClient");
 const { startHeartbeat } = require("./src/database/redisClient");
 
