@@ -36,7 +36,8 @@ if (cluster.isWorker) {
 
     global.playerCount = 0;
 
-    const { playerLookup, GetRoom, Room, addRoomToIndex, removeRoomFromIndex } = require("./src/room/room");
+    const { playerLookup, GetRoom, Room } = require("./src/room/room");
+    const { addRoomToIndex: origAdd, removeRoomFromIndex: origRemove } = require("./src/room/room");
     const { handleMessage } = require("./src/packets/HandleMessage");
 
     process.send({ cmd: "worker-ready" });
@@ -53,13 +54,32 @@ if (cluster.isWorker) {
         });
     }
 
-    // Wrap room add/remove
-    Room.prototype._originalAddPlayer = Room.prototype.addPlayer;
-    Room.prototype.addPlayer = async function(...args) {
-        const result = await this._originalAddPlayer(...args);
-        if (result) reportRoom(this, this.players.size < this.maxplayers ? "add" : "remove");
-        return result;
-    };
+    require("./src/room/room").addRoomToIndex = function(room) {
+    origAdd(room);
+    reportRoom(room, "add"); // ← This tells primary: "I have an open room!"
+};
+
+// Hook room removal
+require("./src/room/room").removeRoomFromIndex = function(room) {
+    origRemove(room);
+    process.send({
+        cmd: "room-index-update",
+        action: "remove",
+        gamemode: room.gamemode,
+        sp_level: room.sp_level,
+        roomId: room.roomId
+    });
+};
+
+// Keep your addPlayer patch (for when room fills up)
+Room.prototype.addPlayer = async function(...args) {
+    const result = await this._originalAddPlayer(...args);
+    if (result) {
+        const shouldBeOpen = this.players.size < this.maxplayers;
+        reportRoom(this, shouldBeOpen ? "add" : "remove");
+    }
+    return result;
+};
 
     // Handle socket forwarded from primary
     process.on("message", async (msg, socket) => {
@@ -154,7 +174,7 @@ else {
         const ip = request.headers["x-forwarded-for"]?.split(',')[0] || request.socket.remoteAddress;
 
         try {
-            if (RATE_LIMITS.CONNECTION) await connectionRateLimiter.consume(ip);
+          //  if (RATE_LIMITS.CONNECTION) await connectionRateLimiter.consume(ip);
             const origin = request.headers.origin || request.headers["sec-websocket-origin"];
             if (!isValidOrigin(origin)) throw new Error("Invalid origin");
 
