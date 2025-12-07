@@ -97,32 +97,43 @@ roomModule.Room.prototype.addPlayer = async function(...args) {
         });
     });
 
-    async function handleIncomingConnection(ws, playerData) {
-        try {
-            const joinResult = await GetRoom(ws, playerData.gamemode, playerData.playerVerified);
-            if (!joinResult) {
-                ws.close(4001, "Room full");
-                process.send({ cmd: "player-left", username: playerData.username });
-                return;
-            }
+   async function handleIncomingConnection(ws, playerData) {
+    try {
+        const { GetRoom } = require("./src/room/room");
 
-            global.playerCount++;
-            const room = joinResult.room;
-            const player = room.players.get(joinResult.playerId);
-            playerLookup.set(playerData.username, { ws, player, room });
+        // Pass roomId if it exists
+        const joinResult = await GetRoom(ws, playerData.gamemode, playerData.playerVerified, playerData.roomId);
 
-            ws.on("message", data => handleMessage(room, player, data));
-            ws.on("close", () => {
-                global.playerCount--;
-                playerLookup.delete(playerData.username);
-                player?.room?.removePlayer(player);
-                process.send({ cmd: "player-left", username: playerData.username });
-            });
-        } catch (err) {
-            console.error("Worker connection error:", err);
-            ws.close(1011);
+        if (!joinResult) {
+            ws.close(4001, "Room full");
+            process.send({ cmd: "player-left", username: playerData.username });
+            return;
         }
+
+        global.playerCount++;
+        const room = joinResult.room;
+        const player = room.players.get(joinResult.playerId);
+        const { playerLookup } = require("./src/room/room");
+
+        playerLookup.set(playerData.username, { ws, player, room });
+
+        ws.on("message", data => {
+            const { handleMessage } = require("./src/packets/HandleMessage");
+            handleMessage(room, player, data);
+        });
+
+        ws.on("close", () => {
+            global.playerCount--;
+            playerLookup.delete(playerData.username);
+            player?.room?.removePlayer(player);
+            process.send({ cmd: "player-left", username: playerData.username });
+        });
+
+    } catch (err) {
+        console.error("Worker connection error:", err);
+        ws.close(1011);
     }
+}
 }
 
 // ──────────────────────────────────────────────────────────────
@@ -175,66 +186,69 @@ else {
     }
 
     server.on("upgrade", async (request, socket, head) => {
-        const ip = request.headers["x-forwarded-for"]?.split(',')[0] || request.socket.remoteAddress;
+    const ip = request.headers["x-forwarded-for"]?.split(',')[0] || request.socket.remoteAddress;
 
-        try {
-          //  if (RATE_LIMITS.CONNECTION) await connectionRateLimiter.consume(ip);
-            const origin = request.headers.origin || request.headers["sec-websocket-origin"];
-            if (!isValidOrigin(origin)) throw new Error("Invalid origin");
+    try {
+        const origin = request.headers.origin || request.headers["sec-websocket-origin"];
+        if (!isValidOrigin(origin)) throw new Error("Invalid origin");
 
-            const [, token, gamemode] = request.url.split("/");
-            if (!token || !gamemode || !GAME_MODES.has(gamemode)) throw new Error("Bad request");
+        const [, token, gamemode] = request.url.split("/");
+        if (!token || !gamemode || !GAME_MODES.has(gamemode)) throw new Error("Bad request");
 
-            if (await checkForMaintenance()) throw new Error("Maintenance");
+        if (await checkForMaintenance()) throw new Error("Maintenance");
 
-            const playerVerified = await verifyPlayer(token);
-            if (!playerVerified) throw new Error("Invalid token");
+        const playerVerified = await verifyPlayer(token);
+        if (!playerVerified) throw new Error("Invalid token");
 
-            const username = playerVerified.playerId;
-            const spLevel = require("./src/room/room").matchmakingsp?.(playerVerified.skillpoints || 0) || 0;
-            const key = `${gamemode}_${spLevel}`;
+        const username = playerVerified.playerId;
+        const spLevel = require("./src/room/room").matchmakingsp?.(playerVerified.skillpoints || 0) || 0;
+        const key = `${gamemode}_${spLevel}`;
 
-            // Disconnect duplicate login
-            if (playerWorkerMap.has(username)) {
-                const oldWorker = cluster.workers[playerWorkerMap.get(username)];
-                oldWorker?.send({ cmd: "disconnect-player", username });
-            }
-
-            // Matchmaking: open room first
-            let targetWorker = null;
-            if (openRoomsByMode.has(key)) {
-                const openRoom = openRoomsByMode.get(key).find(r => r.playerCount < r.maxplayers);
-                if (openRoom) {
-                    targetWorker = cluster.workers[openRoom.workerId];
-                    openRoom.playerCount++;
-                }
-            }
-
-            // Pick least-loaded worker
-            if (!targetWorker && readyWorkers.size > 0) {
-                const bestId = [...readyWorkers].sort((a, b) => workerLoads[a - 1] - workerLoads[b - 1])[0];
-                targetWorker = cluster.workers[bestId];
-                workerLoads[bestId - 1]++;
-            }
-
-            if (!targetWorker) throw new Error("No workers available");
-
-            playerWorkerMap.set(username, targetWorker.id);
-
-            targetWorker.send({
-                cmd: "new-connection",
-                playerData: { token, gamemode, playerVerified, username },
-                headers: request.headers,
-                url: request.url,
-                method: request.method,
-                head
-            }, socket);
-
-        } catch (err) {
-            socket.write("HTTP/1.1 400 Bad Request\r\n\r\n");
-            socket.destroy();
+        // Disconnect duplicate login
+        if (playerWorkerMap.has(username)) {
+            const oldWorker = cluster.workers[playerWorkerMap.get(username)];
+            oldWorker?.send({ cmd: "disconnect-player", username });
         }
-    });
+
+        // ─── MATCHMAKING ───
+        let targetWorker = null;
+        let roomId = null;
+
+        if (openRoomsByMode.has(key)) {
+            const openRoom = openRoomsByMode.get(key).find(r => r.playerCount < r.maxplayers);
+            if (openRoom) {
+                targetWorker = cluster.workers[openRoom.workerId];
+                openRoom.playerCount++;    // optimistic increment
+                roomId = openRoom.roomId;  // pass to worker
+            }
+        }
+
+        if (!targetWorker && readyWorkers.size > 0) {
+            const bestId = [...readyWorkers].sort((a, b) => workerLoads[a - 1] - workerLoads[b - 1])[0];
+            targetWorker = cluster.workers[bestId];
+            workerLoads[bestId - 1]++;
+        }
+
+        if (!targetWorker) throw new Error("No workers available");
+
+        playerWorkerMap.set(username, targetWorker.id);
+
+        // ─── SEND TO WORKER ───
+        targetWorker.send({
+            cmd: "new-connection",
+            playerData: { token, gamemode, playerVerified, username, roomId },
+            headers: request.headers,
+            url: request.url,
+            method: request.method,
+            head
+        }, socket);
+
+    } catch (err) {
+        socket.write("HTTP/1.1 400 Bad Request\r\n\r\n");
+        socket.destroy();
+    }
+});
+
 
     server.listen(PORT, () => {
         console.log(`Game server running on port ${PORT} | ${numCPUs} workers | Matchmaking active`);
