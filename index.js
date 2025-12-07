@@ -16,32 +16,34 @@ const { checkForMaintenance } = require("./src/database/ChangePlayerStats");
 let addSession, removeSession;
 try { ({ addSession, removeSession } = require("./src/database/redisClient")); } catch(e) {}
 
-const connectionRateLimiter = new RateLimiterMemory(RATE_LIMITS.CONNECTION);
 const PORT = process.env.PORT || 8090;
 const numCPUs = os.cpus().length;
+const connectionRateLimiter = new RateLimiterMemory(RATE_LIMITS.CONNECTION || { points: 100, duration: 60 });
 
 // ──────────────────────────────────────────────────────────────
 // PRIMARY-ONLY: Global matchmaking state
 // ──────────────────────────────────────────────────────────────
-const openRoomsByMode = new Map();
-const playerWorkerMap = new Map();
-const readyWorkers = new Set();
-let workerLoads = Array(numCPUs).fill(0);
+const openRoomsByMode = new Map();   // key: gamemode_spLevel -> [{ workerId, roomId, playerCount, maxplayers }]
+const playerWorkerMap = new Map();    // username -> workerId
+const readyWorkers = new Set();       // set of ready worker IDs
+let workerLoads = Array(numCPUs).fill(0); // track per-worker load
 
 // ──────────────────────────────────────────────────────────────
 // WORKER CODE
 // ──────────────────────────────────────────────────────────────
 if (cluster.isWorker) {
-    console.log(`Worker ${cluster.worker.id} (PID: ${process.pid}) starting...`);
+    console.log(`Worker ${cluster.worker.id} starting (PID: ${process.pid})`);
 
     global.playerCount = 0;
 
-    const { playerLookup, GetRoom, Room } = require("./src/room/room");
-    const { addRoomToIndex: origAdd, removeRoomFromIndex: origRemove } = require("./src/room/room");
+    const roomModule = require("./src/room/room");
+    const { playerLookup, GetRoom, Room, addRoomToIndex: origAdd, removeRoomFromIndex: origRemove } = roomModule;
     const { handleMessage } = require("./src/packets/HandleMessage");
 
+    // Tell primary we're ready
     process.send({ cmd: "worker-ready" });
 
+    // Report room changes to primary
     function reportRoom(room, action = "update") {
         process.send({
             cmd: "room-index-update",
@@ -54,86 +56,79 @@ if (cluster.isWorker) {
         });
     }
 
-    require("./src/room/room").addRoomToIndex = function(room) {
-    origAdd(room);
-    reportRoom(room, "add"); // ← This tells primary: "I have an open room!"
-};
+    // Wrap room index methods to report to primary
+    roomModule.addRoomToIndex = function(room) {
+        origAdd(room);
+        reportRoom(room, "add");
+    };
+    roomModule.removeRoomFromIndex = function(room) {
+        origRemove(room);
+        process.send({
+            cmd: "room-index-update",
+            action: "remove",
+            gamemode: room.gamemode,
+            sp_level: room.sp_level,
+            roomId: room.roomId
+        });
+    };
 
-// Hook room removal
-require("./src/room/room").removeRoomFromIndex = function(room) {
-    origRemove(room);
-    process.send({
-        cmd: "room-index-update",
-        action: "remove",
-        gamemode: room.gamemode,
-        sp_level: room.sp_level,
-        roomId: room.roomId
-    });
-};
-
-const roomModule = require("./src/room/room");
-
-const OriginalAddPlayer = roomModule.Room.prototype.addPlayer;
-
-// Now override it safely
-roomModule.Room.prototype.addPlayer = async function(...args) {
-    const result = await OriginalAddPlayer.call(this, ...args);
-    if (result) {
-        const isOpen = this.players.size < this.maxplayers;
-        reportRoom(this, isOpen ? "add" : "remove");
-    }
-    return result;
-};
+    // Wrap Room.addPlayer to report room status
+    const OriginalAddPlayer = Room.prototype.addPlayer;
+    Room.prototype.addPlayer = async function(...args) {
+        const result = await OriginalAddPlayer.call(this, ...args);
+        if (result) {
+            reportRoom(this, this.players.size < this.maxplayers ? "add" : "remove");
+        }
+        return result;
+    };
 
     // Handle socket forwarded from primary
     process.on("message", async (msg, socket) => {
         if (msg.cmd !== "new-connection") return;
 
         const { playerData, headers, url, method, head } = msg;
-        const wss = new WebSocket.Server({ noServer: true });
 
-        wss.handleUpgrade({ headers, url, method }, socket, head, (ws) => {
+        // Reconstruct a minimal IncomingMessage for upgrade
+        const fakeReq = new http.IncomingMessage(socket);
+        fakeReq.headers = headers;
+        fakeReq.url = url;
+        fakeReq.method = method;
+
+        const wss = new WebSocket.Server({ noServer: true });
+        wss.handleUpgrade(fakeReq, socket, head, (ws) => {
             handleIncomingConnection(ws, playerData);
         });
     });
 
-   async function handleIncomingConnection(ws, playerData) {
-    try {
-        const { GetRoom } = require("./src/room/room");
+    async function handleIncomingConnection(ws, playerData) {
+        try {
+            // Pass roomId from primary to ensure proper matchmaking
+            const joinResult = await GetRoom(ws, playerData.gamemode, playerData.playerVerified, playerData.roomId);
 
-        // Pass roomId if it exists
-        const joinResult = await GetRoom(ws, playerData.gamemode, playerData.playerVerified, playerData.roomId);
+            if (!joinResult) {
+                ws.close(4001, "Room full");
+                process.send({ cmd: "player-left", username: playerData.username });
+                return;
+            }
 
-        if (!joinResult) {
-            ws.close(4001, "Room full");
-            process.send({ cmd: "player-left", username: playerData.username });
-            return;
+            global.playerCount++;
+            const room = joinResult.room;
+            const player = room.players.get(joinResult.playerId);
+            playerLookup.set(playerData.username, { ws, player, room });
+
+            ws.on("message", data => handleMessage(room, player, data));
+            ws.on("close", () => {
+                global.playerCount--;
+                playerLookup.delete(playerData.username);
+                player?.room?.removePlayer(player);
+                process.send({ cmd: "player-left", username: playerData.username });
+            });
+
+        } catch (err) {
+            console.error("Worker connection error:", err);
+            ws.close(1011);
         }
-
-        global.playerCount++;
-        const room = joinResult.room;
-        const player = room.players.get(joinResult.playerId);
-        const { playerLookup } = require("./src/room/room");
-
-        playerLookup.set(playerData.username, { ws, player, room });
-
-        ws.on("message", data => {
-            const { handleMessage } = require("./src/packets/HandleMessage");
-            handleMessage(room, player, data);
-        });
-
-        ws.on("close", () => {
-            global.playerCount--;
-            playerLookup.delete(playerData.username);
-            player?.room?.removePlayer(player);
-            process.send({ cmd: "player-left", username: playerData.username });
-        });
-
-    } catch (err) {
-        console.error("Worker connection error:", err);
-        ws.close(1011);
     }
-}
 }
 
 // ──────────────────────────────────────────────────────────────
@@ -142,6 +137,7 @@ roomModule.Room.prototype.addPlayer = async function(...args) {
 else {
     console.log(`Primary ${process.pid} running on ${numCPUs} CPUs`);
 
+    // Fork workers
     for (const w of Object.values(cluster.workers ?? {})) w?.kill();
     setTimeout(() => {
         for (let i = 0; i < numCPUs; i++) cluster.fork();
@@ -150,8 +146,10 @@ else {
     cluster.on("fork", w => console.log(`Forked worker ${w.process.pid}`));
     cluster.on("exit", () => cluster.fork());
 
+    // Handle messages from workers
     cluster.on("message", (worker, msg) => {
         if (msg.cmd === "worker-ready") readyWorkers.add(worker.id);
+
         if (msg.cmd === "player-left") {
             playerWorkerMap.delete(msg.username);
             workerLoads[worker.id - 1] = Math.max(0, workerLoads[worker.id - 1] - 1);
@@ -178,6 +176,7 @@ else {
         }
     });
 
+    // HTTP + WS server
     const server = http.createServer(setupHttpServer);
 
     function isValidOrigin(origin) {
@@ -186,69 +185,71 @@ else {
     }
 
     server.on("upgrade", async (request, socket, head) => {
-    const ip = request.headers["x-forwarded-for"]?.split(',')[0] || request.socket.remoteAddress;
+        const ip = request.headers["x-forwarded-for"]?.split(',')[0] || request.socket.remoteAddress;
 
-    try {
-        const origin = request.headers.origin || request.headers["sec-websocket-origin"];
-        if (!isValidOrigin(origin)) throw new Error("Invalid origin");
+        try {
+            if (RATE_LIMITS.CONNECTION) await connectionRateLimiter.consume(ip);
 
-        const [, token, gamemode] = request.url.split("/");
-        if (!token || !gamemode || !GAME_MODES.has(gamemode)) throw new Error("Bad request");
+            const origin = request.headers.origin || request.headers["sec-websocket-origin"];
+            if (!isValidOrigin(origin)) throw new Error("Invalid origin");
 
-        if (await checkForMaintenance()) throw new Error("Maintenance");
+            const [, token, gamemode] = request.url.split("/");
+            if (!token || !gamemode || !GAME_MODES.has(gamemode)) throw new Error("Bad request");
 
-        const playerVerified = await verifyPlayer(token);
-        if (!playerVerified) throw new Error("Invalid token");
+            if (await checkForMaintenance()) throw new Error("Maintenance");
 
-        const username = playerVerified.playerId;
-        const spLevel = require("./src/room/room").matchmakingsp?.(playerVerified.skillpoints || 0) || 0;
-        const key = `${gamemode}_${spLevel}`;
+            const playerVerified = await verifyPlayer(token);
+            if (!playerVerified) throw new Error("Invalid token");
 
-        // Disconnect duplicate login
-        if (playerWorkerMap.has(username)) {
-            const oldWorker = cluster.workers[playerWorkerMap.get(username)];
-            oldWorker?.send({ cmd: "disconnect-player", username });
-        }
+            const username = playerVerified.playerId;
+            const spLevel = require("./src/room/room").matchmakingsp?.(playerVerified.skillpoints || 0) || 0;
+            const key = `${gamemode}_${spLevel}`;
 
-        // ─── MATCHMAKING ───
-        let targetWorker = null;
-        let roomId = null;
-
-        if (openRoomsByMode.has(key)) {
-            const openRoom = openRoomsByMode.get(key).find(r => r.playerCount < r.maxplayers);
-            if (openRoom) {
-                targetWorker = cluster.workers[openRoom.workerId];
-                openRoom.playerCount++;    // optimistic increment
-                roomId = openRoom.roomId;  // pass to worker
+            // Disconnect duplicate login
+            if (playerWorkerMap.has(username)) {
+                const oldWorker = cluster.workers[playerWorkerMap.get(username)];
+                oldWorker?.send({ cmd: "disconnect-player", username });
             }
+
+            // ─── MATCHMAKING ───
+            let targetWorker = null;
+            let roomId = null;
+
+            if (openRoomsByMode.has(key)) {
+                const openRoom = openRoomsByMode.get(key).find(r => r.playerCount < r.maxplayers);
+                if (openRoom) {
+                    targetWorker = cluster.workers[openRoom.workerId];
+                    openRoom.playerCount++;  // optimistic increment
+                    roomId = openRoom.roomId;
+                }
+            }
+
+            // Pick least-loaded worker if no open room
+            if (!targetWorker && readyWorkers.size > 0) {
+                const bestId = [...readyWorkers].sort((a, b) => workerLoads[a - 1] - workerLoads[b - 1])[0];
+                targetWorker = cluster.workers[bestId];
+                workerLoads[bestId - 1]++;
+            }
+
+            if (!targetWorker) throw new Error("No workers available");
+
+            playerWorkerMap.set(username, targetWorker.id);
+
+            // Forward connection to worker
+            targetWorker.send({
+                cmd: "new-connection",
+                playerData: { token, gamemode, playerVerified, username, roomId },
+                headers: request.headers,
+                url: request.url,
+                method: request.method,
+                head
+            }, socket);
+
+        } catch (err) {
+            socket.write("HTTP/1.1 400 Bad Request\r\n\r\n");
+            socket.destroy();
         }
-
-        if (!targetWorker && readyWorkers.size > 0) {
-            const bestId = [...readyWorkers].sort((a, b) => workerLoads[a - 1] - workerLoads[b - 1])[0];
-            targetWorker = cluster.workers[bestId];
-            workerLoads[bestId - 1]++;
-        }
-
-        if (!targetWorker) throw new Error("No workers available");
-
-        playerWorkerMap.set(username, targetWorker.id);
-
-        // ─── SEND TO WORKER ───
-        targetWorker.send({
-            cmd: "new-connection",
-            playerData: { token, gamemode, playerVerified, username, roomId },
-            headers: request.headers,
-            url: request.url,
-            method: request.method,
-            head
-        }, socket);
-
-    } catch (err) {
-        socket.write("HTTP/1.1 400 Bad Request\r\n\r\n");
-        socket.destroy();
-    }
-});
-
+    });
 
     server.listen(PORT, () => {
         console.log(`Game server running on port ${PORT} | ${numCPUs} workers | Matchmaking active`);
