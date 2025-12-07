@@ -702,7 +702,7 @@ async function startMatch(room, roomId) {
     // Automatically close the room after max open time
     room.maxopentimeout = room.setRoomTimeout(() => {
       room.close();
-      console.log("Warning: Room time limit reached. Forced closed")
+      console.log("Warning: Room time limit reached forced closing on non training countdown mode")
     }, room_max_open_time);
 
     // Prepare room data and players
