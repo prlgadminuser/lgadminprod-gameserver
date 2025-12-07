@@ -17,7 +17,7 @@ let addSession, removeSession;
 try { ({ addSession, removeSession } = require("./src/database/redisClient")); } catch(e) {}
 
 const connectionRateLimiter = new RateLimiterMemory(RATE_LIMITS.CONNECTION);
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8090;
 const numCPUs = os.cpus().length;
 
 // ──────────────────────────────────────────────────────────────
@@ -71,12 +71,16 @@ require("./src/room/room").removeRoomFromIndex = function(room) {
     });
 };
 
-// Keep your addPlayer patch (for when room fills up)
-Room.prototype.addPlayer = async function(...args) {
-    const result = await this._originalAddPlayer(...args);
+const roomModule = require("./src/room/room");
+
+const OriginalAddPlayer = roomModule.Room.prototype.addPlayer;
+
+// Now override it safely
+roomModule.Room.prototype.addPlayer = async function(...args) {
+    const result = await OriginalAddPlayer.call(this, ...args);
     if (result) {
-        const shouldBeOpen = this.players.size < this.maxplayers;
-        reportRoom(this, shouldBeOpen ? "add" : "remove");
+        const isOpen = this.players.size < this.maxplayers;
+        reportRoom(this, isOpen ? "add" : "remove");
     }
     return result;
 };
