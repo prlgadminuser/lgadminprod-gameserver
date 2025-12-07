@@ -12,7 +12,6 @@ const { startHeartbeat } = require("./src/database/redisClient");
 
 const PORT = process.env.PORT || 8080;
 const numCPUs = os.cpus().length;
-const DisableClustering = true
 
 // ----------------------------------------
 // WORKER SETUP
@@ -67,19 +66,12 @@ process.on("unhandledRejection", (reason) => {
 // ----------------------------------------
 if (cluster.isPrimary) {
 
-  if (DisableClustering) return
-
   console.log(`Master ${process.pid} running with ${numCPUs} CPUs.`);
 
-  // ----------------------------------------
-  // 🔥 HOT RELOAD CLEANUP (IMPORTANT)
-  // Kill any workers left over from previous runs.
-  // ----------------------------------------
   for (const worker of Object.values(cluster.workers ?? {})) {
     worker?.kill();
   }
 
-  // Give them a moment to die before forking new ones
   setTimeout(() => {
     console.log("Starting fresh workers...");
 
@@ -99,9 +91,6 @@ if (cluster.isPrimary) {
     console.log(`Forked worker ${worker.process.pid}`);
   });
 
-  // ----------------------------------------
-  // WORKER LOGIC
-  // ----------------------------------------
 } else {
   startWorkerProcess(cluster.worker.id);
 
