@@ -12,6 +12,7 @@ function handleMessage(room, player, message) {
   
   if (!player.rateLimiter.tryRemoveTokens(1) || message.length > 10) {
     // Optionally close connection for abuse
+    player.wsClose(4000, "message_limit_violated");
     return;
   }
 
