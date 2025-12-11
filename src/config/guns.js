@@ -15,7 +15,7 @@ const gunsconfig = {
     useplayerangle: true,
     bullets: [
       { angle: 0, speed: 22, delay: 0, offset: 0 },
-      //{ angle: 0, speed: 18, delay: 70, offset: 10 },
+      { angle: 0, speed: 18, delay: 70, offset: 10 },
 
       /* { angle: 90, speed: 13, delay: 0, offset: 0 },
        { angle: 0, speed: 13, delay: 0, offset: 0 },
@@ -205,4 +205,5 @@ module.exports = {
   gunsconfig,
   //gunsconfig: new Map(Object.entries(gunsconfig)),
   gunskeys: Object.keys(gunsconfig)
+
 };
