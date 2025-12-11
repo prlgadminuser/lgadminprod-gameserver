@@ -9,7 +9,7 @@ const sub = new Redis(rediskey);
 
 const heartbeatKey = `${REDIS_KEYS.SERVER_HEARTBEAT_PREFIX}${SERVER_INSTANCE_ID}`;
 
-redisClient.on("connect", () => console.log("Redis command client connected."));
+redisClient.on("connect", () => console.log("Connected to redis command client."));
 redisClient.on("error", (err) => console.error("Redis command client error:", err));
 
 sub.subscribe(`server:${SERVER_INSTANCE_ID}`, (err) => {

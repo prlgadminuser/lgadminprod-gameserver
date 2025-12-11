@@ -13,6 +13,8 @@ const rooms = new Map();
 const playerLookup = new Map();
 const roomIndex = new Map();
 
+//const { RoomIndexAdapter, inMemoryIndex } = require("./matchmaking/adapter.js");
+
 const { gadgetconfig } = require("../config/gadgets");
 const { SkillbasedMatchmakingEnabled, matchmakingsp } = require("../config/matchmaking");
 const { GameGrid } = require("../config/grid");

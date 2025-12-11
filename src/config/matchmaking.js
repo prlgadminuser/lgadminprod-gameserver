@@ -1,6 +1,9 @@
 
+  // info all players under the first value here are all matched together players that have more
+//  than that will be between the first and second value and so on
 
 const matchmaking = {
+ 
   1: {
     1: 1000,
     2: 2000,

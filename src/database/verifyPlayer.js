@@ -77,7 +77,7 @@ async function verifyPlayer(token) {
     };
 
   } catch (error) {
-    console.error('Error handling request:', error);
+   // console.error('Error handling request:', error);
     return false;
   }
 }

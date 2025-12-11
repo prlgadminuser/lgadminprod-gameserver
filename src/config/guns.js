@@ -3,8 +3,8 @@ const gunsconfig = {
   1: {
     // Default pistol
     modifiers: new Set([
-      // "CanBounce",
-      "DestroyWalls",
+  //    "CanBounce",
+     //"DestroyWalls",
     ]),
     cooldown: 500,
     distance: 300,
@@ -14,8 +14,8 @@ const gunsconfig = {
     height: 7,
     useplayerangle: true,
     bullets: [
-      { angle: 0, speed: 18, delay: 0, offset: 0 },
-      { angle: 0, speed: 18, delay: 70, offset: 10 },
+      { angle: 0, speed: 22, delay: 0, offset: 0 },
+      //{ angle: 0, speed: 18, delay: 70, offset: 10 },
 
       /* { angle: 90, speed: 13, delay: 0, offset: 0 },
        { angle: 0, speed: 13, delay: 0, offset: 0 },
@@ -42,17 +42,17 @@ const gunsconfig = {
       //   "DestroyWalls"
     ]),
     cooldown: 800,
-    distance: 100,
-    maxexistingtime: 500,
+    distance: 250,
+    maxexistingtime: 1000,
     damage: 10,
     width: 27,
     height: 6,
     useplayerangle: true,
     //can_bullets_bounce: false,
     bullets: [
-      { angle: -5, speed: 17, delay: 0, offset: 0 },
-      { angle: 0, speed: 17, delay: 0, offset: 0 },
-      { angle: 5, speed: 17, delay: 0, offset: 0 },
+      { angle: -5, speed: 18, delay: 0, offset: 0 },
+      { angle: 0, speed: 18, delay: 0, offset: 0 },
+      { angle: 5, speed: 18, delay: 0, offset: 0 },
     ],
     damageconfig: [
       { threshold: 25, damageMultiplier: 1 },
