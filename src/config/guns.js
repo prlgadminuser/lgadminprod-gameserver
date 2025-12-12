@@ -205,5 +205,4 @@ module.exports = {
   gunsconfig,
   //gunsconfig: new Map(Object.entries(gunsconfig)),
   gunskeys: Object.keys(gunsconfig)
-
 };
