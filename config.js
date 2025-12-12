@@ -28,6 +28,7 @@ module.exports = {
     maxPayload: 10, // 10MB
   },
   ALLOWED_ORIGINS: new Set([
+    "https://skilldown.io",
     "https://slcount.netlify.app",
     "https://slgame.netlify.app",
     "https://serve.gamejolt.net",
@@ -49,4 +50,5 @@ module.exports = {
     CONNECTION: { points: 1, duration: 1 },
     MESSAGE: { points: 30, duration: 1 }, // 30 messages per second
   },
+
 };
