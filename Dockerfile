@@ -4,4 +4,4 @@ COPY package*.json ./
 RUN npm install
 COPY . .
 EXPOSE 3090
-CMD ["node", "index.js"]
+CMD ["node", "server.js"]
