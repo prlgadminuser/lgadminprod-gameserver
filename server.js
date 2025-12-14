@@ -1,224 +1,147 @@
 "use strict";
-
 require("dotenv").config();
 
+const cluster = require("cluster");
+const os = require("os");
 const http = require("http");
 const WebSocket = require("ws");
-const { RateLimiterMemory } = require("rate-limiter-flexible");
 
-const {
-  ALLOWED_ORIGINS,
-  GAME_MODES,
-  RATE_LIMITS,
-  SERVER_INSTANCE_ID,
-} = require("./config");
-
+const { ALLOWED_ORIGINS, GAME_MODES } = require("./config");
 const { setupHttpServer } = require("./httpHandler");
-
 const { verifyPlayer } = require("./src/database/verifyPlayer");
 const { checkForMaintenance } = require("./src/database/ChangePlayerStats");
-
-const {
-  addSession,
-  removeSession,
-  checkExistingSession,
-  redisClient,
-  startHeartbeat,
-} = require("./src/database/redisClient");
-
+const { removeSession, startHeartbeat } = require("./src/database/redisClient");
 const { handleMessage } = require("./src/packets/HandleMessage");
 const { playerLookup, GetRoom } = require("./src/room/room");
-
 const { connectToMongoDB } = require("./src/database/mongoClient");
 
-// ===================================================
-// ===============  MERGED: WebSocket Logic ==========
-// ===================================================
+const isValidOrigin = (origin) => {
+    let o = origin ? origin.trim().replace(/(^,)|(,$)/g, "") : "";
+    return ALLOWED_ORIGINS.has(o);
+};
 
-const connectionRateLimiter = new RateLimiterMemory(RATE_LIMITS.CONNECTION);
-
-function isValidOrigin(origin) {
-  const trimmedOrigin = origin ? origin.trim().replace(/(^,)|(,$)/g, "") : "";
-  return ALLOWED_ORIGINS.has(trimmedOrigin);
-}
-
-const ConnectionRateLimit = false;
-const devmode = false;
-
-async function handleUpgrade(request, socket, head, wss) {
-  const ip =
-    request.socket["true-client-ip"] ||
-    request.socket["x-forwarded-for"] ||
-    request.socket.remoteAddress;
-
-  try {
-    if (ConnectionRateLimit) await connectionRateLimiter.consume(ip);
-
-    const origin =
-      request.headers["sec-websocket-origin"] || request.headers.origin;
-
-    if (!isValidOrigin(origin)) {
-      socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
-      socket.destroy();
-      return;
+// Handle WebSocket upgrade
+async function handleUpgrade(req, socket, head, wss) {
+    try {
+        const origin = req.headers["sec-websocket-origin"] || req.headers.origin;
+        if (!isValidOrigin(origin)) {
+            socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
+            socket.destroy();
+            return;
+        }
+        wss.handleUpgrade(req, socket, head, (ws) => wss.emit("connection", ws, req));
+    } catch {
+        socket.write("HTTP/1.1 429 Too Many Requests\r\n\r\n");
+        socket.destroy();
     }
-
-    wss.handleUpgrade(request, socket, head, (ws) =>
-      wss.emit("connection", ws, request)
-    );
-  } catch {
-    socket.write("HTTP/1.1 429 Too Many Requests\r\n\r\n");
-    socket.destroy();
-  }
 }
 
 function setupWebSocketServer(wss, server) {
-  wss.on("connection", async (ws, req) => {
+    const wsMap = new Map();
+
+    wss.on("connection", async (ws, req) => {
+        try {
+            if (await checkForMaintenance()) {
+                ws.send(JSON.stringify({ type: "error", message: "maintenance" }));
+                ws.close(4008, "maintenance");
+                return;
+            }
+
+            const [_, token, gamemode] = req.url.split("/");
+            const origin = req.headers["sec-websocket-origin"] || req.headers.origin;
+
+            if (!token || !gamemode || !GAME_MODES.has(gamemode) || !isValidOrigin(origin)) {
+                ws.send("gamemode_not_allowed");
+                ws.close(4004, "Unauthorized");
+                return;
+            }
+
+            const player = await verifyPlayer(token);
+            if (!player) {
+                ws.close(4001, "Invalid token");
+                return;
+            }
+
+            const playerId = player.playerId;
+            wsMap.set(playerId, ws);
+
+            // Directly join a room in the worker
+            const joinResult = await GetRoom(ws, gamemode, player);
+            const room = joinResult.room;
+            const roomPlayer = room.players.get(playerId);
+
+
+
+            // Attach message handler only after room assignment
+           
+            ws.on("message", (msg) => handleMessage(room, roomPlayer, msg));
+
+            ws.on("error", (err) => {
+                ws.close(1009, err.code === "WS_ERR_UNSUPPORTED_MESSAGE_LENGTH" ? "Unsupported message length" : "error");
+            });
+
+            ws.on("close", async () => {
+                wsMap.delete(playerId);
+                await removeSession(playerId);
+                if (playerLookup.has(playerId)) {
+                    playerLookup.get(playerId).room.removePlayer(playerLookup.get(playerId));
+                }
+            });
+        } catch (err) {
+            console.error("WebSocket connection error:", err);
+            ws.close(1011, "Internal server error");
+        }
+    });
+
+    server.on("upgrade", (req, socket, head) => handleUpgrade(req, socket, head, wss));
+}
+
+async function startWorker() {
     try {
-      if (await checkForMaintenance()) {
-        ws.send(JSON.stringify({ type: "error", message: "maintenance" }));
-        ws.close(4008, "maintenance");
-        return;
-      }
+        await connectToMongoDB();
+        //startHeartbeat();
 
-      const [_, token, gamemode] = req.url.split("/");
-      const origin = req.headers["sec-websocket-origin"] || req.headers.origin;
+        const server = http.createServer(setupHttpServer);
+        const wss = new WebSocket.Server({
+            noServer: true,
+            clientTracking: false,
+            perMessageDeflate: false,
+            maxPayload: 10
+        });
 
-      if (
-        !token ||
-        !gamemode ||
-        !GAME_MODES.has(gamemode) ||
-        !isValidOrigin(origin)
-      ) {
-        ws.send("gamemode_not_allowed");
-        ws.close(4004, "Unauthorized");
-        return;
-      }
+        setupWebSocketServer(wss, server);
 
-      const playerVerified = await verifyPlayer(token);
-      if (!playerVerified) {
-        ws.close(4001, "Invalid token");
-        return;
-      }
-
-      const username = playerVerified.playerId;
-
-      // Existing session handling
-      let existingSid;
-
-      if (playerLookup.has(username)) {
-        existingSid = SERVER_INSTANCE_ID;
-      } else {
-        existingSid = await checkExistingSession(username);
-      }
-
-      if (existingSid) {
-        if (existingSid === SERVER_INSTANCE_ID) {
-          const existingConnection = playerLookup.get(username);
-          if (existingConnection) {
-            existingConnection.send("code:double");
-            existingConnection.wsClose(1001, "Reassigned connection");
-            playerLookup.delete(username);
-          }
-        } else {
-          await redisClient.publish(
-            `server:${existingSid}`,
-            JSON.stringify({ type: "disconnect", uid: username })
-          );
-        }
-      }
-
-      if (!devmode) await addSession(username);
-
-      const joinResult = await GetRoom(ws, gamemode, playerVerified);
-      if (!joinResult) {
-        await removeSession(username);
-        ws.close(4001, "Invalid token or room full");
-        return;
-      }
-
-      global.playerCount++;
-
-      const room = joinResult.room;
-      const playerId = joinResult.playerId;
-      const player = room.players.get(playerId);
-
-      ws.on("error", (error) => {
-        if (error.code === "WS_ERR_UNSUPPORTED_MESSAGE_LENGTH") {
-          ws.close(1009, "im damn angry man");
-        } else {
-          ws.close(1009, "error");
-        }
-      });
-
-      ws.on("message", (message) => handleMessage(room, player, message));
-
-      ws.on("close", async () => {
-        playerLookup.delete(username);
-        if (player) player.room.removePlayer(player);
-        if (!devmode) await removeSession(username);
-        global.playerCount--;
-      });
-    } catch (error) {
-      console.error("Error during WebSocket connection:", error);
-      ws.close(1011, "Internal server error");
+        const port = process.env.PORT || 8080;
+        server.listen(port, () => {
+            console.log(`Worker ${process.pid} listening on port ${port}`);
+        });
+    } catch (err) {
+        console.error("Failed to start worker:", err);
+        process.exit(1);
     }
-  });
-
-  server.on("upgrade", (request, socket, head) => {
-    if (!request.url.length || request.url.length > 300) {
-      socket.destroy();
-      return;
-    }
-
-    handleUpgrade(request, socket, head, wss);
-  });
 }
 
-// ===================================================
-// =================== SERVER START ==================
-// ===================================================
+// ---------------- Cluster logic ----------------
+if (cluster.isPrimary) {
+    console.log(`Primary ${process.pid} running`);
+    const numWorkers = os.cpus().length;
+    for (let i = 0; i < numWorkers; i++) cluster.fork();
+} else {
+    startWorker();
+}
 
-async function startServer() {
-  try {
-    await connectToMongoDB();
-    startHeartbeat();
+// ---------------- Error Handling ----------------
+process.on("SIGINT", () => {
+    console.log(`Worker ${process.pid} shutting down...`);
+    process.exit(0);
+});
 
-    const server = http.createServer(setupHttpServer);
-
-    const wss = new WebSocket.Server({
-      noServer: true,
-      clientTracking: false,
-      perMessageDeflate: false,
-      maxPayload: 10,
-    });
-
-    setupWebSocketServer(wss, server);
-
-    const PORT = process.env.PORT || 8080;
-    server.listen(PORT, () => {
-      console.log(`Skilldown GameServer is listening on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error("Failed to start server:", error);
+process.on("uncaughtException", (err) => {
+    console.error("Uncaught Exception:", err);
     process.exit(1);
-  }
-}
-
-// Graceful shutdown
-process.on("SIGINT", async () => {
-  console.log("Server shutting down...");
-  process.exit(0);
 });
 
-process.on("uncaughtException", (error) => {
-  console.error("Uncaught Exception:", error);
-  process.exit(1);
+process.on("unhandledRejection", (err) => {
+    console.error("Unhandled Rejection:", err);
+    process.exit(1);
 });
-
-process.on("unhandledRejection", (reason) => {
-  console.error("Unhandled Rejection:", reason);
-  process.exit(1);
-});
-
-startServer();
