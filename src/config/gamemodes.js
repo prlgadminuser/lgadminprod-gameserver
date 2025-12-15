@@ -57,11 +57,11 @@ const gamemodeconfig = {
     can_hit_dummies: false,
     can_hit_players: true,
 
-    maxplayers: 80,
+    maxplayers: 75,
     teamsize: 1,
     respawns_allowed: 0,
 
-    playerhealth: 100,
+    playerhealth: 1000,
     playerspeed: 2.4,
 
     modifiers: new Set(["UseZone", "AutoHealthRestore"]),
@@ -191,4 +191,5 @@ module.exports = {
   gamemodeconfig: new Map(Object.entries(gamemodeconfig)),
   allowed_gamemodes,
 };
+
 
