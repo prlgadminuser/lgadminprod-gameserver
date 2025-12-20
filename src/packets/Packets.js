@@ -2,7 +2,7 @@
 const { compressMessage } = require("./compress");
 const { playerchunkrenderer } = require("../PlayerLogic/playerchunks");
 const { handleSpectatorMode } = require("../PlayerLogic/spectating");
-const { encodePosition } = require("../utils/game");
+const { encodePosition, encodePlayerSpeed } = require("../utils/game");
 const { arraysEqual } = require("../utils/hash");
 const { handlePlayerMoveIntervalAll } = require("./HandleMessage");
 const { HandleAfflictions } = require("../objects/bullets-effects");
@@ -169,6 +169,7 @@ function SerializePlayerData(p) {
   arr[4] = p.health;
   arr[5] = Number(p.gun);
   arr[6] = Number(p.emote);
+  arr[7] = encodePlayerSpeed(p.speed)
   return arr;
 }
 

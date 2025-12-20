@@ -16,6 +16,11 @@ module.exports = {
     return Math.round(num * 100); // keep 2 decimals
   },
 
+   encodePlayerSpeed(num) {
+    return Math.round(num * 10); // keep 1 decimals
+  },
+
+
   createHitmarker(target, shooter, damage) {
     shooter.hitmarkers.push([
       Math.round(target.x),
