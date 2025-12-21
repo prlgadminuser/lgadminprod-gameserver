@@ -58,7 +58,7 @@ const gunsconfig = {
       //   "CanBounce",
       //   "DestroyWalls"
     ]),
-    cooldown: 300,
+    cooldown: 100,
     distance: 1950,
     maxexistingtime: 20000,
     damage: 10,
@@ -220,6 +220,7 @@ module.exports = {
   gunskeys: Object.keys(gunsconfig)
 
 };
+
 
 
 
