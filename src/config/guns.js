@@ -59,14 +59,14 @@ const gunsconfig = {
       //   "DestroyWalls"
     ]),
     cooldown: 800,
-    distance: 250,
-    maxexistingtime: 1000,
+    distance: 1950,
+    maxexistingtime: 20000,
     damage: 10,
     width: 27,
     height: 6,
     useplayerangle: true,
     //can_bullets_bounce: false,
-    bullets: createRadialBullets(50, 12),
+    bullets: createRadialBullets(200, 8),
     damageconfig: [
       { threshold: 25, damageMultiplier: 1 },
       { threshold: 55, damageMultiplier: 0.7 },
@@ -220,4 +220,5 @@ module.exports = {
   gunskeys: Object.keys(gunsconfig)
 
 };
+
 
