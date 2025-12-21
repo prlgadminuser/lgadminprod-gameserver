@@ -1,4 +1,21 @@
 
+function createRadialBullets(count, speed, delay = 0, offset = 0) {
+  const bullets = [];
+  const step = 360 / count;
+
+  for (let i = 0; i < count; i++) {
+    bullets.push({
+      angle: i * step,
+      speed,
+      delay,
+      offset,
+    });
+  }
+
+  return bullets;
+}
+
+
 const gunsconfig = {
   1: {
     // Default pistol
@@ -205,4 +222,5 @@ module.exports = {
   gunsconfig,
   //gunsconfig: new Map(Object.entries(gunsconfig)),
   gunskeys: Object.keys(gunsconfig)
+
 };
