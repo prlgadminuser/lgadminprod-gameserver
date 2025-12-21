@@ -66,11 +66,7 @@ const gunsconfig = {
     height: 6,
     useplayerangle: true,
     //can_bullets_bounce: false,
-    bullets: [
-      { angle: -5, speed: 18, delay: 0, offset: 0 },
-      { angle: 0, speed: 18, delay: 0, offset: 0 },
-      { angle: 5, speed: 18, delay: 0, offset: 0 },
-    ],
+    bullets: createRadialBullets(50, 12),
     damageconfig: [
       { threshold: 25, damageMultiplier: 1 },
       { threshold: 55, damageMultiplier: 0.7 },
@@ -224,3 +220,4 @@ module.exports = {
   gunskeys: Object.keys(gunsconfig)
 
 };
+
