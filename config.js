@@ -50,5 +50,4 @@ module.exports = {
     CONNECTION: { points: 1, duration: 1 },
     MESSAGE: { points: 30, duration: 1 }, // 30 messages per second
   },
-
 };

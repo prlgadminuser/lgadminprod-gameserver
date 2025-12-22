@@ -315,6 +315,7 @@ class Room {
   close() {
     if (this.state === "closed") return;
 
+    console.log("close")
     // Stop timers
     this.clearTimers();
 
@@ -379,7 +380,6 @@ class Room {
     !room.players ||
     room.players.size === 0
   ) {
-    room.close();
   }
 }
 
@@ -387,7 +387,10 @@ class Room {
 
   initIntervals() {
     // Idle player cleanup
-    this.intervalIds.push(
+
+  
+  
+     this.intervalIds.push(
       setInterval(() => {
         const now = Date.now();
         for (const player of this.players.values()) {
@@ -704,7 +707,7 @@ async function startMatch(room, roomId) {
     // Automatically close the room after max open time
     room.maxopentimeout = room.setRoomTimeout(() => {
       room.close();
-      console.log("Warning: Room time limit reached forced closing on non training countdown mode")
+      if (room.gamemode !== "training") console.log("Warning: Room time limit reached forced closing on non training countdown mode")
     }, room_max_open_time);
 
     // Prepare room data and players

@@ -1,6 +1,6 @@
 const WebSocket = require('ws');
 
-const limit = 5; // number of simulated clients
+const limit = 57; // number of simulated clients
 
 const gamemode = "fightdown"
 

@@ -1,21 +1,4 @@
 
-function createRadialBullets(count, speed, delay = 0, offset = 0) {
-  const bullets = [];
-  const step = 360 / count;
-
-  for (let i = 0; i < count; i++) {
-    bullets.push({
-      angle: i * step,
-      speed,
-      delay,
-      offset,
-    });
-  }
-
-  return bullets;
-}
-
-
 const gunsconfig = {
   1: {
     // Default pistol
@@ -58,15 +41,19 @@ const gunsconfig = {
       //   "CanBounce",
       //   "DestroyWalls"
     ]),
-    cooldown: 100,
-    distance: 1950,
-    maxexistingtime: 20000,
+    cooldown: 800,
+    distance: 250,
+    maxexistingtime: 1000,
     damage: 10,
     width: 27,
     height: 6,
     useplayerangle: true,
     //can_bullets_bounce: false,
-    bullets: createRadialBullets(8, 2),
+    bullets: [
+      { angle: -5, speed: 18, delay: 0, offset: 0 },
+      { angle: 0, speed: 18, delay: 0, offset: 0 },
+      { angle: 5, speed: 18, delay: 0, offset: 0 },
+    ],
     damageconfig: [
       { threshold: 25, damageMultiplier: 1 },
       { threshold: 55, damageMultiplier: 0.7 },
@@ -218,12 +205,4 @@ module.exports = {
   gunsconfig,
   //gunsconfig: new Map(Object.entries(gunsconfig)),
   gunskeys: Object.keys(gunsconfig)
-
 };
-
-
-
-
-
-
-

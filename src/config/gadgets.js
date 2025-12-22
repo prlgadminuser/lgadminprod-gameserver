@@ -44,7 +44,7 @@ const gadgetconfig = {
             enableGadget(player, { speed: boostedSpeed });
 
             
-            room.setRoomTimeout(() => {
+            player.room.setRoomTimeout(() => {
               disableGadget(player);
             }, 5000);
 
@@ -57,7 +57,7 @@ const gadgetconfig = {
         gadget(player) {
             enableGadget(player, { can_bullets_bounce: true });
 
-             room.setRoomTimeout(() => {
+             player.room.setRoomTimeout(() => {
                 disableGadget(player);
             }, 20000);
         }
