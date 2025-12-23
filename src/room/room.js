@@ -315,7 +315,6 @@ class Room {
   close() {
     if (this.state === "closed") return;
 
-    console.log("close")
     // Stop timers
     this.clearTimers();
 
