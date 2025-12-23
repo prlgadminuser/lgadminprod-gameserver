@@ -6,7 +6,6 @@ const os = require("os");
 const http = require("http");
 const WebSocket = require("ws");
 const { RateLimiterMemory } = require("rate-limiter-flexible");
-const { v4: uuidv4 } = require("uuid"); // Add uuid if not already installed
 
 const {
   ALLOWED_ORIGINS,
@@ -147,7 +146,11 @@ async function handleUpgrade(request, socket, head, wss) {
 // Helper: Ask master for available rooms
 function queryAvailableRooms(gamemode) {
   return new Promise((resolve) => {
-    const requestId = uuidv4();
+    const requestId = "xxxxxxxxxx".replace(/[xy]/g, function (c) {
+  const r = (Math.random() * 16) | 0;
+  const v = c === "x" ? r : (r & 0x3) | 0x8; // Ensures UUID version 4
+  return v.toString(16);
+}) 
     const listener = (msg) => {
       if (msg.type === "QUERY_ROOMS_RESPONSE" && msg.requestId === requestId) {
         process.removeListener("message", listener);
