@@ -26,61 +26,39 @@ const { room_max_open_time } = require("../config/server");
 const { gamemodeconfig } = require("../config/gamemodes");
 
 
-
-function getAvailableRoom(gamemode, spLevel) {
-  const key = `${gamemode}_${spLevel}`;
-  //console.log(roomIndex)
-  const roomList = roomIndex.get(key);
-  if (!roomList) return null;
-
-  for (const room of roomList.values()) {
-    if (room.state === 'waiting' && room.players.size < room.maxplayers) {
-      return room;
-    }
-  }
-  return false;
-}
-
 async function GetRoom(ws, gamemode, playerVerified) {
   try {
+
     const max_length = 16;
     const min_length = 4;
     const nickname = playerVerified.nickname;
     const gadgetselected = playerVerified.gadget || 1;
-
 
     if (
       nickname.length < min_length ||
       nickname.length > max_length ||
       !(gadgetselected in gadgetconfig)
     ) {
-      return ws.close(4004);
+      return ws?.close(4004);
     }
 
+     const roomId = `room_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
+  const gmconfig = gamemodeconfig.get(gamemode);
 
-    const finalskillpoints = SkillbasedMatchmakingEnabled ? playerVerified.skillpoints || 0 : 0;
+  const room = new Room(roomId, gamemode, gmconfig, 0); // 0 = skill points
+  await room.addPlayer(ws, playerVerified);
+  return room;
 
-    const room = await FindOrCreateRoom(gamemode, finalskillpoints);
-    return await room.addPlayer(ws, playerVerified, room);
   } catch (error) {
     console.error("Error joining room:", error);
-    ws.close(4000, "Error joining room");
+    payload.ws?.close(4000, "Error joining room");
     throw error;
   }
 }
 
-async function FindOrCreateRoom(gamemode, finalskillpoints) {
-  const roomjoiningvalue = matchmakingsp(finalskillpoints);
-  const availableRoom = getAvailableRoom(gamemode, roomjoiningvalue);
-  const gamemodeSettings = gamemodeconfig.get(gamemode);
 
-  if (availableRoom) {
-    return availableRoom;
-  }
 
-  const roomId = generateUUID();
-  return new Room(roomId, gamemode, gamemodeSettings, roomjoiningvalue);
-}
+
 
 function addRoomToIndex(room) {
   const key = `${room.gamemode}_${room.sp_level}`;
@@ -185,29 +163,37 @@ class Room {
     addRoomToIndex(this);
     rooms.set(roomId, this);
 
+    process.send({
+  type: "ROOM_CREATED",
+  roomId: this.roomId,
+  gamemode: this.gamemode,
+  sp: this.sp_level,
+  maxPlayers: this.maxplayers
+});
+
     // Setup timers/intervals
     this.initIntervals();
   }
 
   async addPlayer(ws, playerVerified) {
-    const newPlayer = new Player(ws, playerVerified, this);
+  const newPlayer = new Player(ws, playerVerified, this);
+  this.players.set(newPlayer.playerId, newPlayer);
+  playerLookup.set(newPlayer.playerId, newPlayer);
 
-    if (!this.canStartGame()) {
-      this.players.set(newPlayer.playerId, newPlayer);
-      playerLookup.set(newPlayer.playerId, newPlayer);
+  process.send({
+    type: "ROOM_UPDATE",
+    roomId: this.roomId,
+    players: this.players.size,
+    state: this.state,
+  });
 
-      if (newPlayer.wsReadyState() === ws.CLOSED) {
-        this.removePlayer(newPlayer);
-        return null;
-      }
-    }
-
-    if (this.canStartGame()) {
+     if (this.canStartGame()) {
       await this.startMatch();
     }
 
-    return { room: this, playerId: newPlayer.playerId };
-  }
+  return { room: this, playerId: newPlayer.playerId };
+}
+
 
   async removePlayer(player) {
     if (!player) return;
@@ -227,6 +213,13 @@ class Room {
 
     if (this.state === "waiting") {
       this.players.delete(player.playerId);
+
+      process.send({
+  type: "ROOM_UPDATE",
+  roomId: this.roomId,
+  players: this.players.size,
+  state: this.state
+});
 
       if (this.players.size < 1) {
         this.close();
@@ -315,6 +308,11 @@ class Room {
   close() {
     if (this.state === "closed") return;
 
+      process.send({
+  type: "ROOM_CLOSED",
+  roomId: this.roomId
+});
+
     console.log("close")
     // Stop timers
     this.clearTimers();
@@ -328,6 +326,7 @@ class Room {
     rooms.delete(this.roomId);
 
     this.state = "closed";
+
     // console.log(`Room ${this.roomId} closed`);
   }
 
@@ -544,6 +543,12 @@ class Room {
   async startMatch() {
     this.state = "await";
     removeRoomFromIndex(this);
+
+    process.send({
+  type: "ROOM_LOCKED",
+  roomId: this.roomId
+});
+
     clearTimeout(this.matchmaketimeout);
     await startMatch(this, this.roomId);
 
