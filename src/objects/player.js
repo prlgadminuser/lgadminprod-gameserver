@@ -23,8 +23,6 @@ const yThreshold = 240 * viewmultiplier;
 
 class Player {
   constructor(ws, playerVerified, room) {
-  this.ws = ws;
-
     const {
       playerId,
       nickname,
@@ -135,16 +133,12 @@ class Player {
     this.isPlayer = true;
 
     // Network methods
-      this.wsClose = (code, msg) => {
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        this.ws.close(code, msg);
-      }
-    };
+    this.wsClose = (code, msg) => ws.close(code, msg);
     this.send = (msg) => {
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) this.ws.send(msg);
+      if (ws.readyState === ws.OPEN) ws.send(msg);
     };
-    this.wsReadyState = () => (this.ws ? this.ws.readyState : WebSocket.CLOSED);
-    this.wsOpen = () => this.ws && this.ws.readyState === WebSocket.OPEN;
+    this.wsReadyState = () => ws.readyState;
+    this.wsOpen = () => ws.readyState === ws.OPEN;
 
     this.lastPing = Date.now();
     this.pingnow = 0;
