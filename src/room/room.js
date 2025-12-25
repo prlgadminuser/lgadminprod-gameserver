@@ -569,6 +569,7 @@ function cloneGrid(original) {
   const clone = new GameGrid(
     original.width * original.cellSize,
     original.height * original.cellSize,
+    80,
   );
 
   clone.nextId = original.nextId;
@@ -762,3 +763,4 @@ module.exports = {
   GetRoom,
   startMatch
 };
+
