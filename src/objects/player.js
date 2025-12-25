@@ -264,9 +264,9 @@ class Player {
 }
 
   updateView() {
-    // player.ticksSinceLastChunkUpdate++
-    //if (player.ticksSinceLastChunkUpdate > 5) {
-    //  player.ticksSinceLastChunkUpdate = 0;
+    // this.ticksSinceLastChunkUpdate++
+  //  if (this.ticksSinceLastChunkUpdate > 5) {
+    //  this.ticksSinceLastChunkUpdate = 0;
 
     const centerX = this.x;
     const centerY = this.y;
@@ -354,18 +354,19 @@ class Player {
           finalBullets.push([bullet.id]);
         } else {
           finalBullets.push([
-            bullet.id,
-            bullet.serialized.x,
-            bullet.serialized.y,
-            bullet.serialized.d,
-            bullet.gunId,
-            bullet.effect,
-            bullet.speed,
+          bullet.id,
+          Math.round(bullet.position.x),
+          Math.round(bullet.position.y),
+          Math.round(bullet.direction),
+          bullet.gunId,
+          bullet.effect,
+          bullet.speed,
           ]);
         }
         newLastBulletIds.add(bullet.id);
       }
     }
+  
 
     this.finalbullets = finalBullets.length ? finalBullets : undefined;
     this.lastfinalbulletsSet = newLastBulletIds;

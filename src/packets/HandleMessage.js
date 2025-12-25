@@ -8,9 +8,10 @@ function handleMessage(room, player, message) {
 
     message = message.toString("utf-8");
 
-    if (!player || !player.rateLimiter) return;
+    if (!player || !player.rateLimiter)  player.wsClose(4000, "message_cant_access_user");
   
-  if (!player.rateLimiter.tryRemoveTokens(1) || message.length > 10) {
+  if (!player.rateLimiter.consume(1) || message.length > 10) {
+
     // Optionally close connection for abuse
     player.wsClose(4000, "message_limit_violated");
     return;

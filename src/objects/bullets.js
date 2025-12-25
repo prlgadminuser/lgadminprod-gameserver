@@ -125,13 +125,6 @@ class Bullet {
     return this.position.add(dirVec.scale(this.speed));
   }
 
-  FormatForSending() {
-    this.serialized = {
-      x: Math.round(this.position.x),
-      y: Math.round(this.position.y),
-      d: Math.round(this.direction),
-    };
-  }
 
   isExpired() {
     if (!this.alive) return true;
@@ -221,7 +214,6 @@ class BulletManager {
       bullet.position = nextPos;
       bullet.x = nextPos.x;
       bullet.y = nextPos.y;
-      bullet.FormatForSending();
       this.room.grid.updateObject(bullet, nextPos.x, nextPos.y);
 
       const centerX = bullet.position.x;

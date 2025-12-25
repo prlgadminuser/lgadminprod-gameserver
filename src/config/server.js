@@ -1,24 +1,30 @@
+const RateLimiter = require("../utils/ratelimit");
 
-const Limiter = require("limiter").RateLimiter;
+const TICK_RATE = 40;
 
-const maxPlayers = 100;
-const maxOpenRooms = 100;
+function ToMilliseconds(seconds) {
+  return seconds * 60 * 1000;
+}
 
-const TICK_RATE = 40 // add one more for smoothness // use 70 for local
-const game_tick_rate = 1000 / TICK_RATE;
-const player_idle_timeout = 10000;
-const PlayerMaxRequestsPerSecond = 30
+const GlobalServerConfig = {
+  maxPlayers: 100,
+  maxRooms: 6,
+};
 
-const matchmaking_timeout = 30 * 60 * 1000; // 30 mins
-const game_start_time = 1000;
-const game_win_rest_time = 10000;
-const room_max_open_time = 10 * 60 * 1000; // 10 mins
+const GlobalRoomConfig = {
+  room_tick_rate_ms: 1000 / TICK_RATE,
+  matchmaking_timeout: 30 * 60000,
+  game_start_delay: 1000,
+  game_win_rest_time: 10000,
+  room_max_open_time: 10 * 60000,
+  player_noping_maxtime: 5000,
+};
 
 function PlayerRateLimiter() {
-  return new Limiter({
-    tokensPerInterval: PlayerMaxRequestsPerSecond,
-    interval: 1000, // milliseconds
+  return new RateLimiter({
+    maxRequests: 10, // max requests per interval
+    interval: 0.5, // in time seconds
   });
 }
 
-module.exports = { game_tick_rate, player_idle_timeout, maxPlayers, maxOpenRooms, matchmaking_timeout, game_start_time, game_win_rest_time, room_max_open_time, PlayerRateLimiter }
+module.exports = { GlobalServerConfig, GlobalRoomConfig, PlayerRateLimiter };

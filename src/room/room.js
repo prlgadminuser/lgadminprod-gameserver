@@ -1,6 +1,7 @@
 
 //const { addRoomToIndex, removeRoomFromIndex } = require("./matchmaking");
-const { matchmaking_timeout, game_tick_rate, player_idle_timeout, game_start_time, game_win_rest_time } = require("../config/server");
+
+const { GlobalRoomConfig } = require("../config/server");
 const { UpdatePlayerKillsAndDamage, UpdatePlayerPlace, UpdatePlayerWins } = require("../database/ChangePlayerStats");
 const { addEntryToKillfeed } = require("../modifiers/killfeed");
 const { BulletManager } = require("../objects/bullets");
@@ -22,7 +23,6 @@ const { SendPreStartMessage } = require("../packets/Packets");
 const { UseZone } = require("../modifiers/zone");
 const { startDecreasingHealth, startRegeneratingHealth } = require("../modifiers/modifiers");
 const { initializeHealingCircles } = require("../modifiers/healingcircle");
-const { room_max_open_time } = require("../config/server");
 const { gamemodeconfig } = require("../config/gamemodes");
 
 
@@ -394,13 +394,13 @@ class Room {
         const now = Date.now();
         for (const player of this.players.values()) {
           if (
-            player.lastPing <= now - player_idle_timeout ||
+            player.lastPing <= now - GlobalRoomConfig.player_noping_maxtime ||
             !player.wsOpen()
           ) {
             player.wsClose(4200, "disconnected_inactivity");
           }
         }
-      }, player_idle_timeout / 2)
+      }, GlobalRoomConfig.player_noping_maxtime / 2)
     );
     // Cleanup expired intervals/timeouts
     this.xcleaninterval = setInterval(() => {
@@ -424,9 +424,9 @@ class Room {
         player.send("matchmaking_timeout");
       });
       this.close();
-    }, matchmaking_timeout);
+    }, GlobalRoomConfig.matchmaking_timeout);
 
-    this.startGameLoop(game_tick_rate);
+    this.startGameLoop(GlobalRoomConfig.room_tick_rate_ms);
   }
 
   startGameLoop2(game_tick_rate) {
@@ -502,13 +502,13 @@ class Room {
     // Set a timeout to close the room after a win.
      this.setRoomTimeout(() => {
         this.close(); 
-    }, game_win_rest_time)
+    }, GlobalRoomConfig.game_win_rest_time)
   }
   // If no one is left, also close the room.
   else if (remainingTeamsOrPlayers.length === 0) {
        this.setRoomTimeout(() => {
     this.close();
-  }, game_win_rest_time);
+  }, GlobalRoomConfig.game_win_rest_time);
 }
   }
 
@@ -569,7 +569,6 @@ function cloneGrid(original) {
   const clone = new GameGrid(
     original.width * original.cellSize,
     original.height * original.cellSize,
-     120,
   );
 
   clone.nextId = original.nextId;
@@ -689,7 +688,7 @@ function startCountdown(room) {
   const startTime = Date.now();
   room.countdownInterval = setInterval(() => {
     const elapsed = Date.now() - startTime;
-    const remaining = room_max_open_time  - elapsed;
+    const remaining = GlobalRoomConfig.room_max_open_time  - elapsed;
 
     if (remaining <= 0) {
       clearInterval(room.countdownInterval);
@@ -708,7 +707,7 @@ async function startMatch(room, roomId) {
     room.maxopentimeout = room.setRoomTimeout(() => {
       room.close();
       if (room.gamemode !== "training") console.log("Warning: Room time limit reached forced closing on non training countdown mode")
-    }, room_max_open_time);
+    }, GlobalRoomConfig.room_max_open_time);
 
     // Prepare room data and players
     await SetupRoomStartGameData(room);
@@ -744,7 +743,7 @@ async function startMatch(room, roomId) {
       if (room.modifiers.has("AutoHealthRestore")) startRegeneratingHealth(room, 1);
       if (room.modifiers.has("AutoHealthDamage")) startDecreasingHealth(room, 1);
 
-    }, game_start_time); // Delay before game officially starts
+    }, GlobalRoomConfig.game_start_delay); // Delay before game officially starts
 
   }, 1000)
   } catch (err) {
@@ -763,6 +762,3 @@ module.exports = {
   GetRoom,
   startMatch
 };
-
-
-
