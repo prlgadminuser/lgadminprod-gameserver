@@ -12,7 +12,7 @@ async function verifyPlayer(token) {
   try {
 
     const decodedToken = jwt.verify(token, TOKEN_KEY);
-    const username = decodedToken.username;
+    const username = decodedToken
 
     if (!username) {
       throw new Error("Invalid token");
@@ -81,5 +81,6 @@ async function verifyPlayer(token) {
     return false;
   }
 }
+
 
 module.exports = { verifyPlayer }
