@@ -116,7 +116,7 @@ const gamemodeconfig = {
 
     modifiers: new Set([
       //  "UseZone",
-      // AutoHealthRestore,
+       "AutoHealthRestore",
       //"HealingCircles",
       "countdown"
     ]),

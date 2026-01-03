@@ -416,7 +416,7 @@ class Room {
           clearInterval
         );
       }
-    }, 5000);
+    }, 30000);
 
     // Matchmaking timeout
     this.matchmaketimeout = setTimeout(() => {

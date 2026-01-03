@@ -244,6 +244,7 @@ class Player {
       "wall"
     );
 
+
     let newX = this.x + deltaX;
     let newY = this.y + deltaY;
 

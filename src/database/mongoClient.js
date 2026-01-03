@@ -1,7 +1,7 @@
 // src/database/mongoClient.js
 
 const { MongoClient, ServerApiVersion } = require("mongodb");
-const { uri } = require("../../idbconfig");
+const { uri, dbName } = require("../../idbconfig");
 
 
 const mongoClient = new MongoClient(uri, {
@@ -22,14 +22,14 @@ async function connectToMongoDB() {
   }
 }
 
-const db = mongoClient.db("Cluster0");
+
+const db = mongoClient.db(dbName);
 const DBuserCollection = db.collection("users");
 const DBbattlePassCollection = db.collection("battlepass_users");
 const DBshopCollection = db.collection("serverconfig");
 
 module.exports = {
   connectToMongoDB,
-  db,
   DBuserCollection,
   DBbattlePassCollection,
   DBshopCollection,
