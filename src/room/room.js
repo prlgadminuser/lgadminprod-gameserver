@@ -45,7 +45,7 @@ async function GetRoom(ws, gamemode, playerVerified) {
   try {
     const max_length = 16;
     const min_length = 4;
-    const playername = playerVerified.username;
+    const playername = playerVerified.playername;
     const gadgetselected = playerVerified.gadget || 1;
 
 

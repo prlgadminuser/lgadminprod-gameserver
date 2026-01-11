@@ -148,7 +148,7 @@ class Player {
 
     // Spectating
     this.spectating = false;
-    this.spectatingPlayer = playerId;
+    this.spectatingPlayer = userId;
     this.spectateid = 0;
     this.spectatingTarget = null;
     this.spectatingPlayerId = -1;

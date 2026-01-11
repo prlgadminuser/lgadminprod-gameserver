@@ -15,7 +15,7 @@ async function verifyPlayer(token) {
     const decodedToken = jwt.verify(token, TOKEN_KEY);
     const userId = decodedToken
 
-    if (!username) {
+    if (!userId) {
       throw new Error("Invalid token");
     }
 
@@ -43,7 +43,6 @@ async function verifyPlayer(token) {
       {
         projection: {
           "account.username": 1,
-          "account.nickname": 1,
           "equipped.hat": 1,
           "equipped.top": 1,
           "equipped.color": 1,
@@ -55,7 +54,7 @@ async function verifyPlayer(token) {
       }
     );
 
-    if (!user || user._id !== userId) {
+    if (!user) {
       throw new Error("Invalid token or user not found");
     }
 
@@ -64,8 +63,8 @@ async function verifyPlayer(token) {
     }
 
     return {
-      userId: user._id,
-      playername: username,
+      userId: userId,
+      playername: user.account.username,
       hat: user.equipped.hat,
       top: user.equipped.top,
       player_color: user.equipped.color,
@@ -77,7 +76,7 @@ async function verifyPlayer(token) {
     };
 
   } catch (error) {
-   // console.error('Error handling request:', error);
+   console.error('Error handling request:', error);
     return false;
   }
 }

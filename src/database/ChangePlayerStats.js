@@ -19,7 +19,6 @@ async function UpdatePlayerPlace(player, place2, room) {
   }
   player.place_awarded = true;
 
-  const username = player.playerId;
   const place = +place2;
 
   if (isNaN(place) || place < 1 || place > 10) {

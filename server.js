@@ -83,7 +83,7 @@ async function handleUpgrade(request, socket, head, wss) {
 
 function setupWebSocketServer(wss, server) {
   wss.on("connection", async (ws, req) => {
-    let username, player, room;
+    let userId, player, room;
 
     try {
       if (await checkForMaintenance()) {
@@ -101,13 +101,14 @@ function setupWebSocketServer(wss, server) {
         return;
       }
 
+
       const playerVerified = await verifyPlayer(token);
       if (!playerVerified) {
         ws.close(4001, "Invalid token");
         return;
       }
 
-      userId = playerVerified.userId;
+      userId = playerVerified.userId
 
       // Handle existing sessions
       let existingSid = playerLookup.has(userId)
@@ -130,7 +131,8 @@ function setupWebSocketServer(wss, server) {
         }
       }
 
-      if (!DEV_MODE) await addSession(username);
+
+      if (!DEV_MODE) await addSession(userId);
 
       const joinResult = await GetRoom(ws, gamemode, playerVerified);
       if (!joinResult) {
