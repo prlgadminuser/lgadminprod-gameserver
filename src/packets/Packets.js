@@ -101,7 +101,7 @@ function SendPreStartMessage(room) {
       p.player_color,
       p.hat_color,
       p.top_color,
-      p.nickname,
+      p.playername,
       p.starthealth,
     ];
   }

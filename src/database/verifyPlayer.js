@@ -2,6 +2,7 @@
 const TOKEN_KEY = process.env.TOKEN_KEY
 const jwt = require("jsonwebtoken");
 const { DBuserCollection } = require("./mongoClient");
+const { getUserIdPrefix } = require("./utils");
 
 async function verifyPlayer(token) {
 
@@ -12,14 +13,14 @@ async function verifyPlayer(token) {
   try {
 
     const decodedToken = jwt.verify(token, TOKEN_KEY);
-    const username = decodedToken
+    const userId = decodedToken
 
     if (!username) {
       throw new Error("Invalid token");
     }
 
     const BanData = await DBuserCollection.findOne(
-      { "account.token": token },
+      getUserIdPrefix(userId),
       {
         projection: {
           "_id": 0,
@@ -38,10 +39,9 @@ async function verifyPlayer(token) {
 
 
      const user = await DBuserCollection.findOne(
-      { "account.token": token },
+      getUserIdPrefix(userId),
       {
         projection: {
-          "_id": 0,
           "account.username": 1,
           "account.nickname": 1,
           "equipped.hat": 1,
@@ -55,7 +55,7 @@ async function verifyPlayer(token) {
       }
     );
 
-    if (!user || user.account.username !== username) {
+    if (!user || user._id !== userId) {
       throw new Error("Invalid token or user not found");
     }
 
@@ -64,8 +64,8 @@ async function verifyPlayer(token) {
     }
 
     return {
-      playerId: username,
-      nickname: user.account.nickname,
+      userId: user._id,
+      playername: username,
       hat: user.equipped.hat,
       top: user.equipped.top,
       player_color: user.equipped.color,
@@ -81,6 +81,5 @@ async function verifyPlayer(token) {
     return false;
   }
 }
-
 
 module.exports = { verifyPlayer }

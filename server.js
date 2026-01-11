@@ -107,25 +107,25 @@ function setupWebSocketServer(wss, server) {
         return;
       }
 
-      username = playerVerified.playerId;
+      userId = playerVerified.userId;
 
       // Handle existing sessions
-      let existingSid = playerLookup.has(username)
+      let existingSid = playerLookup.has(userId)
         ? SERVER_INSTANCE_ID
-        : await checkExistingSession(username);
+        : await checkExistingSession(userId);
 
       if (existingSid) {
         if (existingSid === SERVER_INSTANCE_ID) {
-          const existingConnection = playerLookup.get(username);
+          const existingConnection = playerLookup.get(userId);
           if (existingConnection) {
             existingConnection.send("code:double");
             existingConnection.wsClose(1001, "Reassigned connection");
-            playerLookup.delete(username);
+            playerLookup.delete(userId);
           }
         } else {
           await redisClient.publish(
             `server:${existingSid}`,
-            JSON.stringify({ type: "disconnect", uid: username })
+            JSON.stringify({ type: "disconnect", uid: userId })
           );
         }
       }
@@ -140,18 +140,18 @@ function setupWebSocketServer(wss, server) {
       }
 
       room = joinResult.room;
-      const playerId = joinResult.playerId;
+      const playerId = userId;
       player = room.players.get(playerId);
 
-      playerLookup.set(username, ws);
+      playerLookup.set(userId, ws);
       playerCount++;
 
       ws.on("message", (message) => handleMessage(room, player, message));
 
       ws.on("close", async () => {
-        playerLookup.delete(username);
+        playerLookup.delete(userId);
         if (player) player.room.removePlayer(player);
-        if (!DEV_MODE) await removeSession(username);
+        if (!DEV_MODE) await removeSession(userId);
         playerCount--;
       });
 

@@ -24,8 +24,8 @@ const yThreshold = 240 * viewmultiplier;
 class Player {
   constructor(ws, playerVerified, room) {
     const {
-      playerId,
-      nickname,
+      userId,
+      playername,
       hat,
       top,
       player_color,
@@ -40,8 +40,8 @@ class Player {
     this.gadgetdata = gadgetconfig[gadgetselected];
     const fallbackloadout = { slot1: "1", slot2: "2", slot3: "3" };
 
-    this.playerId = playerId;
-    this.nickname = nickname.replace(/[:$]/g, "");
+    this.playerId = userId;
+    this.playername = playername.replace(/[:$]/g, "");
     this.hat = hat;
     this.top = top;
     this.player_color = player_color;

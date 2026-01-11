@@ -1,6 +1,7 @@
 
 
 const { DBuserCollection, DBbattlePassCollection, DBshopCollection } = require("./mongoClient");
+const { getUserIdPrefix } = require("./utils");
 
 
 function isRewardNumberInRange(value, min, max) {
@@ -46,7 +47,7 @@ async function UpdatePlayerPlace(player, place2, room) {
 
     if (skillpoints !== 0) {
       await DBuserCollection.updateOne(
-        { "account.username": username },
+        getUserIdPrefix(player.playerId),
         [
           {
             $set: {
@@ -58,7 +59,7 @@ async function UpdatePlayerPlace(player, place2, room) {
     }
 
     await DBbattlePassCollection.updateOne(
-      { username },
+       getUserIdPrefix(player.playerId),
       {
         $inc: {
           ss_coins: season_coins,
@@ -106,7 +107,7 @@ async function UpdatePlayerKillsAndDamage(player) {
   try {
     if (Object.keys(updateObject.$inc).length > 0) {
       const incrementResult = await DBuserCollection.updateOne(
-        { "account.username": username },
+        getUserIdPrefix(player.playerId),
         updateObject,
       );
 
@@ -162,7 +163,6 @@ async function UpdatePlayerWins(player) {
   }
   player.wins_awarded = true;
 
-  const username = player.playerId;
   const wins = 1;
 
   if (isNaN(wins)) {
@@ -171,7 +171,7 @@ async function UpdatePlayerWins(player) {
 
   try {
     await DBuserCollection.updateOne(
-      { "account.username": username },
+      getUserIdPrefix(player.playerId),
       { $inc: { "stats.wins": wins } },
     );
   } catch (error) {
