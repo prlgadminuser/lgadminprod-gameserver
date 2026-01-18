@@ -23,13 +23,13 @@ function HandleAfflictions(room) {
         room.activeAfflictions.splice(i, 1);
         continue;
       }
-       aff.shootingPlayer.HandleSelfBulletsOtherPlayerCollision(aff.target, aff.damage, aff.gunid)
+       aff.shootingPlayer.HandleSelfBulletsOtherPlayerCollision(aff.target, aff.damage, aff.gunid, room)
     } else if (aff.target_type === "player") {
       if (!aff.target.alive) {
         room.activeAfflictions.splice(i, 1);
         continue;
       }
-      aff.shootingPlayer.HandleSelfBulletsOtherPlayerCollision(aff.target, aff.damage, aff.gunid)
+      aff.shootingPlayer.HandleSelfBulletsOtherPlayerCollision(aff.target, aff.damage, aff.gunid, room)
     }
 
     // Schedule next tick

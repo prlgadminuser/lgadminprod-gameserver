@@ -174,8 +174,7 @@ class Player {
 
 
 
-  HandleSelfBulletsOtherPlayerCollision(targetPlayer, damage, gunid) {
-    const room = this.room; // current player's room (the shooter)
+  HandleSelfBulletsOtherPlayerCollision(targetPlayer, damage, gunid, room) {
     const GUN_BULLET_DAMAGE = Math.min(damage, targetPlayer.health);
 
     targetPlayer.health -= GUN_BULLET_DAMAGE;
@@ -203,6 +202,7 @@ class Player {
       targetPlayer.eliminator = this.id;
       targetPlayer.spectatingTarget = this;
       this.kills += 1;
+      room.allplayerkillscount += 1
     }
 
     // ✅ Player eliminated but can respawn

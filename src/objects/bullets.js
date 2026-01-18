@@ -295,7 +295,7 @@ class BulletManager {
               bullet.damageConfig
             );
 
-            bullet.owner.HandleSelfBulletsOtherPlayerCollision(obj, finalDamage, bullet.gunId)
+            bullet.owner.HandleSelfBulletsOtherPlayerCollision(obj, finalDamage, bullet.gunId, this.room)
 
            if (bullet.afflictionConfig) {
             const afflictionConfig = bullet.afflictionConfig

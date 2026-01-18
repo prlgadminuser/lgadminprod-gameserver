@@ -2,7 +2,7 @@
 //const { addRoomToIndex, removeRoomFromIndex } = require("./matchmaking");
 
 const { GlobalRoomConfig } = require("../config/server");
-const { UpdatePlayerKillsAndDamage, UpdatePlayerPlace, UpdatePlayerWins } = require("../database/ChangePlayerStats");
+const { UpdatePlayerKillsAndDamage, UpdatePlayerPlace, UpdatePlayerWins, UpdateEventKills } = require("../database/ChangePlayerStats");
 const { addEntryToKillfeed } = require("../modifiers/killfeed");
 const { BulletManager } = require("../objects/bullets");
 const { Player } = require("../objects/player");
@@ -118,6 +118,7 @@ class Room {
 
 
     // Core room state
+    this.allplayerkillscount = 0
     this.roomId = roomId;
     this.state = "waiting";
     this.sp_level = splevel;
@@ -314,6 +315,9 @@ class Room {
   // Fully close the room
   close() {
     if (this.state === "closed") return;
+
+
+    UpdateEventKills(this.allplayerkillscount)
 
     // Stop timers
     this.clearTimers();

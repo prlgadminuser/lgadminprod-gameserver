@@ -69,10 +69,10 @@ async function UpdatePlayerPlace(player, place2, room) {
       }
     );
   } catch (error) {
-    console.error(
-      "Error updating damage in the database:",
-      JSON.stringify(error)
-    );
+ //   console.error(
+    //  "Error updating damage in the database:",
+    //  JSON.stringify(error)
+    //);
   }
 }
 
@@ -126,21 +126,7 @@ async function UpdatePlayerKillsAndDamage(player) {
             upsert: true,
           }
         );
-      }
-
-      if (
-        (killcount > 0 && incrementResult.modifiedCount > 0) ||
-        incrementResult.upsertedCount > 0
-      ) {
-        // If player's kill count was updated or a new player document was inserted
-        const eventKillUpdate = await DBshopCollection.updateOne(
-          { _id: "eventKillsCounter" },
-          { $inc: { eventKills: killcount } }// Increment the eventKills by the number of kills
-        );
-
-        if (eventKillUpdate.modifiedCount === 0) {
-          return { error: "Failed to update event kill counter" };
-        }
+      
 
         return {
           success: true,
@@ -151,7 +137,7 @@ async function UpdatePlayerKillsAndDamage(player) {
       }
     }
   } catch (error) {
-    console.error("Error updating kills in the database:", error);
+    //console.error("Error updating kills in the database:", error);
     return { error: "Database error" };
   }
 }
@@ -174,7 +160,7 @@ async function UpdatePlayerWins(player) {
       { $inc: { "stats.wins": wins } },
     );
   } catch (error) {
-    console.error("Error updating damage in the database:", error);
+  //  console.error("Error updating damage in the database:", error);
   }
 }
 
@@ -195,7 +181,7 @@ async function checkForMaintenance() {
       maintenanceMode = false;
     }
   } catch (error) {
-    console.error("Error checking maintenance status:", error);
+   // console.error("Error checking maintenance status:", error);
     maintenanceMode = true;
   }
 
@@ -204,9 +190,30 @@ async function checkForMaintenance() {
 
 
 
+
+
+async function UpdateEventKills(killcount) {
+  try {
+    if (isNaN(killcount) || killcount < 1) return;
+    // If player's kill count was updated or a new player document was inserted
+      await DBshopCollection.updateOne(
+      { _id: "eventKillsCounter" },
+      { $inc: { eventKills: killcount } }, // Increment the eventKills by the number of kills
+    );
+  } catch (error) {
+    //console.error("Error updating kills in the database:", error);
+    return { error: "Database error" };
+  }
+}
+
+
+
+
+
 module.exports = {
   UpdatePlayerPlace,
   UpdatePlayerKillsAndDamage,
   UpdatePlayerWins,
-  checkForMaintenance
+  checkForMaintenance,
+  UpdateEventKills
 };
