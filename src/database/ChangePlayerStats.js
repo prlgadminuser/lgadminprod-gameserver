@@ -116,7 +116,7 @@ async function UpdatePlayerKillsAndDamage(player) {
       ) {
         // If player's kill count was updated or a new player document was inserted
         await DBbattlePassCollection.updateOne(
-          { username },
+          getUserIdPrefix(player.playerId),
           {
             $inc: {
               ss_damage: damagecount,
