@@ -49,7 +49,7 @@ async function verifyPlayer(token) {
           "equipped.hat_color": 1,
           "equipped.top_color": 1,
           "stats.sp": 1,
-          "inventory.loadout": 1,
+          "equipped.loadout": 1,
         },
       }
     );
@@ -71,8 +71,8 @@ async function verifyPlayer(token) {
       hat_color: user.equipped.hat_color,
       top_color: user.equipped.top_color,
       skillpoints: user.stats.sp,
-      loadout: user.inventory.loadout,
-      gadget: user.inventory.loadout.gadget
+      loadout: user.equipped.loadout,
+      gadget: user.equipped.loadout.gadget
     };
 
   } catch (error) {
