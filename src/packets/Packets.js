@@ -169,7 +169,7 @@ function SerializePlayerData(p) {
   arr[4] = p.health;
   arr[5] = Number(p.gun);
   arr[6] = Number(p.emote);
-  arr[7] = encodePlayerSpeed(p.speed)
+  //arr[7] = encodePlayerSpeed(p.speed)
   return arr;
 }
 
