@@ -22,7 +22,7 @@ const gunsconfig = {
   //    "CanBounce",
      //"DestroyWalls",
     ]),
-    cooldown: 500,
+    cooldown: 100,
     distance: 300,
     maxexistingtime: 400,
     damage: 12,
@@ -30,17 +30,6 @@ const gunsconfig = {
     height: 7,
     useplayerangle: true,
     bullets: [
-      { angle: 0, speed: 22, delay: 0, offset: 0 },
-      { angle: 0, speed: 18, delay: 70, offset: 10 },
-
-       { angle: 90, speed: 13, delay: 0, offset: 0 },
-       { angle: 0, speed: 13, delay: 0, offset: 0 },
-       { angle: 180, speed: 13, delay: 0, offset: 0 },
-       { angle: -90, speed: 13, delay: 0, offset: 0 },
-       { angle: 45, speed: 13, delay: 0, offset: 0 },
-       { angle: -45, speed: 13, delay: 0, offset: 0 },
-       { angle: -135, speed: 13, delay: 0, offset: 0 },
-       { angle: 135, speed: 13, delay: 0, offset: 0 },
       ...bullets(100, { angle: 45, speed: 13, delay: 0, offset: 0  })
   
     ],
@@ -223,4 +212,5 @@ module.exports = {
   gunskeys: Object.keys(gunsconfig)
 
 };
+
 
