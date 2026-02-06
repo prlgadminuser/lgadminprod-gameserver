@@ -30,8 +30,9 @@ const gunsconfig = {
     height: 7,
     useplayerangle: true,
     bullets: [
-      ...bullets(100, { angle: 45, speed: 13, delay: 0, offset: 0  })
-  
+    
+  { angle: -5, speed: 18, delay: 0, offset: 0 },
+      { angle: 0, speed: 18, delay: 0, offset: 0 },
     ],
     damageconfig: [
       { threshold: 35, damageMultiplier: 1 },
@@ -39,7 +40,7 @@ const gunsconfig = {
       { threshold: 100, damageMultiplier: 0.25 },
     ],
   },
-
+as
   2: {
     // Default Shotgun
     modifiers: new Set([
@@ -212,5 +213,6 @@ module.exports = {
   gunskeys: Object.keys(gunsconfig)
 
 };
+
 
 
