@@ -40,7 +40,7 @@ const gunsconfig = {
       { threshold: 100, damageMultiplier: 0.25 },
     ],
   },
-as
+    
   2: {
     // Default Shotgun
     modifiers: new Set([
@@ -213,6 +213,7 @@ module.exports = {
   gunskeys: Object.keys(gunsconfig)
 
 };
+
 
 
 
