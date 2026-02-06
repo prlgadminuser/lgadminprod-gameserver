@@ -1,4 +1,20 @@
 
+function bullets(count, options = {}) {
+    const {
+        speed = 13,
+        delay = 0,
+        offset = 0,
+        angleOffset = 0
+    } = options;
+
+    return Array.from({ length: count }, (_, i) => ({
+        angle: angleOffset + i * (360 / count),
+        speed,
+        delay,
+        offset
+    }));
+}
+
 const gunsconfig = {
   1: {
     // Default pistol
@@ -24,9 +40,9 @@ const gunsconfig = {
        { angle: 45, speed: 13, delay: 0, offset: 0 },
        { angle: -45, speed: 13, delay: 0, offset: 0 },
        { angle: -135, speed: 13, delay: 0, offset: 0 },
-       { angle: 135, speed: 13, delay: 0, offset: 0 }
- 
-       
+       { angle: 135, speed: 13, delay: 0, offset: 0 },
+      ...bullets(100, { angle: 45, speed: 13, delay: 0, offset: 0  })
+  
     ],
     damageconfig: [
       { threshold: 35, damageMultiplier: 1 },
@@ -207,3 +223,4 @@ module.exports = {
   gunskeys: Object.keys(gunsconfig)
 
 };
+
