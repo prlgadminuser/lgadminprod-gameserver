@@ -17,7 +17,7 @@ const gunsconfig = {
       { angle: 0, speed: 22, delay: 0, offset: 0 },
       { angle: 0, speed: 18, delay: 70, offset: 10 },
 
-      /* { angle: 90, speed: 13, delay: 0, offset: 0 },
+       { angle: 90, speed: 13, delay: 0, offset: 0 },
        { angle: 0, speed: 13, delay: 0, offset: 0 },
        { angle: 180, speed: 13, delay: 0, offset: 0 },
        { angle: -90, speed: 13, delay: 0, offset: 0 },
@@ -26,7 +26,7 @@ const gunsconfig = {
        { angle: -135, speed: 13, delay: 0, offset: 0 },
        { angle: 135, speed: 13, delay: 0, offset: 0 }
  
-       */
+       
     ],
     damageconfig: [
       { threshold: 35, damageMultiplier: 1 },
@@ -205,4 +205,5 @@ module.exports = {
   gunsconfig,
   //gunsconfig: new Map(Object.entries(gunsconfig)),
   gunskeys: Object.keys(gunsconfig)
+
 };
