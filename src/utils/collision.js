@@ -14,6 +14,13 @@ function isCollisionWithCachedWalls(walls, x, y) {
   const yMax = y + playerhitbox.yMax;
 
   for (const wall of walls) {
+
+    if (wall.walkable === true) {
+
+      continue;
+    
+    }
+
     const halfWidth = wall.width / 2;
     const halfHeight = wall.height / 2;
     const wallhitboxtype = wall.hitboxtype ? wall.hitboxtype : "rect"

@@ -141,6 +141,9 @@ class Room {
 
     // Bullets + status
     this.bullets = new Map();
+    this.bulletUpdateTick = 1;
+
+
     this.activeAfflictions = [];
 
     // Game configuration

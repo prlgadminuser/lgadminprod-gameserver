@@ -112,10 +112,10 @@ const gamemodeconfig = {
     respawns_allowed: 1,
 
     playerhealth: 50,
-    playerspeed: 2.4,
+    playerspeed: 2,
 
     modifiers: new Set([
-      //  "UseZone",
+       "UseZone",
        "AutoHealthRestore",
       //"HealingCircles",
       "countdown"

@@ -8,7 +8,7 @@ const { AddNewUnseenObject } = require("../utils/game");
 const playerWidth = playerhitbox.width;
 const playerHeight = playerhitbox.height;
 
-const halfBlockSize = 40;
+const halfBlockSize = 30;
 
 function adjustBulletDirection(bullet, wall) {
   const bulletVector = Vec2.fromAngle(bullet.direction - 90); // current velocity vector
@@ -204,11 +204,20 @@ class BulletManager {
     this.processScheduledBullets();
     const toRemove = [];
 
+ // if (this.room.bulletUpdateTick ==! 2) { 
+  //  this.room.bulletUpdateTick++
+ //   return
+ // }
+
+  //this.room.bulletUpdateTick = 0
+
     for (const [id, bullet] of this.bullets.entries()) {
       if (!bullet || !bullet.alive || bullet.isExpired()) {
         toRemove.push(id);
         continue;
       }
+
+      
 
       const nextPos = bullet.nextPosition();
       bullet.position = nextPos;
@@ -430,8 +439,8 @@ function DestroyWall(wall, room) {
     id: wall.gid,
     x: wall.x,
     y: wall.y,
-    sendx: wall.x / 10,
-    sendy: wall.y / 10,
+    sendx: wall.x,
+    sendy: wall.y,
   }; // id for wall removal object: 1
   AddNewUnseenObject(room, obj);
 }

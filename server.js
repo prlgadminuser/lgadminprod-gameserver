@@ -136,7 +136,7 @@ function setupWebSocketServer(wss, server) {
 
       const joinResult = await GetRoom(ws, gamemode, playerVerified);
       if (!joinResult) {
-        if (!DEV_MODE) await removeSession(username);
+        if (!DEV_MODE) await removeSession(userId);
         ws.close(4001, "Invalid token or room full");
         return;
       }

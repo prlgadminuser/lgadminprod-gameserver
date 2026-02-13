@@ -1,4 +1,3 @@
-
 const { gadgetconfig } = require("../config/gadgets");
 const { playerhitbox } = require("../config/player");
 const { PlayerRateLimiter } = require("../config/server");
@@ -63,9 +62,10 @@ class Player {
     this.finalrewards_awarded = false;
     this.respawns = room.respawns;
     this.emote = 0;
-    this.seenObjectsIds = new Set(),
-    this.lastNearbyObjects = new Set(),
-    this.ticksSinceLastChunkUpdate = 100; // make number high so first chunk update occurs immediately
+    ((this.seenObjectsIds = new Set()),
+      (this.lastNearbyObjects = new Set()),
+      (this.ticksSinceLastChunkUpdate = 100)); // make number high so first chunk update occurs immediately
+    this.TickSinceLastNearby = 20;
 
     this._lastSerializedHash = 0;
     this.dirty = true;
@@ -154,25 +154,23 @@ class Player {
     this.spectatingPlayerId = -1;
 
     // Final rewards
-    (this.finalrewards = []), (this.room = room);
+    ((this.finalrewards = []), (this.room = room));
     this.UseStartRespawnPoint = false;
   }
 
   IsEliminationAllowed() {
-    return this.health <= 0 && this.respawns <= 0 && this.room.state === "playing";
+    return (
+      this.health <= 0 && this.respawns <= 0 && this.room.state === "playing"
+    );
   }
 
-
   GiveAssistElimination(targetPlayer) {
-
     const elimType = 1;
     const ElimMessage = [elimType, targetPlayer.id];
     this.eliminations.push(ElimMessage);
-   
-   this.kills += 1;
+
+    this.kills += 1;
   }
-
-
 
   HandleSelfBulletsOtherPlayerCollision(targetPlayer, damage, gunid, room) {
     const GUN_BULLET_DAMAGE = Math.min(damage, targetPlayer.health);
@@ -182,7 +180,7 @@ class Player {
     targetPlayer.last_hit_time = Date.now();
     targetPlayer.last_hitter = this; // Track who last hit the player
 
-    createHitmarker(targetPlayer, this, GUN_BULLET_DAMAGE)
+    createHitmarker(targetPlayer, this, GUN_BULLET_DAMAGE);
 
     const teamActivePlayers = TeamPlayersActive(room, targetPlayer);
 
@@ -202,7 +200,7 @@ class Player {
       targetPlayer.eliminator = this.id;
       targetPlayer.spectatingTarget = this;
       this.kills += 1;
-      room.allplayerkillscount += 1
+      room.allplayerkillscount += 1;
     }
 
     // ✅ Player eliminated but can respawn
@@ -220,11 +218,9 @@ class Player {
     }
   }
 
-
-
   update() {
     // HANDLE MOVEMENT
-    if (!this.moving) return
+    if (!this.moving) return;
 
     const dir = this.direction - 90;
     const vec = DIRECTION_VECTORS[dir];
@@ -241,9 +237,8 @@ class Player {
       this.x + hitboxXMax,
       this.y - hitboxYMin,
       this.y + hitboxYMax,
-      "wall"
+      "wall",
     );
-
 
     let newX = this.x + deltaX;
     let newY = this.y + deltaY;
@@ -256,17 +251,18 @@ class Player {
     newX = Math.max(-mapWidth, Math.min(mapWidth, newX));
     newY = Math.max(-mapHeight, Math.min(mapHeight, newY));
     // Clean rounding — no floating drift
-    this.x = newX
-    this.y = newY
+    this.x = newX;
+    this.y = newY;
     //console.log(encodePosition(x) - encodePosition(player.x))
 
     this.room.grid.updateObject(this, this.x, this.y);
-  
-}
+  }
 
   updateView() {
+    this.ticksSinceLastChunkUpdate++;
+    const shouldUpdateChunks = this.ticksSinceLastChunkUpdate > 4;
     // this.ticksSinceLastChunkUpdate++
-  //  if (this.ticksSinceLastChunkUpdate > 5) {
+    //  if (this.ticksSinceLastChunkUpdate > 5) {
     //  this.ticksSinceLastChunkUpdate = 0;
 
     const centerX = this.x;
@@ -284,7 +280,7 @@ class Player {
       yMin,
       yMax,
       null,
-      false
+      false,
     );
 
     const otherPlayers = [];
@@ -293,40 +289,62 @@ class Player {
     const staticObjects = [];
     const RealtimeObjects = [];
 
-    for (const obj of nearbyObjects) {
-      switch (obj.type) {
-        case "player":
-          otherPlayers.push(obj);
-          otherPlayersIds.push(obj.id);
+    if (shouldUpdateChunks) {
+      this.ticksSinceLastChunkUpdate = 0;
 
-          break;
 
-        case "bullet":
-          nearbyBullets.push(obj);
+      for (const obj of nearbyObjects) {
+        switch (obj.type) {
+          case "player":
+            otherPlayers.push(obj);
+            otherPlayersIds.push(obj.id);
 
-          break;
+            break;
 
-        case "static_obj":
-          // --- track "first-time seen" static objects ---
-          if (!this.seenObjectsIds.has(obj.id)) {
-            this.seenObjectsIds.add(obj.id);
-            staticObjects.push([1, obj.sendx, obj.sendy]);
+          case "bullet":
+            nearbyBullets.push(obj);
+
+            break;
+
+          case "static_obj":
+            // --- track "first-time seen" static objects ---
+            if (!this.seenObjectsIds.has(obj.id)) {
+              this.seenObjectsIds.add(obj.id);
+              staticObjects.push([1, obj.sendx, obj.sendy]);
+            }
+            break;
+
+          case "realtime_obj":
+            // --- track other realtime spawns not seen in last tick ---
+            if (!this.lastNearbyObjects.has(obj.id)) {
+              RealtimeObjects.push([
+                obj.id,
+                obj.type,
+                obj.x,
+                obj.y,
+                obj.hp,
+                obj.rotation,
+              ]);
+            }
+
+            break;
           }
-          break;
+        }
+        
+        } else {
+      for (const obj of nearbyObjects) {
+        switch (obj.type) {
+          case "player":
+            otherPlayers.push(obj);
+            otherPlayersIds.push(obj.id);
 
-        case "realtime_obj":
-          // --- track other realtime spawns not seen in last tick ---
-          if (!this.lastNearbyObjects.has(obj.id)) {
-            RealtimeObjects.push([
-              obj.id,
-              obj.type,
-              obj.x,
-              obj.y,
-              obj.hp,
-              obj.rotation,
-            ]);
-          }
-          break;
+            break;
+
+          case "bullet":
+            nearbyBullets.push(obj);
+
+            break;
+        }
       }
     }
 
@@ -334,12 +352,14 @@ class Player {
     this.nearbyplayersids = otherPlayersIds;
     this.nearbyplayers = otherPlayers;
     this.nearbybullets = nearbyBullets;
-    this.newSeenObjectsStatic = staticObjects.length
-      ? staticObjects
-      : undefined;
-    this.newSeenRealtimeObjects = RealtimeObjects.length
-      ? RealtimeObjects
-      : undefined;
+
+      this.newSeenObjectsStatic = staticObjects.length
+          ? staticObjects
+          : undefined;
+        this.newSeenRealtimeObjects = RealtimeObjects.length
+          ? RealtimeObjects
+          : undefined;
+      
 
     const bullets = nearbyBullets;
     let finalBullets = this.bulletBuffer;
@@ -355,19 +375,18 @@ class Player {
           finalBullets.push([bullet.id]);
         } else {
           finalBullets.push([
-          bullet.id,
-          Math.round(bullet.position.x),
-          Math.round(bullet.position.y),
-          Math.round(bullet.direction),
-          bullet.gunId,
-          bullet.effect,
-          bullet.speed,
+            bullet.id,
+            Math.round(bullet.position.x),
+            Math.round(bullet.position.y),
+            Math.round(bullet.direction),
+            bullet.gunId,
+            bullet.effect,
+            bullet.speed,
           ]);
         }
         newLastBulletIds.add(bullet.id);
       }
     }
-  
 
     this.finalbullets = finalBullets.length ? finalBullets : undefined;
     this.lastfinalbulletsSet = newLastBulletIds;
@@ -381,7 +400,6 @@ class Player {
       console.error("Player not found or cannot use gadget");
     }
   }
-
 
   eliminate() {
     if (this.room.state !== "playing" || this.room.winner !== -1) return;
@@ -426,7 +444,7 @@ class Player {
     } else {
       // SOLO MODE ELIMINATION
       const eliminatedCount = [...this.room.players.values()].filter(
-        (p) => p.eliminated // TODO CACHED VERSION
+        (p) => p.eliminated, // TODO CACHED VERSION
       ).length;
       const playerPlace = this.room.players.size - eliminatedCount + 1;
       this.place = playerPlace;
@@ -435,7 +453,6 @@ class Player {
 
     // Final check for a winner or end-of-game condition.
   }
-  
 
   respawn() {
     spawnAnimation(this.room, this, "respawning");

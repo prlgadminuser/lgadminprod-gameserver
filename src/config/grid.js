@@ -2,7 +2,7 @@
 const allow_cell_coverage = true
 
 class GameGrid {
-  constructor(width, height, cellSize = 40) {
+  constructor(width, height, cellSize = 30) {
     this.cellSize = cellSize;
     this.width = Math.floor(width / cellSize);
     this.height = Math.floor(height / cellSize);

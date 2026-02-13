@@ -15,14 +15,17 @@ function bullets(count, options = {}) {
     }));
 }
 
+  // ...bullets(100, { angle: 45, speed: 13, delay: 0, offset: 0  })
+
+
 const gunsconfig = {
   1: {
     // Default pistol
     modifiers: new Set([
   //    "CanBounce",
-     //"DestroyWalls",
+     "DestroyWalls",
     ]),
-    cooldown: 100,
+    cooldown: 500,
     distance: 300,
     maxexistingtime: 400,
     damage: 12,
@@ -30,9 +33,19 @@ const gunsconfig = {
     height: 7,
     useplayerangle: true,
     bullets: [
-    
-  { angle: -5, speed: 18, delay: 0, offset: 0 },
-      { angle: 0, speed: 18, delay: 0, offset: 0 },
+      { angle: 0, speed: 22, delay: 0, offset: 0 },
+      { angle: 0, speed: 18, delay: 70, offset: 10 },
+
+      /* { angle: 90, speed: 13, delay: 0, offset: 0 },
+       { angle: 0, speed: 13, delay: 0, offset: 0 },
+       { angle: 180, speed: 13, delay: 0, offset: 0 },
+       { angle: -90, speed: 13, delay: 0, offset: 0 },
+       { angle: 45, speed: 13, delay: 0, offset: 0 },
+       { angle: -45, speed: 13, delay: 0, offset: 0 },
+       { angle: -135, speed: 13, delay: 0, offset: 0 },
+       { angle: 135, speed: 13, delay: 0, offset: 0 }
+ 
+       */
     ],
     damageconfig: [
       { threshold: 35, damageMultiplier: 1 },
@@ -40,7 +53,7 @@ const gunsconfig = {
       { threshold: 100, damageMultiplier: 0.25 },
     ],
   },
-    
+
   2: {
     // Default Shotgun
     modifiers: new Set([
@@ -211,9 +224,4 @@ module.exports = {
   gunsconfig,
   //gunsconfig: new Map(Object.entries(gunsconfig)),
   gunskeys: Object.keys(gunsconfig)
-
 };
-
-
-
-

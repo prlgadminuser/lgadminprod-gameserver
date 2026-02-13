@@ -200,7 +200,20 @@ function preparePlayerPackets(room) {
   }
 
   const aliveCount = players.reduce((c, p) => c + !p.eliminated, 0); // TODO
-  room.bulletManager.update();
+ room.bulletManager.update(); 
+ 
+
+//console.log(room.bulletUpdateTick)
+
+  //if (room.bulletUpdateTick === 2) { 
+   // room.bulletManager.update(); 
+ //  room.bulletUpdateTick = 0
+ // }
+
+  //room.bulletUpdateTick++
+
+
+
   HandleAfflictions(room);
   
   for (const player of players) {

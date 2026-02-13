@@ -18,8 +18,8 @@ let mapsconfig = {
     },
 
    training: {
-      walls: [{"x":220,"y":-140,"type":3},{"x":-220,"y":140,"type":3},{"x":-220,"y":-140,"type":3},{"x":220,"y":140,"type":3},{"x":180,"y":-140,"type":3},{"x":-180,"y":140,"type":3},{"x":-180,"y":-140,"type":3},{"x":180,"y":140,"type":3},{"x":260,"y":-140,"type":3},{"x":-260,"y":140,"type":3},{"x":-260,"y":-140,"type":3},{"x":260,"y":140,"type":3},{"x":300,"y":-180,"type":3},{"x":-300,"y":180,"type":3},{"x":-300,"y":-180,"type":3},{"x":300,"y":180,"type":3},{"x":140,"y":-180,"type":3},{"x":-140,"y":180,"type":3},{"x":-140,"y":-180,"type":3},{"x":140,"y":180,"type":3},{"x":20,"y":-180,"type":3},{"x":-20,"y":180,"type":3},{"x":-20,"y":-180,"type":3},{"x":20,"y":180,"type":3}],
-      width: 400,
+    walls: [{"x":135,"y":-45,"type":"3","walkable":"false","effect":"value"},{"x":135,"y":-75,"type":"3","walkable":"false","effect":"value"},{"x":105,"y":-105,"type":"3","walkable":"false","effect":"value"},{"x":45,"y":-105,"type":"3","walkable":"false","effect":"value"},{"x":-15,"y":-135,"type":"3","walkable":"false","effect":"value"},{"x":-75,"y":-165,"type":"3","walkable":"false","effect":"value"},{"x":-105,"y":-165,"type":"3","walkable":"false","effect":"value"},{"x":-165,"y":-105,"type":"3","walkable":"true","effect":"value"},{"x":-165,"y":-45,"type":"3","walkable":"false","effect":"value"},{"x":-135,"y":-15,"type":"3","walkable":"false","effect":"value"},{"x":135,"y":-15,"type":"3","walkable":"false","effect":"value"},{"x":165,"y":-15,"type":"3","walkable":"false","effect":"value"},{"x":165,"y":15,"type":"3","walkable":"false","effect":"value"},{"x":165,"y":45,"type":"3","walkable":"false","effect":"value"},{"x":135,"y":15,"type":"3","walkable":"false","effect":"value"},{"x":135,"y":45,"type":"3","walkable":"false","effect":"value"},{"x":225,"y":15,"type":"3","walkable":"false","effect":"value"},{"x":195,"y":-45,"type":"3","walkable":"false","effect":"value"},{"x":195,"y":-15,"type":"3","walkable":"false","effect":"value"},{"x":225,"y":-15,"type":"3","walkable":"false","effect":"value"},{"x":225,"y":-45,"type":"3","walkable":"false","effect":"value"},{"x":225,"y":-75,"type":"3","walkable":"false","effect":"value"},{"x":195,"y":-75,"type":"3","walkable":"false","effect":"value"},{"x":165,"y":-75,"type":"3","walkable":"false","effect":"value"},{"x":165,"y":-45,"type":"3","walkable":"false","effect":"value"},{"x":165,"y":-105,"type":"3","walkable":"false","effect":"value"},{"x":195,"y":-105,"type":"3","walkable":"false","effect":"value"},{"x":225,"y":-105,"type":"3","walkable":"false","effect":"value"}]
+    , width: 400,
       height: 500,
       spawns: [
         {"x":-0,"y":0},
@@ -99,8 +99,9 @@ let mapsconfig = {
       id: `wall_${index}`, 
       type: "wall",
     //  hitboxtype: "circle",
-      width: 40,
-      height: 40,
+      width: 30,
+      height: 30,
+      walkable: wall.walkable === "true",
     };
     grid.addObject(wallWithId);
   });
