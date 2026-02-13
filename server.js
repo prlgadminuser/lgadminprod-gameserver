@@ -111,7 +111,7 @@ function setupWebSocketServer(wss, server) {
 
       userId = playerVerified.userId
 
-      console.log(userId)
+    //  console.log(userId)
 
       // Handle existing sessions
       let existingSid = playerLookup.has(userId)

@@ -103,7 +103,7 @@ let mapsconfig = {
       height: 30,
       walkable: wall.walkable === "true",
     };
-    grid.addObject(wallWithId);
+   if (!wallWithId.walkable) grid.addObject(wallWithId);
   });
   map.grid = grid;
 });

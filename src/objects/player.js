@@ -1,6 +1,6 @@
 const { gadgetconfig } = require("../config/gadgets");
 const { playerhitbox } = require("../config/player");
-const { PlayerRateLimiter } = require("../config/server");
+const { PlayerRateLimiter, GlobalRoomConfig } = require("../config/server");
 const { UpdatePlayerPlace } = require("../database/ChangePlayerStats");
 const { spawnAnimation } = require("../modifiers/animations");
 const { addEntryToKillfeed } = require("../modifiers/killfeed");
@@ -381,9 +381,12 @@ class Player {
             Math.round(bullet.direction),
             bullet.gunId,
             bullet.effect,
-            bullet.speed,
+            bullet.speed_client
+            
+            /// (GlobalRoomConfig.room_tick_rate_ms / GlobalRoomConfig.bullet_updates_per_tick),
           ]);
         }
+
         newLastBulletIds.add(bullet.id);
       }
     }

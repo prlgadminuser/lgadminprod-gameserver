@@ -15,11 +15,11 @@ function isCollisionWithCachedWalls(walls, x, y) {
 
   for (const wall of walls) {
 
-    if (wall.walkable === true) {
+   // if (wall.walkable === true) {
 
-      continue;
+    //  continue;
     
-    }
+   // }
 
     const halfWidth = wall.width / 2;
     const halfHeight = wall.height / 2;

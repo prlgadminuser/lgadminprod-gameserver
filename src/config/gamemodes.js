@@ -57,11 +57,11 @@ const gamemodeconfig = {
     can_hit_dummies: false,
     can_hit_players: true,
 
-    maxplayers: 12,
+    maxplayers: 6,
     teamsize: 1,
     respawns_allowed: 0,
 
-    playerhealth: 10000,
+    playerhealth: 100,
     playerspeed: 2.4,
 
     modifiers: new Set(["UseZone", "AutoHealthRestore"]),
@@ -77,7 +77,7 @@ const gamemodeconfig = {
     skillpoints_rewardRange: [10, -5], 
     seasoncoins_rewardRange: [30, 5],
 
-    custom_map: "training",
+    custom_map: "prism_party",
   },
 
 
@@ -112,7 +112,7 @@ const gamemodeconfig = {
     respawns_allowed: 1,
 
     playerhealth: 50,
-    playerspeed: 20,
+    playerspeed: 2,
 
     modifiers: new Set([
        "UseZone",
@@ -191,7 +191,3 @@ module.exports = {
   gamemodeconfig: new Map(Object.entries(gamemodeconfig)),
   allowed_gamemodes,
 };
-
-
-
-

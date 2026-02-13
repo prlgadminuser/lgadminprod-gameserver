@@ -147,4 +147,5 @@ module.exports = {
   addSession,
   removeSession,
   checkExistingSession,
+  kickPlayerNewConnection
 };

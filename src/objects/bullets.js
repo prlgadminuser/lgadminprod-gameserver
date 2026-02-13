@@ -2,6 +2,7 @@
 
 const { gunsconfig } = require("../config/guns");
 const { playerhitbox } = require("../config/player");
+const { GlobalRoomConfig } = require("../config/server");
 const { isCollisionWithPlayer, getCollidedWallsWithBullet } = require("../utils/collision");
 const { AddNewUnseenObject } = require("../utils/game");
 
@@ -9,6 +10,8 @@ const playerWidth = playerhitbox.width;
 const playerHeight = playerhitbox.height;
 
 const halfBlockSize = 30;
+
+
 
 function adjustBulletDirection(bullet, wall) {
   const bulletVector = Vec2.fromAngle(bullet.direction - 90); // current velocity vector
@@ -98,6 +101,8 @@ class Bullet {
     gunId,
     modifiers,
     owner,
+    speed_client,
+    updates_per_tick
   }) {
     this.id = id;
     this.position = position; // Vec2
@@ -117,6 +122,9 @@ class Bullet {
     this.alive = true;
     this.new = true;
     this.effect = 1; // firing effect at spawn
+
+    this.speed_client = speed_client,
+    this.updates_per_tick = updates_per_tick
   }
 
   nextPosition() {
@@ -146,6 +154,7 @@ class BulletManager {
     this.bullets = room.bullets; // id => Bullet
     this.scheduledBullets = [];
     this.nextBulletId = 1;
+    this.bulletUpdatesTick = 0
   }
 
   generateBulletId() {
@@ -188,11 +197,15 @@ class BulletManager {
       gunId: bulletData.gunid,
       modifiers: bulletData.modifiers,
       owner: player,
+      
+      speed_client: bulletData.speed_client,
+      updates_per_tick: bulletData.updates_per_tick
     });
 
     bullet.x = initialPosition.x;
     bullet.y = initialPosition.y;
     bullet.type = "bullet";
+    bullet.updateTicks = 0
 
     this.bullets.set(id, bullet);
     this.room.grid.addObject(bullet);
@@ -211,13 +224,19 @@ class BulletManager {
 
   //this.room.bulletUpdateTick = 0
 
+
     for (const [id, bullet] of this.bullets.entries()) {
       if (!bullet || !bullet.alive || bullet.isExpired()) {
         toRemove.push(id);
         continue;
       }
 
-      
+
+    bullet.updateTicks++
+
+ if (bullet.updateTicks > (GlobalRoomConfig.ticks_per_second / bullet.updates_per_tick) - 1) {
+    bullet.updateTicks = 0;
+
 
       const nextPos = bullet.nextPosition();
       bullet.position = nextPos;
@@ -369,6 +388,7 @@ class BulletManager {
       this.killBullet(id);
     }
   }
+}
 
   killBullet(bulletId) {
     const bullet = this.bullets.get(bulletId);
@@ -480,11 +500,20 @@ function handleBulletFired(room, player, gunType) {
 
   // For each bullet config, fire respecting its own delay
 
+
   for (const bulletConfig of gun.bullets) {
+
+    const UpdatesBetweenTicks = Math.min(40, Math.round(bulletConfig.speed * 2)); // calculate an optimal tick rate slower bullets typically need less updates
+
+  //  console.log(bulletConfig.speed * (GlobalRoomConfig.ticks_per_second / UpdatesBetweenTicks))
+
     room.bulletManager.scheduleBullet(
       player,
       {
+
         speed: Math.round(bulletConfig.speed),
+        speed_client: Math.round(bulletConfig.speed * (GlobalRoomConfig.ticks_per_second / UpdatesBetweenTicks)),
+        updates_per_tick: UpdatesBetweenTicks,
         offset: bulletConfig.offset,
         damage: gun.damage,
         angle: gun.useplayerangle
