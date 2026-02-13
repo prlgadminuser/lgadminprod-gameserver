@@ -24,6 +24,7 @@ const {
   checkExistingSession,
   redisClient,
   startHeartbeat,
+  kickPlayerNewConnection,
 } = require("./src/database/redisClient");
 
 const { handleMessage } = require("./src/packets/HandleMessage");
@@ -120,7 +121,7 @@ function setupWebSocketServer(wss, server) {
           const existingConnection = playerLookup.get(userId);
           if (existingConnection) {
             existingConnection.send("code:double");
-            existingConnection.wsClose(1001, "Reassigned connection");
+            kickPlayerNewConnection(userId);
             playerLookup.delete(userId);
           }
         } else {
