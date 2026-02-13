@@ -111,6 +111,8 @@ function setupWebSocketServer(wss, server) {
 
       userId = playerVerified.userId
 
+      console.log(userId)
+
       // Handle existing sessions
       let existingSid = playerLookup.has(userId)
         ? SERVER_INSTANCE_ID
@@ -121,7 +123,7 @@ function setupWebSocketServer(wss, server) {
           const existingConnection = playerLookup.get(userId);
           if (existingConnection) {
             existingConnection.send("code:double");
-            kickPlayerNewConnection(userId);
+            existingConnection.wsClose(4009, "Reasigned Connection");
             playerLookup.delete(userId);
           }
         } else {
