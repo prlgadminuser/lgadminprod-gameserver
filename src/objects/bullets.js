@@ -383,11 +383,12 @@ class BulletManager {
 
       bullet.new = false;
     }
+  }
 
     for (const id of toRemove) {
       this.killBullet(id);
     }
-  }
+  
 }
 
   killBullet(bulletId) {
