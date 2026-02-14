@@ -4,7 +4,6 @@ const { playerchunkrenderer } = require("../PlayerLogic/playerchunks");
 const { handleSpectatorMode } = require("../PlayerLogic/spectating");
 const { encodePosition, encodePlayerSpeed } = require("../utils/game");
 const { arraysEqual } = require("../utils/hash");
-const { handlePlayerMoveIntervalAll } = require("./HandleMessage");
 const { HandleAfflictions } = require("../objects/bullets-effects");
 
 
@@ -200,27 +199,19 @@ function preparePlayerPackets(room) {
   }
 
   const aliveCount = players.reduce((c, p) => c + !p.eliminated, 0); // TODO
- room.bulletManager.update(); 
- 
-
-//console.log(room.bulletUpdateTick)
-
-  //if (room.bulletUpdateTick === 2) { 
-   // room.bulletManager.update(); 
- //  room.bulletUpdateTick = 0
- // }
-
-  //room.bulletUpdateTick++
-
-
-
+  room.bulletManager.update(); 
   HandleAfflictions(room);
   
   for (const player of players) {
-   player.updateView()
+
+  if (player.moving && player.alive) player.update() 
+
+    player.updateView()
+    
   }
 
-  handlePlayerMoveIntervalAll(room);
+
+
 
   // ROOM DATA
   const roomdata = [

@@ -6,7 +6,7 @@ const { playerhitbox } = require("../config/player");
 const { TeamPlayersActive } = require("../teamhandler/aliveteam");
 
 
-const RandomZone = false
+const RandomZone = true
 
 const PLAYER_WIDTH = playerhitbox.zonewidth
 const PLAYER_HEIGHT = playerhitbox.zoneheight
@@ -146,8 +146,8 @@ function UseZone(room) {
     { targetSize: room.mapHeight * 2, waitTime: 20000, shrinkTime: 24000, damage: 2 },
     { targetSize: room.mapHeight * 1.3, waitTime: 20000, shrinkTime: 50000, damage: 5 },
     { targetSize: room.mapHeight * 0.6, waitTime: 20000, shrinkTime: 50000, damage: 8 },
-    { targetSize: room.mapHeight * 0.4, waitTime: 20000, shrinkTime: 50000, damage: 8 },
-    { targetSize: 0, waitTime: 20000, shrinkTime: 5000, damage: 10 }
+    { targetSize: room.mapHeight * 0.4, waitTime: 20000, shrinkTime: 50000, damage: 12 },
+    { targetSize: 0, waitTime: 20000, shrinkTime: 5000, damage: 15 }
   ];
 
   let prevZone = baseZone;

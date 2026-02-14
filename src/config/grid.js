@@ -59,9 +59,11 @@ class GameGrid {
     this.objects.set(obj.gid, obj);
 
     // Put into walls or normal grid
-    const targetGrid = obj.type === "wall" ? this.wallGrid : this.grid;
 
-   // const cells = this.getCellsForObject(obj);
+     // const cells = this.getCellsForObject(obj);
+
+
+    const targetGrid = obj.type === "wall" ? this.wallGrid : this.grid;
 
    // for (const key of cells) {
     if (!targetGrid.has(key)) targetGrid.set(key, new Set());

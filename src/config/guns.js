@@ -7,12 +7,17 @@ function bullets(count, options = {}) {
         angleOffset = 0
     } = options;
 
-    return Array.from({ length: count }, (_, i) => ({
+    return Array.from({ length: count }, (_, i)  => (
+      
+      {
+      
         angle: angleOffset + i * (360 / count),
         speed,
         delay,
         offset
     }));
+
+
 }
 
   // ...bullets(100, { angle: 45, speed: 13, delay: 0, offset: 0  })
@@ -27,14 +32,14 @@ const gunsconfig = {
     ]),
     cooldown: 500,
     distance: 300,
-    maxexistingtime: 400,
-    damage: 12,
+    maxexistingtime: 1600,
+    damage: 20,
     width: 25,
     height: 7,
     useplayerangle: true,
     bullets: [
-      { angle: 0, speed: 22, delay: 0, offset: 0 },
-      { angle: 0, speed: 18, delay: 70, offset: 10 },
+      { angle: 0, speed: 20, delay: 0, offset: 0 },
+     // { angle: 0, speed: 18, delay: 70, offset: 10 },
 
       /* { angle: 90, speed: 13, delay: 0, offset: 0 },
        { angle: 0, speed: 13, delay: 0, offset: 0 },
@@ -67,12 +72,6 @@ const gunsconfig = {
     width: 27,
     height: 6,
     useplayerangle: true,
-
-    afflictionConfig: {
-     damage: 3,
-     waitTime: 2000,
-     activeTime: 7000,   
-    },
     //can_bullets_bounce: false,
     bullets: [
       { angle: -5, speed: 18, delay: 0, offset: 0 },
@@ -230,5 +229,4 @@ module.exports = {
   gunsconfig,
   //gunsconfig: new Map(Object.entries(gunsconfig)),
   gunskeys: Object.keys(gunsconfig)
-
 };

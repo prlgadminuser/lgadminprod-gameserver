@@ -289,12 +289,8 @@ class Player {
     const staticObjects = [];
     const RealtimeObjects = [];
 
-    if (shouldUpdateChunks) {
-      this.ticksSinceLastChunkUpdate = 0;
-
-
-      for (const obj of nearbyObjects) {
-        switch (obj.type) {
+    for (const obj of nearbyObjects) {
+       switch (obj.type) {
           case "player":
             otherPlayers.push(obj);
             otherPlayersIds.push(obj.id);
@@ -305,6 +301,15 @@ class Player {
             nearbyBullets.push(obj);
 
             break;
+        }
+      }
+
+
+    if (shouldUpdateChunks) {
+      this.ticksSinceLastChunkUpdate = 0;
+
+      for (const obj of nearbyObjects) {
+        switch (obj.type) {
 
           case "static_obj":
             // --- track "first-time seen" static objects ---
@@ -330,22 +335,6 @@ class Player {
             break;
           }
         }
-        
-        } else {
-      for (const obj of nearbyObjects) {
-        switch (obj.type) {
-          case "player":
-            otherPlayers.push(obj);
-            otherPlayersIds.push(obj.id);
-
-            break;
-
-          case "bullet":
-            nearbyBullets.push(obj);
-
-            break;
-        }
-      }
     }
 
     // --- 2. Assign results back to player ---
@@ -381,7 +370,8 @@ class Player {
             Math.round(bullet.direction),
             bullet.gunId,
             bullet.effect,
-            bullet.speed_client
+            bullet.speed,
+            bullet.updates_per_tick
             
             /// (GlobalRoomConfig.room_tick_rate_ms / GlobalRoomConfig.bullet_updates_per_tick),
           ]);
@@ -394,6 +384,10 @@ class Player {
     this.finalbullets = finalBullets.length ? finalBullets : undefined;
     this.lastfinalbulletsSet = newLastBulletIds;
   }
+
+
+
+
 
   useGadget() {
     if (this.room && this.room.state === "playing" && this.alive) {

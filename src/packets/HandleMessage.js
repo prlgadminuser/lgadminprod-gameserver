@@ -163,14 +163,6 @@ function updatePlayerDirection(player, direction) {
 }
 
 
-async function handlePlayerMoveIntervalAll(room) {
-  room.players.forEach((player) => {
-    if (player.moving && player.alive) {
-      player.update()
-  
-    }
-  });
-}
 
 
-module.exports = { handleMessage, handlePlayerMoveIntervalAll }
+module.exports = { handleMessage }

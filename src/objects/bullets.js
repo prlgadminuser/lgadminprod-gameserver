@@ -102,7 +102,6 @@ class Bullet {
     gunId,
     modifiers,
     owner,
-    speed_client,
     updates_per_tick
   }) {
     this.id = id;
@@ -125,7 +124,6 @@ class Bullet {
     this.new = true;
     this.effect = 1; // firing effect at spawn
 
-    this.speed_client = speed_client,
     this.updates_per_tick = updates_per_tick
   }
 
@@ -201,7 +199,6 @@ class BulletManager {
       modifiers: bulletData.modifiers,
       owner: player,
       
-      speed_client: bulletData.speed_client,
       updates_per_tick: bulletData.updates_per_tick
     });
 
@@ -507,16 +504,22 @@ function handleBulletFired(room, player, gunType) {
 
   for (const bulletConfig of gun.bullets) {
 
-    const UpdatesBetweenTicks = Math.min(40, Math.round(bulletConfig.speed * 2)); // calculate an optimal tick rate slower bullets typically need less updates
+  const UpdatesBetweenTicks = Math.min(40, Math.round(bulletConfig.speed * 2)); // calculate an optimal tick rate slower bullets typically need less updates
 
-  //  console.log(bulletConfig.speed * (GlobalRoomConfig.ticks_per_second / UpdatesBetweenTicks))
+ // const UpdatesBetweenTicks = bulletConfig.speed > 20 ? 40 : 20
+
+
+//console.log(GlobalRoomConfig.ticks_per_second / UpdatesBetweenTicks)
+ // console.log(bulletConfig.speed / (GlobalRoomConfig.ticks_per_second / UpdatesBetweenTicks))
+
+
 
     room.bulletManager.scheduleBullet(
       player,
       {
 
         speed: Math.round(bulletConfig.speed),
-        speed_client: Math.round(bulletConfig.speed * (GlobalRoomConfig.ticks_per_second / UpdatesBetweenTicks)),
+        //speed_client: Math.round(bulletConfig.speed / (GlobalRoomConfig.ticks_per_second / UpdatesBetweenTicks)),
         updates_per_tick: UpdatesBetweenTicks,
         offset: bulletConfig.offset,
         damage: gun.damage,

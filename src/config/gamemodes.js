@@ -33,10 +33,10 @@ const gamemodeconfig = {
     skillpoints_rewardRange: [10, -5], 
     seasoncoins_rewardRange: [30, 5],
 
-    playerhealth: 187,
-    playerspeed: 2,
+    playerhealth: 18799969,
+    playerspeed: 3,
 
-    modifiers: new Set(["countdown"]),
+    modifiers: new Set(["countdown", "UseZone"]),
 
     weapons_modifiers_override: new Set([]),
 
@@ -99,7 +99,7 @@ const gamemodeconfig = {
     placereward: [16, -8],
     seasoncoinsreward: [25, 12],
 
-    custom_map: "training",
+    custom_map: "prism_party",
   },
 
 
@@ -115,7 +115,7 @@ const gamemodeconfig = {
     playerspeed: 2,
 
     modifiers: new Set([
-       "UseZone",
+      // "UseZone",
        "AutoHealthRestore",
       //"HealingCircles",
       "countdown"
@@ -191,4 +191,3 @@ module.exports = {
   gamemodeconfig: new Map(Object.entries(gamemodeconfig)),
   allowed_gamemodes,
 };
-
