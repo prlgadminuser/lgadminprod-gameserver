@@ -98,6 +98,7 @@ class Bullet {
     maxDistance,
     damage,
     damageConfig,
+    afflictionConfig,
     gunId,
     modifiers,
     owner,
@@ -114,6 +115,7 @@ class Bullet {
     this.maxDistance = maxDistance;
     this.damage = damage;
     this.damageConfig = damageConfig;
+    this.afflictionConfig = afflictionConfig
     this.gunId = Number(gunId);
     this.modifiers = modifiers;
     this.owner = owner;
@@ -194,6 +196,7 @@ class BulletManager {
       maxDistance: bulletData.distance,
       damage: bulletData.damage,
       damageConfig: bulletData.damageconfig || [],
+      afflictionConfig: bulletData.afflictionConfig || false,
       gunId: bulletData.gunid,
       modifiers: bulletData.modifiers,
       owner: player,
@@ -525,6 +528,7 @@ function handleBulletFired(room, player, gunType) {
         maxtime: Date.now() + gun.maxexistingtime + bulletConfig.delay,
         distance: gun.distance,
         damageconfig: gun.damageconfig || [],
+        afflictionConfig: gun.afflictionConfig || false,
         gunid: gunType,
         modifiers: gun.modifiers,
       },
