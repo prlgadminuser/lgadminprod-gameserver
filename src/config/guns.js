@@ -67,6 +67,12 @@ const gunsconfig = {
     width: 27,
     height: 6,
     useplayerangle: true,
+
+    afflictionConfig: {
+     damage: 3,
+     waitTime: 2000,
+     activeTime: 7000,   
+    },
     //can_bullets_bounce: false,
     bullets: [
       { angle: -5, speed: 18, delay: 0, offset: 0 },
@@ -224,4 +230,5 @@ module.exports = {
   gunsconfig,
   //gunsconfig: new Map(Object.entries(gunsconfig)),
   gunskeys: Object.keys(gunsconfig)
+
 };
