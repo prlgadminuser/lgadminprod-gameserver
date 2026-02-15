@@ -62,6 +62,7 @@ function startHeartbeat() {
           JSON.stringify({
     timestamp: Date.now(),
     playercount: global.playerCount,
+    url: process.env.RENDER_EXTERNAL_URL,
   })
 );
       } catch (error) {
@@ -148,4 +149,5 @@ module.exports = {
   removeSession,
   checkExistingSession,
   kickPlayerNewConnection
+
 };
