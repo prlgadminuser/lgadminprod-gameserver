@@ -78,7 +78,7 @@ async function addSession(username) {
     time: Date.now() 
   });
 
-  await redisClient.set(userKey, sessionValue);
+  await redisClient.set(userKey, sessionValue, { EX: 1800 });
 }
 
 async function removeSession(username) {
