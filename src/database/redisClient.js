@@ -1,6 +1,6 @@
 // src/database/redisClient.js
 const Redis = require("ioredis");
-const { rediskey } = require("../../idbconfig");
+const { rediskey, ServerUrl } = require("../../idbconfig");
 const { SERVER_INSTANCE_ID, REDIS_KEYS, HEARTBEAT_TTL_SECONDS, HEARTBEAT_INTERVAL_MS} = require("../../config");
 const { playerLookup } = require("../room/room");
 
@@ -62,7 +62,7 @@ function startHeartbeat() {
           JSON.stringify({
     timestamp: Date.now(),
     playercount: global.playerCount,
-    url: process.env.RENDER_EXTERNAL_URL,
+    url: ServerUrl
   })
 );
       } catch (error) {
@@ -149,5 +149,4 @@ module.exports = {
   removeSession,
   checkExistingSession,
   kickPlayerNewConnection
-
 };

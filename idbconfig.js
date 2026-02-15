@@ -7,6 +7,7 @@ const tokenkey = process.env.TOKEN_KEY
 const webhookURL = process.env.DISCORDWEBHOOK
 const rediskey = process.env.REDIS_KEY
 const dbName = process.env.DB_NAME
+const ServerUrl = process.env.RENDER_EXTERNAL_URL || "none"
 
 
 
@@ -17,4 +18,5 @@ module.exports = {
    tokenkey,
    rediskey,
    dbName,
+   ServerUrl,
 }
