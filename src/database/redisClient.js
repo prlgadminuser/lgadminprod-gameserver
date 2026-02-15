@@ -53,7 +53,7 @@ sub.on("message", (channel, message) => {
 });
 
 function startHeartbeat() {
- redisClient.setex(heartbeatKey, HEARTBEAT_TTL_SECONDS,   JSON.stringify({  timestamp: Date.now(),  playercount: global.playerCount,  }));
+ redisClient.setex(heartbeatKey, HEARTBEAT_TTL_SECONDS,   JSON.stringify({  timestamp: Date.now(),  playercount: global.playerCount,  url: ServerUrl  }));
  setInterval(async () => {
       try {
         await redisClient.setex(
