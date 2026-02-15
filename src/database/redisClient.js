@@ -26,7 +26,7 @@ function kickPlayerBan(username) {
     player.wsClose(4009, "You have been banned.");
   }
   
-}
+} 
 
 function kickPlayerNewConnection(username) {
    const player = playerLookup.get(username);
@@ -78,7 +78,10 @@ async function addSession(username) {
     time: Date.now() 
   });
 
-  await redisClient.set(userKey, sessionValue, { EX: 1800 });
+  await redisClient.setex(
+    userKey, 
+    1800,
+    sessionValue);
 }
 
 async function removeSession(username) {
