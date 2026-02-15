@@ -121,11 +121,12 @@ function setupWebSocketServer(wss, server) {
       if (existingSid) {
         if (existingSid === SERVER_INSTANCE_ID) {
           const existingConnection = playerLookup.get(userId);
-          if (existingConnection) {
+          if (existingConnection && existingConnection.wsClose) {
             existingConnection.send("code:double");
             existingConnection.wsClose(4009, "Reasigned Connection");
             playerLookup.delete(userId);
           }
+        
         } else {
           await redisClient.publish(
             `server:${existingSid}`,
