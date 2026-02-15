@@ -2,6 +2,8 @@
 
 require("dotenv").config();
 
+console.log(process.env.RENDER_EXTERNAL_URL);
+
 const http = require("http");
 const WebSocket = require("ws");
 const { RateLimiterMemory } = require("rate-limiter-flexible");
