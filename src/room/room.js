@@ -571,8 +571,40 @@ class Room {
     
 }
 
-
 function cloneGrid(original) {
+  const clone = new GameGrid(
+    original.width * original.cellSize,
+    original.height * original.cellSize,
+  );
+
+  clone.nextId = original.nextId;
+
+  // Clone objects
+  for (const [gid, obj] of original.objects.entries()) {
+    const objCopy = { ...obj }; // shallow copy
+    clone.objects.set(gid, objCopy);
+  }
+
+  // Clone grid
+  for (const [key, set] of original.grid.entries()) {
+    clone.grid.set(key, new Set(set));
+  }
+
+   for (const [key, set] of original.wallGrid.entries()) {
+    clone.wallGrid.set(key, new Set(set));
+  }
+
+  // Clone objectsCells
+  for (const [gid, cells] of original.objectsCells.entries()) {
+    clone.objectsCells.set(gid, new Set(cells));
+  }
+
+  return clone;
+}
+
+
+
+function cloneGridGrokVersion(original) {
   // Re-create with the exact same pixel dimensions + cellSize
   const clone = new GameGrid(
     original.width * original.cellSize,   // pixel width
