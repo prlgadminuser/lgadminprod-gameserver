@@ -31,8 +31,8 @@ const gunsconfig = {
      "DestroyWalls",
     ]),
     cooldown: 500,
-    distance: 30000,
-    maxexistingtime: 16000,
+    distance: 300,
+    maxexistingtime: 1600,
     damage: 20,
     width: 25,
     height: 7,
@@ -231,6 +231,7 @@ module.exports = {
   gunskeys: Object.keys(gunsconfig)
 
 };
+
 
 
 
