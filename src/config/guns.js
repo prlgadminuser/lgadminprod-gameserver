@@ -28,7 +28,7 @@ const gunsconfig = {
     // Default pistol
     modifiers: new Set([
   //    "CanBounce",
-     "DestroyWalls",
+ //   "DestroyWalls",
     ]),
     cooldown: 500,
     distance: 300,
@@ -231,6 +231,7 @@ module.exports = {
   gunskeys: Object.keys(gunsconfig)
 
 };
+
 
 
 
