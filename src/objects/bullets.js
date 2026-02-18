@@ -204,7 +204,7 @@ class BulletManager {
 
     bullet.x = initialPosition.x;
     bullet.y = initialPosition.y;
-    bullet.type = "bullet";
+    bullet.objectType = "bullet";
     bullet.updateTicks = 0
 
     this.bullets.set(id, bullet);
@@ -255,14 +255,12 @@ class BulletManager {
         centerX + xThreshold,
         centerY - yThreshold,
         centerY + yThreshold,
-        null,
-        true
       );
 
       let newEffect = 0;
       let collided = false;
 
-      const nearbyWalls = Array.from(nearbyObjects).filter(obj => obj.type === "wall");
+      const nearbyWalls = Array.from(nearbyObjects).filter(obj => obj.objectType === "wall");
 
       const collidedWalls = getCollidedWallsWithBullet(
         // check which of potential walls collide exactly
@@ -299,7 +297,7 @@ class BulletManager {
 
       for (const obj of nearbyObjects) {
         if (
-          obj.type === "player" &&
+          obj.objectType === "player" &&
           obj.alive &&
           obj !== bullet.owner &&
           !this.isAlly(bullet.owner, obj)
@@ -345,7 +343,7 @@ class BulletManager {
           }
         }
 
-        if (obj.type === "dummy") {
+        if (obj.objectType === "dummy") {
           if (
             isCollisionWithPlayer(
               bullet,
@@ -456,13 +454,15 @@ function GunHasModifier(name, room, modifiers) {
 function DestroyWall(wall, room) {
   room.grid.removeObject(wall);
   const obj = {
-    type: "static_obj",
+    objectType: "static_obj",
     id: wall.gid,
     x: wall.x,
     y: wall.y,
     sendx: wall.x,
     sendy: wall.y,
   }; // id for wall removal object: 1
+
+ // console.log(obj)
   AddNewUnseenObject(room, obj);
 }
 
@@ -504,7 +504,7 @@ function handleBulletFired(room, player, gunType) {
 
   for (const bulletConfig of gun.bullets) {
 
-  const UpdatesBetweenTicks = Math.min(40, Math.round(bulletConfig.speed * 2)); // calculate an optimal tick rate slower bullets typically need less updates
+  const UpdatesBetweenTicks = Math.min(40, Math.round(bulletConfig.speed * 3)); // calculate an optimal tick rate - slower bullets typically need less updates
 
  // const UpdatesBetweenTicks = bulletConfig.speed > 20 ? 40 : 20
 

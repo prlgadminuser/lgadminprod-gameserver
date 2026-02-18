@@ -80,7 +80,7 @@ async function addSession(username) {
 
   await redisClient.setex(
     userKey, 
-    1800,
+    3600,
     sessionValue);
 }
 

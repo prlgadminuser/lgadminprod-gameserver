@@ -48,7 +48,7 @@ class Player {
     this.top_color = top_color;
 
     // Game state
-    this.type = "player";
+    this.objectType = "player";
     this.health = gamemodeSettings.playerhealth;
     this.starthealth = gamemodeSettings.playerhealth;
     this.speed = gamemodeSettings.playerspeed;
@@ -279,8 +279,6 @@ class Player {
       xMax,
       yMin,
       yMax,
-      null,
-      false,
     );
 
     const otherPlayers = [];
@@ -290,7 +288,7 @@ class Player {
     const RealtimeObjects = [];
 
     for (const obj of nearbyObjects) {
-       switch (obj.type) {
+       switch (obj.objectType) {
           case "player":
             otherPlayers.push(obj);
             otherPlayersIds.push(obj.id);
@@ -308,8 +306,10 @@ class Player {
     if (shouldUpdateChunks) {
       this.ticksSinceLastChunkUpdate = 0;
 
+      
+
       for (const obj of nearbyObjects) {
-        switch (obj.type) {
+        switch (obj.objectType) {
 
           case "static_obj":
             // --- track "first-time seen" static objects ---
@@ -324,7 +324,7 @@ class Player {
             if (!this.lastNearbyObjects.has(obj.id)) {
               RealtimeObjects.push([
                 obj.id,
-                obj.type,
+                obj.objectType,
                 obj.x,
                 obj.y,
                 obj.hp,

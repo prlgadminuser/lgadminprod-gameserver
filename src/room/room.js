@@ -142,8 +142,6 @@ class Room {
     // Bullets + status
     this.bullets = new Map();
     this.bulletUpdateTick = 1;
-
-
     this.activeAfflictions = [];
 
     // Game configuration
@@ -589,11 +587,6 @@ function cloneGrid(original) {
   for (const [key, set] of original.grid.entries()) {
     clone.grid.set(key, new Set(set));
   }
-
-   for (const [key, set] of original.wallGrid.entries()) {
-    clone.wallGrid.set(key, new Set(set));
-  }
-
   // Clone objectsCells
   for (const [gid, cells] of original.objectsCells.entries()) {
     clone.objectsCells.set(gid, new Set(cells));
@@ -603,48 +596,23 @@ function cloneGrid(original) {
 }
 
 
-
-function cloneGridGrokVersion(original) {
-  // Re-create with the exact same pixel dimensions + cellSize
-  const clone = new GameGrid(
-    original.width * original.cellSize,   // pixel width
-    original.height * original.cellSize,  // pixel height
-    original.cellSize                     // ← important if you ever use a custom cellSize
-  );
-
-  clone.nextId = original.nextId;
-
-  // 1. Clone objects (shallow copy – same as before)
-  for (const [gid, obj] of original.objects.entries()) {
-    clone.objects.set(gid, { ...obj });
-  }
-
-  // 2. Clone the spatial grids
-  for (const [key, set] of original.grid.entries()) {
-    clone.grid.set(key, new Set(set));
-  }
-  for (const [key, set] of original.wallGrid.entries()) {
-    clone.wallGrid.set(key, new Set(set));
-  }
-
-  // 3. Clone the new bounds structure (replaces the old objectsCells)
-  for (const [gid, bounds] of original.objectsCellBounds.entries()) {
-    clone.objectsCellBounds.set(gid, { ...bounds }); // shallow copy of {xStart, yStart, xEnd, yEnd}
-  }
-
-  return clone;
-}
-
-
-
-function cloneGrid2(original) {
-
-  return original;
-}
-
-
 async function SetupRoomStartGameData(room) {
-  room.grid = cloneGrid(room.mapdata.grid);
+ // const mapData = room.mapdata
+  room.grid = cloneGrid(room.mapdata.grid)/* = new GameGrid(
+      mapData.width,
+      mapData.height,
+      mapData.cellSize,
+    );
+
+    */
+
+   
+
+   // for (const wall of mapData.walls) {
+    //    room.grid.addObject({ ...wall });
+  //  }
+
+
 }
 
 async function setupRoomPlayers(room) {

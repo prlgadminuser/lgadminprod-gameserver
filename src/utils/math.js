@@ -9,13 +9,6 @@ module.exports = {
     };
   },
 
-  toRectangle4() {
-
-    return {
-      min: { x: hitbox.x, y: hitbox.y },
-      max: { x: hitbox.x + w, y: hitbox.y + h },
-    };
-  },
 
   getDistance(x1, y1, x2, y2) {
     return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
