@@ -136,8 +136,8 @@ function setupWebSocketServer(wss, server) {
         return;
       }
 
-      room = joinResult.room;
-      player = room.players.get(userId);
+      room = joinResult.room
+      player = joinResult.player
 
       playerLookup.set(userId, ws);
       global.playerCount++;

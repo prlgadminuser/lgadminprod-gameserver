@@ -408,6 +408,7 @@ class Player {
     this.moving = false;
 
     if (this.room.grid) this.room.grid.removeObject(this);
+    this.room.alivePlayers.delete(this)
 
     if (this.timeout) {
       clearTimeout(this.timeout);
@@ -421,7 +422,7 @@ class Player {
       // Check if the entire team is now eliminated.
       const team = this.room.teams.get(this.teamId);
       const isTeamEliminated = team.players.every((player) => {
-        const p = this.room.players.get(player.id);
+        const p = player
         return !p || p.eliminated;
       });
 
@@ -430,7 +431,7 @@ class Player {
         const teamPlace =
           this.room.teams.size - this.room.eliminatedTeams.length;
         team.players.forEach((player) => {
-          const p = this.room.players.get(player.id);
+          const p = player
           if (p) {
             p.place = teamPlace;
             UpdatePlayerPlace(p, teamPlace, this.room);
@@ -439,11 +440,8 @@ class Player {
         this.room.eliminatedTeams.push({ id: team.id, place: teamPlace });
       }
     } else {
-      // SOLO MODE ELIMINATION
-      const eliminatedCount = [...this.room.players.values()].filter(
-        (p) => p.eliminated, // TODO CACHED VERSION
-      ).length;
-      const playerPlace = this.room.players.size - eliminatedCount + 1;
+      
+      const playerPlace = this.room.alivePlayers.size + 1;
       this.place = playerPlace;
       UpdatePlayerPlace(this, playerPlace, this.room);
     }
@@ -457,7 +455,9 @@ class Player {
     this.state = 2;
     this.moving = false;
     this.last_hitter = false;
+
     this.room.grid.removeObject(this);
+    this.room.alivePlayers.delete(this)
 
     this.respawns--;
     this.health = this.starthealth;
@@ -471,6 +471,7 @@ class Player {
 
     this.room.setRoomTimeout(() => {
       this.room.grid.addObject(this);
+      this.room.alivePlayers.add(this)
       this.spectating = false;
       this.alive = true;
       this.state = 1;

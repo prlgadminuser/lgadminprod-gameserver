@@ -34,7 +34,7 @@ function getAvailableRoom(gamemode, spLevel) {
   if (!roomList) return null;
 
   for (const room of roomList.values()) {
-    if (room.state === 'waiting' && room.players.size < room.maxplayers) {
+    if (room.state === 'waiting' && room.connectedPlayers.size < room.maxplayers) {
       return room;
     }
   }
@@ -126,9 +126,10 @@ class Room {
     this.gamemode = gamemode;
     this.IsTeamMode = gmconfig.teamsize > 1;
     this.matchtype = gmconfig.matchtype;
-    this.players = new Map();
+    
     this.alivePlayers = new Set();
     this.connectedPlayers = new Set();
+
     this.eliminatedTeams = [];
     this.currentplayerid = 0;
     this.killfeed = [];
@@ -195,8 +196,9 @@ class Room {
     const newPlayer = new Player(ws, playerVerified, this);
 
     if (!this.canStartGame()) {
-      this.players.set(newPlayer.playerId, newPlayer);
       playerLookup.set(newPlayer.playerId, newPlayer);
+      this.connectedPlayers.add(newPlayer)
+      this.alivePlayers.add(newPlayer)
 
       if (newPlayer.wsReadyState() === ws.CLOSED) {
         this.removePlayer(newPlayer);
@@ -208,7 +210,7 @@ class Room {
       await this.startMatch();
     }
 
-    return { room: this, playerId: newPlayer.playerId };
+    return { room: this, player: newPlayer};
   }
 
   async removePlayer(player) {
@@ -221,6 +223,9 @@ class Room {
     player.alive = false;
     player.eliminated = true;
 
+    this.connectedPlayers.delete(player)
+    this.alivePlayers.delete(player)
+
     player.wsClose();
     playerLookup.delete(player.playerId);
 
@@ -228,34 +233,22 @@ class Room {
       UpdatePlayerKillsAndDamage(player);
 
     if (this.state === "waiting") {
-      this.players.delete(player.playerId);
 
-      if (this.players.size < 1) {
-        this.close();
-        return;
-      }
-    } else {
-      if (this.players.size < 1) {
+      if (this.connectedPlayers.size < 1) {
         this.close();
         return;
       }
 
       if (this) {
-        if (this.players.size > 1) {
+        if (this.connectedPlayers.size > 1) {
           this.setRoomTimeout(() => {
             if (this) {
-              this.players.delete(player.playerId);
               // optionally check if room is now empty
-              if (this.players.size < 1) {
+              if (this.connectedPlayers.size < 1) {
                 this.close();
               }
             }
           }, 4000);
-        } else {
-          this.players.delete(player.playerId);
-          if (this.players.size < 1) {
-            this.close();
-          }
         }
       }
     }
@@ -266,7 +259,7 @@ class Room {
   }
 
   canStartGame() {
-    return this.players.size >= this.maxplayers && this.state === "waiting";
+    return this.state === "waiting" && this.connectedPlayers.size >= this.maxplayers;
   }
 
   update() {}
@@ -301,7 +294,7 @@ class Room {
 
   // Clean up all players
   cleanupPlayers() {
-    this.players.forEach((player) => {
+    this.connectedPlayers.forEach((player) => {
       // Close player connection
       player.wsClose();
 
@@ -325,7 +318,8 @@ class Room {
 
     // Cleanup players
     this.cleanupPlayers();
-    this.players.clear();
+    this.connectedPlayers.clear();
+    this.alivePlayers.clear();
 
     // Remove from global registries
     removeRoomFromIndex(this);
@@ -371,20 +365,6 @@ class Room {
   if (room.cleanupinterval) {
     clearInterval(room.cleanupinterval);
   }
-
-  const playersWithOpenConnections = room.players.filter(
-    (player) => player.wsReadyState() === WebSocket.OPEN
-  );
-
-  //console.log(playersWithOpenConnections);
-  // Close the room if it has no players
-  if (
-    room.players.size < 1 ||
-    playersWithOpenConnections.length < 1 ||
-    !room.players ||
-    room.players.size === 0
-  ) {
-  }
 }
 
 
@@ -397,7 +377,7 @@ class Room {
      this.intervalIds.push(
       setInterval(() => {
         const now = Date.now();
-        for (const player of this.players.values()) {
+        for (const player of this.connectedPlayers) {
           if (
             player.lastPing <= now - GlobalRoomConfig.player_noping_maxtime ||
             !player.wsOpen()
@@ -482,9 +462,8 @@ class Room {
       team.players.some((player) => !player.eliminated)
     );
   } else {
-    remainingTeamsOrPlayers = [...this.players.values()].filter(
-      (p) => !p.eliminated
-    );
+    remainingTeamsOrPlayers = this.alivePlayers.size
+    
   }
 
   // Check if a single winner remains.
@@ -619,7 +598,7 @@ async function setupRoomPlayers(room) {
   let playerNumberID = 0; // Start with player number 0
 
   // Iterate over each player in the room's players collection
-  room.players.forEach((player) => {
+  for (const player of room.connectedPlayers) {
  
     player.id = playerNumberID;
 
@@ -638,18 +617,18 @@ async function setupRoomPlayers(room) {
     playerNumberID++;
 
     room.grid.addObject(player);
-  });
+  };
 }
 
 async function CreateTeams(room) {
-    if (!room.players || room.players.size === 0) return;
+    if (!room.connectedPlayers || room.connectedPlayers.size === 0) return;
 
     const teamIDs = ['Red', 'Blue', 'Green', 'Yellow', 'Cyan', 'Pink', 'Purple', 'Orange'];
 
     room.teams = new Map();
 
     let teamIndex = 0;
-    room.players.forEach(player => {
+    for (const player in room.connectedPlayers) {
         // Find or create the team.
         const teamId = teamIDs[teamIndex] || `Team-${teamIndex + 1}`;
         if (!room.teams.has(teamId)) {
@@ -662,14 +641,14 @@ async function CreateTeams(room) {
         const team = room.teams.get(teamId);
 
         // Add the player to the team.
-        team.players.push({ playerId: player.playerId, id: player.id });
+        team.players.push(player);
         player.teamId = teamId; // Use a simple reference to the team.
 
         // Advance to the next team if the current one is full.
         if (team.players.length >= room.teamsize) {
             teamIndex++;
         }
-    });
+    }
 
     // Create a single teamdata object and assign it to all players.
     // This is more efficient than creating a separate object for each player.
@@ -680,14 +659,14 @@ async function CreateTeams(room) {
     });
 
     // Assign the completed teamdata to each player.
-    room.players.forEach(player => {
+     for (const player in room.connectedPlayers) {
         const playerTeamId = player.teamId;
         const playerTeamMembers = teamDataMap.get(playerTeamId);
         player.teamdata = {
             id: playerTeamMembers, // Array of team members' IDs
             tid: playerTeamId,     // The player's team ID
         };
-    });
+    };
 }
 
 function startCountdown(room) {
@@ -721,7 +700,7 @@ async function startMatch(room, roomId) {
     await CreateTeams(room);
 
     // Render players and send pre-start message
-    for (const player of room.players.values()) {
+    for (const player of room.connectedPlayers) {
      player.updateView()
     }
 

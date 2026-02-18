@@ -29,7 +29,7 @@ function regenPlayer(player, now) {
 }
 
 function forEachAlive(room, fn) {
-  room.players.forEach(p => p.alive !== false && fn(p));
+  room.alivePlayers.forEach(p => p.alive !== false && fn(p));
 }
 
 function decreaseHealth(room) {

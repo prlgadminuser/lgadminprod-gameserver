@@ -5,7 +5,7 @@ const playerHitboxHeight = playerhitbox.height;
 
 function spawnHealingCircle(room) {
   // Filter active players (not eliminated)
-  const activePlayers = Array.from(room.players.values()).filter((player) => player.state === 1 && player.health > 0);
+  const activePlayers = room.alivePlayers
   if (activePlayers.length === 0) return;
 
   const randomPlayer = activePlayers[Math.floor(Math.random() * activePlayers.length)];

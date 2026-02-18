@@ -16,7 +16,7 @@ function TeamPlayersActive(room, player) {
 
   // Count the number of active players in the team (state === 1 means active)
   team.players.forEach(teamPlayer => {
-    const roomPlayer = room.players.get(teamPlayer.playerId); // Access the player by their playerId
+    const roomPlayer = teamPlayer // Access the player by their playerId
     if (roomPlayer && roomPlayer.state === 1 && !roomPlayer.eliminated) {
       count++;
     }

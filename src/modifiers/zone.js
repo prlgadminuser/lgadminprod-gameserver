@@ -133,9 +133,9 @@ function dealDamage(room) {
   const phase = room.zonephases[room.currentPhase];
   const damagePerSecond = phase ? phase.damagePerSecond : 1;
 
-  room.players.forEach((player) => {
-    if (player.state !== 1) return;
     if (room.winner !== -1) return;
+
+  room.alivePlayers.forEach((player) => {
     if (isWithinZone(room, player.x, player.y)) return;
 
     player.health -= damagePerSecond;
@@ -259,7 +259,7 @@ function UseZone(room) {
   // 30 FPS zone movement
   room.shrinkInterval = room.setRoomInterval(
     () => smoothZoneMovement(room),
-    16
+    33
   );
 
   // Damage every second
@@ -287,4 +287,3 @@ function UseZone(room) {
 module.exports = {
   UseZone,
 };
-

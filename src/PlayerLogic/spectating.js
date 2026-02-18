@@ -36,7 +36,7 @@ function handleSpectatorMode(player, room) {
   if (!currentTarget || (player.pendingSwitchAt && now >= player.pendingSwitchAt)) {
     const nearestNonEliminated = findNearestPlayer(
       player,
-      Array.from(room.players.values()).filter(p => p.alive && p !== player)
+      room.alivePlayers,
     );
 
     if (nearestNonEliminated) {
@@ -55,7 +55,7 @@ function findNearestPlayer(eliminatedPlayer, players) {
   let nearestPlayer = null;
   let shortestDistance = Infinity;
 
-  players.forEach((player) => {
+ for (const player of players) {
     const distance = Math.sqrt(
       Math.pow(player.x - eliminatedPlayer.x, 2) +
       Math.pow(player.y - eliminatedPlayer.y, 2)
@@ -65,7 +65,7 @@ function findNearestPlayer(eliminatedPlayer, players) {
       shortestDistance = distance;
       nearestPlayer = player;
     }
-  });
+  };
 
   return nearestPlayer;
 }
