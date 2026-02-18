@@ -280,7 +280,7 @@ function UseZone(room) {
       timeUntilNextPhase: formatTime(timing.remainingTotal),
     }
 
-    console.log(room.sending_zone_data)
+   // console.log(room.sending_zone_data)
   }, 1000);
 }
 
