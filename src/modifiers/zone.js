@@ -259,7 +259,7 @@ function UseZone(room) {
   // 30 FPS zone movement
   room.shrinkInterval = room.setRoomInterval(
     () => smoothZoneMovement(room),
-    33
+    16
   );
 
   // Damage every second
@@ -287,3 +287,4 @@ function UseZone(room) {
 module.exports = {
   UseZone,
 };
+
