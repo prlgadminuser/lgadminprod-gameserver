@@ -115,7 +115,7 @@ const gamemodeconfig = {
     playerspeed: 2,
 
     modifiers: new Set([
-      // "UseZone",
+       "UseZone",
        "AutoHealthRestore",
       //"HealingCircles",
       "countdown"
@@ -191,3 +191,4 @@ module.exports = {
   gamemodeconfig: new Map(Object.entries(gamemodeconfig)),
   allowed_gamemodes,
 };
+
