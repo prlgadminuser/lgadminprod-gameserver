@@ -3,187 +3,144 @@
 const { playerhitbox } = require("../config/player");
 const { rectCircleIntersection, rectRectIntersection } = require("../utils/math");
 
-const playerHalfWidth = playerhitbox.width
-const playerHalfHeight = playerhitbox.height
+const playerHalfWidth = playerhitbox.width;
+const playerHalfHeight = playerhitbox.height;
 
-
+// -------------------- WALL COLLISIONS --------------------
 function isCollisionWithCachedWalls(walls, x, y) {
   const xMin = x - playerhitbox.xMin;
   const xMax = x + playerhitbox.xMax;
   const yMin = y - playerhitbox.yMin;
   const yMax = y + playerhitbox.yMax;
 
-  for (const wall of walls) {
+  for (let i = 0; i < walls.length; i++) {
+    const wall = walls[i];
+    const halfW = wall.width * 0.5;
+    const halfH = wall.height * 0.5;
+    const type = wall.hitboxtype || "rect";
 
-   // if (wall.walkable === true) {
+    if (type === "rect") {
+      const wLeft = wall.x - halfW;
+      const wRight = wall.x + halfW;
+      const wTop = wall.y - halfH;
+      const wBottom = wall.y + halfH;
 
-    //  continue;
-    
-   // }
-
-    const halfWidth = wall.width / 2;
-    const halfHeight = wall.height / 2;
-    const wallhitboxtype = wall.hitboxtype ? wall.hitboxtype : "rect"
-
-    switch (wallhitboxtype) {
-
-      
-      case "rect": {
-        const wallLeft = wall.x - halfWidth;
-        const wallRight = wall.x + halfWidth;
-        const wallTop = wall.y - halfHeight;
-        const wallBottom = wall.y + halfHeight;
-
-        if (
-          rectRectIntersection(
-            xMin,
-            xMax,
-            yMin,
-            yMax,
-            wallLeft,
-            wallRight,
-            wallTop,
-            wallBottom
-          )
-        ) {
-          return true;
-        }
-        break;
-      }
-
-      case "circle": {
-        const radius = Math.min(halfWidth, halfHeight);
-        if (
-          rectCircleIntersection(xMin, xMax, yMin, yMax, wall.x, wall.y, radius)
-        ) {
-          return true;
-        }
-        break;
-      }
+      if (rectRectIntersection(xMin, xMax, yMin, yMax, wLeft, wRight, wTop, wBottom))
+        return true;
+    } else { // circle
+      const radius = Math.min(halfW, halfH);
+      if (rectCircleIntersection(xMin, xMax, yMin, yMax, wall.x, wall.y, radius))
+        return true;
     }
   }
-
   return false;
 }
 
-
-function rotatePoint(x, y, cx, cy, angleRad) {
-  const cosA = Math.cos(angleRad);
-  const sinA = Math.sin(angleRad);
-  const dx = x - cx;
-  const dy = y - cy;
-
-  return {
-    x: cx + dx * cosA - dy * sinA,
-    y: cy + dx * sinA + dy * cosA,
-  };
+// -------------------- BULLET ROTATION --------------------
+function rotatePoint(px, py, cx, cy, cosA, sinA) {
+  const dx = px - cx;
+  const dy = py - cy;
+  return { x: cx + dx * cosA - dy * sinA, y: cy + dx * sinA + dy * cosA };
 }
 
-function getBulletCorners(bullet, width, height, angleDeg) {
-  const rad = toRadians(angleDeg);
-  const hw = width;
-  const hh = height;
+function getBulletCorners(bullet, w, h, angleDeg) {
+  const rad = (angleDeg * Math.PI) / 180;
+  const cosA = Math.cos(rad);
+  const sinA = Math.sin(rad);
+  const x = bullet.position.x;
+  const y = bullet.position.y;
+  const hw = w;
+  const hh = h;
 
+  // inline rotation, reuse cos/sin
   return [
-    rotatePoint(bullet.x + hw, bullet.y + hh, bullet.x, bullet.y, rad),
-    rotatePoint(bullet.x - hw, bullet.y + hh, bullet.x, bullet.y, rad),
-    rotatePoint(bullet.x - hw, bullet.y - hh, bullet.x, bullet.y, rad),
-    rotatePoint(bullet.x + hw, bullet.y - hh, bullet.x, bullet.y, rad),
+    rotatePoint(x + hw, y + hh, x, y, cosA, sinA),
+    rotatePoint(x - hw, y + hh, x, y, cosA, sinA),
+    rotatePoint(x - hw, y - hh, x, y, cosA, sinA),
+    rotatePoint(x + hw, y - hh, x, y, cosA, sinA),
   ];
 }
 
-function isCollisionWithPlayer(
-  bullet,
-  player,
-  bulletHeight,
-  bulletWidth,
-  bulletAngle
-) {
-  const bulletCorners = getBulletCorners(
-    bullet,
-    bulletWidth,
-    bulletHeight,
-    bulletAngle
-  );
+// -------------------- PLAYER COLLISION --------------------
+function isCollisionWithPlayer(bullet, player, bulletHeight, bulletWidth, bulletAngle) {
+  const bCorners = getBulletCorners(bullet, bulletWidth, bulletHeight, bulletAngle);
 
-  // Define the player's rectangle
-  const playerCorners = [
-    { x: player.x - playerHalfWidth, y: player.y - playerHalfHeight },
-    { x: player.x + playerHalfWidth, y: player.y - playerHalfHeight },
-    { x: player.x + playerHalfWidth, y: player.y + playerHalfHeight },
-    { x: player.x - playerHalfWidth, y: player.y + playerHalfHeight },
+  const px = player.x;
+  const py = player.y;
+
+  // re-use constants, no array creation per tick
+  const pCorners = [
+    { x: px - playerHalfWidth, y: py - playerHalfHeight },
+    { x: px + playerHalfWidth, y: py - playerHalfHeight },
+    { x: px + playerHalfWidth, y: py + playerHalfHeight },
+    { x: px - playerHalfWidth, y: py + playerHalfHeight },
   ];
 
-  return doPolygonsIntersect(bulletCorners, playerCorners);
+  return doPolygonsIntersect(bCorners, pCorners);
 }
 
-
+// -------------------- BULLET-WALL POLYGON COLLISION --------------------
 function getCollidedWallsWithBullet(walls, x, y, height, width, direction) {
-  const bulletCorners = getBulletCorners({ x, y }, width, height, direction);
-  const collidedWalls = [];
+  const bCorners = getBulletCorners({ position: { x, y } }, width, height, direction);
+  const collided = [];
 
-  for (const wall of walls) {
-    const halfWidth = wall.width / 2;
-    const halfHeight = wall.height / 2;
+  for (let i = 0; i < walls.length; i++) {
+    const wall = walls[i];
+    const hw = wall.width * 0.5;
+    const hh = wall.height * 0.5;
+    const wx = wall.x;
+    const wy = wall.y;
 
-    const wallCorners = [
-      { x: wall.x - halfWidth, y: wall.y - halfHeight },
-      { x: wall.x + halfWidth, y: wall.y - halfHeight },
-      { x: wall.x + halfWidth, y: wall.y + halfHeight },
-      { x: wall.x - halfWidth, y: wall.y + halfHeight },
+    const wCorners = [
+      { x: wx - hw, y: wy - hh },
+      { x: wx + hw, y: wy - hh },
+      { x: wx + hw, y: wy + hh },
+      { x: wx - hw, y: wy + hh },
     ];
 
-    if (doPolygonsIntersect(bulletCorners, wallCorners)) {
-      collidedWalls.push(wall);
-    }
+    if (doPolygonsIntersect(bCorners, wCorners)) collided.push(wall);
   }
 
-  return collidedWalls;
+  return collided;
 }
 
-
-function toRadians(degrees) {
-  return (degrees * Math.PI) / 180;
-}
-
+// -------------------- SAT FUNCTIONS --------------------
 function doPolygonsIntersect(a, b) {
+  // Use loop unrolling for axis projections
   const polygons = [a, b];
 
-  for (const polygon of polygons) {
-    for (let i = 0; i < polygon.length; i++) {
-      const p1 = polygon[i];
-      const p2 = polygon[(i + 1) % polygon.length];
+  for (let p = 0; p < 2; p++) {
+    const poly = polygons[p];
+    for (let i = 0; i < poly.length; i++) {
+      const p1 = poly[i];
+      const p2 = poly[(i + 1) % poly.length];
 
-      // Perpendicular axis to the edge
-      const axis = { x: -(p2.y - p1.y), y: p2.x - p1.x };
+      const axisX = -(p2.y - p1.y);
+      const axisY = p2.x - p1.x;
 
-      const [minA, maxA] = projectPolygon(a, axis);
-      const [minB, maxB] = projectPolygon(b, axis);
+      let [minA, maxA] = projectPolygon(a, axisX, axisY);
+      let [minB, maxB] = projectPolygon(b, axisX, axisY);
 
-      if (maxA < minB || maxB < minA) {
-        return false;
-      }
+      if (maxA < minB || maxB < minA) return false;
     }
   }
 
   return true;
 }
 
-function projectPolygon(polygon, axis) {
+function projectPolygon(polygon, axisX, axisY) {
   let min = Infinity;
   let max = -Infinity;
 
-  for (const point of polygon) {
-    const projection = point.x * axis.x + point.y * axis.y;
-    min = Math.min(min, projection);
-    max = Math.max(max, projection);
+  for (let i = 0; i < polygon.length; i++) {
+    const pt = polygon[i];
+    const proj = pt.x * axisX + pt.y * axisY;
+    if (proj < min) min = proj;
+    if (proj > max) max = proj;
   }
 
   return [min, max];
 }
-
-
-
 
 module.exports = {
   getCollidedWallsWithBullet,

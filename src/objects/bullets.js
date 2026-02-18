@@ -14,9 +14,7 @@ const halfBlockSize = 30;
 
 
 function adjustBulletDirection(bullet, wall) {
-  const bulletVector = Vec2.fromAngle(bullet.direction - 90); // current velocity vector
-
-  // Define wall rectangle
+  // --- Define wall rectangle ---
   const wallLeft = wall.x - halfBlockSize;
   const wallRight = wall.x + halfBlockSize;
   const wallTop = wall.y - halfBlockSize;
@@ -43,20 +41,8 @@ function adjustBulletDirection(bullet, wall) {
     if (distBottom < distTop) normal.y = -1; // hit bottom
   }
 
-  // Reflect the vector: R = V - 2*(V·N)*N
-  const dot = bulletVector.x * normal.x + bulletVector.y * normal.y;
-  const reflected = {
-    x: bulletVector.x - 2 * dot * normal.x,
-    y: bulletVector.y - 2 * dot * normal.y,
-  };
-
-  // Reduce speed slightly to avoid ping-pong sticking
-  bullet.direction =
-    Math.atan2(reflected.y, reflected.x) * (180 / Math.PI) + 90;
-
-  // Move bullet slightly out of wall to prevent repeated collision
-  bullet.position.x += reflected.x * 0.5;
-  bullet.position.y += reflected.y * 0.5;
+  // Reflect bullet using stored velocity vector
+  bullet.bounce(normal);
 }
 
 class Vec2 {
@@ -78,10 +64,10 @@ class Vec2 {
     return new Vec2(this.x * scalar, this.y * scalar);
   }
 
-  distanceTo(vec) {
-    const dx = this.x - vec.x;
-    const dy = this.y - vec.y;
-    return Math.sqrt(dx * dx + dy * dy);
+ distanceSquared(a, b) {
+  const dx = a.x - b.x;
+  const dy = a.y - b.y;
+  return dx*dx + dy*dy;
   }
 }
 
@@ -125,6 +111,8 @@ class Bullet {
     this.effect = 1; // firing effect at spawn
 
     this.updates_per_tick = updates_per_tick
+
+    this.dirVec = Vec2.fromAngle(direction - 90);
   }
 
   nextPosition() {
@@ -133,12 +121,20 @@ class Bullet {
     return this.position.add(dirVec.scale(this.speed));
   }
 
+   bounce(normal) {
+    const dot = this.dirVec.x * normal.x + this.dirVec.y * normal.y;
+    this.dirVec.x -= 2 * dot * normal.x;
+    this.dirVec.y -= 2 * dot * normal.y;
+    this.direction = Math.atan2(this.dirVec.y, this.dirVec.x) * 180 / Math.PI + 90;
+    // Move bullet slightly out of wall
+    this.position.x += this.dirVec.x * 0.5;
+    this.position.y += this.dirVec.y * 0.5;
+  }
+
 
   isExpired() {
     if (!this.alive) return true;
     if (Date.now() > this.maxTime) return true;
-    if (this.position.distanceTo(this.startPosition) > this.maxDistance)
-      return true;
     return false;
   }
 
@@ -250,17 +246,24 @@ class BulletManager {
       const xThreshold = threshold + playerWidth;
       const yThreshold = threshold + playerHeight;
       // Single call to getObjectsInArea
-      const nearbyObjects = this.room.grid.getObjectsInArea(
+      const nearbyWalls = this.room.grid.getObjectsInArea(
         centerX - xThreshold,
         centerX + xThreshold,
         centerY - yThreshold,
         centerY + yThreshold,
+        "wall"
+      );
+
+      const nearbyPlayers = this.room.grid.getObjectsInArea(
+        centerX - xThreshold,
+        centerX + xThreshold,
+        centerY - yThreshold,
+        centerY + yThreshold,
+        "player"
       );
 
       let newEffect = 0;
       let collided = false;
-
-      const nearbyWalls = Array.from(nearbyObjects).filter(obj => obj.objectType === "wall");
 
       const collidedWalls = getCollidedWallsWithBullet(
         // check which of potential walls collide exactly
@@ -295,9 +298,9 @@ class BulletManager {
         break;
       }
 
-      for (const obj of nearbyObjects) {
+      for (const obj of nearbyPlayers) {
         if (
-          obj.objectType === "player" &&
+      //    obj.objectType === "player" &&
           obj.alive &&
           obj !== bullet.owner &&
           !this.isAlly(bullet.owner, obj)
@@ -311,15 +314,14 @@ class BulletManager {
               bullet.direction - 90
             )
           ) {
-            const distTraveled = bullet.position.distanceTo(
-              bullet.startPosition
-            );
-            const finalDamage = calculateFinalDamage(
-              distTraveled,
+            
+            const finalDamage = bullet.damageConfig.length ? calculateFinalDamage(
+              bullet.position.distanceSquared(bullet.startPosition, bullet.position),
               bullet.maxDistance,
               bullet.damage,
               bullet.damageConfig
-            );
+            ) : bullet.damage
+
 
             bullet.owner.HandleSelfBulletsOtherPlayerCollision(obj, finalDamage, bullet.gunId, this.room)
 
@@ -353,15 +355,15 @@ class BulletManager {
               bullet.direction - 90
             )
           ) {
-            const distTraveled = bullet.position.distanceTo(
-              bullet.startPosition
-            );
-            const finalDamage = calculateFinalDamage(
-              distTraveled,
+ 
+            const finalDamage = bullet.damageConfig.length ? calculateFinalDamage(
+              bullet.position.distanceSquared(bullet.startPosition, bullet.position),
               bullet.maxDistance,
               bullet.damage,
               bullet.damageConfig
-            );
+            ) : bullet.damage
+
+
             handleDummyCollision(
               this.room,
               bullet.owner,
