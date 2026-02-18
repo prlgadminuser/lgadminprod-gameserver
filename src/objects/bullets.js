@@ -243,6 +243,7 @@ class BulletManager {
         bullet.y = nextPos.y;
         this.room.grid.updateObject(bullet, nextPos.x, nextPos.y);
 
+       let collided = false;
 
       if (isPositionOutsideMapBounds(this.room, bullet.position.x, bullet.position.y)) {
 
@@ -274,7 +275,6 @@ class BulletManager {
         );
 
         let newEffect = 0;
-        let collided = false;
 
         const collidedWalls = getCollidedWallsWithBullet(
           // check which of potential walls collide exactly
