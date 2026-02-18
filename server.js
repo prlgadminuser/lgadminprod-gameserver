@@ -1,7 +1,6 @@
 "use strict";
 
 require("dotenv").config();
-
 const http = require("http");
 const WebSocket = require("ws");
 const { RateLimiterMemory } = require("rate-limiter-flexible");
@@ -14,74 +13,71 @@ const {
 } = require("./config");
 
 const { setupHttpServer } = require("./httpHandler");
-
 const { verifyPlayer } = require("./src/database/verifyPlayer");
 const { checkForMaintenance } = require("./src/database/ChangePlayerStats");
-
 const {
   addSession,
   removeSession,
   checkExistingSession,
   redisClient,
   startHeartbeat,
-  kickPlayerNewConnection,
 } = require("./src/database/redisClient");
-
 const { handleMessage } = require("./src/packets/HandleMessage");
 const { playerLookup, GetRoom } = require("./src/room/room");
-
 const { connectToMongoDB } = require("./src/database/mongoClient");
 
-// ===================================================
-// =================== CONSTANTS ====================
-// ===================================================
-
-
-
-const CONNECTION_RATE_LIMIT_ENABLED = false;
 const DEV_MODE = false;
+const CONNECTION_RATE_LIMIT_ENABLED = true;
 
+// Rate limiter per IP
 const connectionRateLimiter = new RateLimiterMemory(RATE_LIMITS.CONNECTION);
-let playerCount = 0;
 
-// ===================================================
-// ================== UTIL FUNCTIONS ================
-// ===================================================
+// Track IPs to prevent multiple connections from same IP
+const activeIPs = new Map();
 
+
+// ---------------- UTIL ----------------
 function isValidOrigin(origin) {
   const trimmed = origin?.trim().replace(/(^,)|(,$)/g, "") ?? "";
   return ALLOWED_ORIGINS.has(trimmed);
 }
 
-async function handleUpgrade(request, socket, head, wss) {
+async function handleUpgrade(req, socket, head, wss) {
   const ip =
-    request.socket["true-client-ip"] ||
-    request.socket["x-forwarded-for"] ||
-    request.socket.remoteAddress;
+    req.socket["true-client-ip"] ||
+    req.socket["x-forwarded-for"] ||
+    req.socket.remoteAddress;
 
   try {
+    // Enforce connection rate limiting
     if (CONNECTION_RATE_LIMIT_ENABLED) await connectionRateLimiter.consume(ip);
 
-    const origin = request.headers["sec-websocket-origin"] || request.headers.origin;
+    // Prevent multiple connections from the same IP
+    if (activeIPs.has(ip)) {
+      socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
+      socket.destroy();
+      return;
+    }
+
+    const origin = req.headers["sec-websocket-origin"] || req.headers.origin;
     if (!isValidOrigin(origin)) {
       socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
       socket.destroy();
       return;
     }
 
-    wss.handleUpgrade(request, socket, head, (ws) =>
-      wss.emit("connection", ws, request)
-    );
-  } catch {
+    wss.handleUpgrade(req, socket, head, (ws) => {
+      activeIPs.set(ip, ws);
+      ws.on("close", () => activeIPs.delete(ip));
+      wss.emit("connection", ws, req);
+    });
+  } catch (err) {
     socket.write("HTTP/1.1 429 Too Many Requests\r\n\r\n");
     socket.destroy();
   }
 }
 
-// ===================================================
-// =============== WEBSOCKET HANDLER =================
-// ===================================================
-
+// ---------------- WEBSOCKET ----------------
 function setupWebSocketServer(wss, server) {
   wss.on("connection", async (ws, req) => {
     let userId, player, room;
@@ -102,18 +98,14 @@ function setupWebSocketServer(wss, server) {
         return;
       }
 
-
       const playerVerified = await verifyPlayer(token);
       if (!playerVerified) {
         ws.close(4001, "Invalid token");
         return;
       }
+      userId = playerVerified.userId;
 
-      userId = playerVerified.userId
-
-    //  console.log(userId)
-
-      // Handle existing sessions
+      // Check for existing session
       let existingSid = playerLookup.has(userId)
         ? SERVER_INSTANCE_ID
         : await checkExistingSession(userId);
@@ -123,10 +115,9 @@ function setupWebSocketServer(wss, server) {
           const existingConnection = playerLookup.get(userId);
           if (existingConnection && existingConnection.wsClose) {
             existingConnection.send("code:double");
-            existingConnection.wsClose(4009, "Reasigned Connection");
+            existingConnection.wsClose(4009, "Reassigned Connection");
             playerLookup.delete(userId);
           }
-        
         } else {
           await redisClient.publish(
             `server:${existingSid}`,
@@ -134,7 +125,6 @@ function setupWebSocketServer(wss, server) {
           );
         }
       }
-
 
       if (!DEV_MODE) await addSession(userId);
 
@@ -146,11 +136,10 @@ function setupWebSocketServer(wss, server) {
       }
 
       room = joinResult.room;
-      const playerId = userId;
-      player = room.players.get(playerId);
+      player = room.players.get(userId);
 
       playerLookup.set(userId, ws);
-      playerCount++;
+      global.playerCount++;
 
       ws.on("message", (message) => handleMessage(room, player, message));
 
@@ -158,11 +147,11 @@ function setupWebSocketServer(wss, server) {
         playerLookup.delete(userId);
         if (player) player.room.removePlayer(player);
         if (!DEV_MODE) await removeSession(userId);
-        playerCount--;
+        global.playerCount--;
       });
 
-      ws.on("error", (error) => {
-        console.error("WebSocket error:", error);
+      ws.on("error", (err) => {
+        console.error("WebSocket error:", err);
         ws.close(1011, "Internal server error");
       });
     } catch (error) {
@@ -180,17 +169,13 @@ function setupWebSocketServer(wss, server) {
   });
 }
 
-// ===================================================
-// ================== SERVER START ==================
-// ===================================================
-
+// ---------------- SERVER START ----------------
 async function startServer() {
   try {
     await connectToMongoDB();
     startHeartbeat();
 
     const server = http.createServer(setupHttpServer);
-
     const wss = new WebSocket.Server({
       noServer: true,
       clientTracking: false,
@@ -202,27 +187,26 @@ async function startServer() {
 
     const PORT = process.env.PORT || 8080;
     server.listen(PORT, () => {
-      console.log(`Skilldown GameServer is listening on port ${PORT}`);
+      console.log(`Skilldown GameServer listening on port ${PORT}`);
     });
 
     // Graceful shutdown
-    process.on("SIGINT", () => shutdown(server));
-    process.on("SIGTERM", () => shutdown(server));
+    const shutdown = () => {
+      console.log("Server shutting down...");
+      server.close(() => process.exit(0));
+    };
+    process.on("SIGINT", shutdown);
+    process.on("SIGTERM", shutdown);
+
     process.on("uncaughtException", (err) => handleFatal(err));
     process.on("unhandledRejection", (reason) => handleFatal(reason));
-
-  } catch (error) {
-    handleFatal(error);
+  } catch (err) {
+    handleFatal(err);
   }
 }
 
-function shutdown(server) {
-  console.log("Server shutting down...");
-  server.close(() => process.exit(0));
-}
-
-function handleFatal(error) {
-  console.error("Fatal error:", error);
+function handleFatal(err) {
+  console.error("Fatal error:", err);
   process.exit(1);
 }
 
