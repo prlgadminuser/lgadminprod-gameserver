@@ -65,7 +65,7 @@ class Vec2 {
     return new Vec2(this.x * scalar, this.y * scalar);
   }
 
-  distanceSquared(a, b) {
+  static distanceSquared(a, b) {
     const dx = a.x - b.x;
     const dy = a.y - b.y;
     return dx * dx + dy * dy;
@@ -318,10 +318,7 @@ class BulletManager {
             ) {
               const finalDamage = bullet.damageConfig.length
                 ? calculateFinalDamage(
-                    bullet.position.distanceSquared(
-                      bullet.startPosition,
-                      bullet.position,
-                    ),
+                    Vec2.distanceSquared(bullet.startPosition, bullet.position),
                     bullet.maxDistance,
                     bullet.damage,
                     bullet.damageConfig,
@@ -367,10 +364,7 @@ class BulletManager {
             ) {
               const finalDamage = bullet.damageConfig.length
                 ? calculateFinalDamage(
-                    bullet.position.distanceSquared(
-                      bullet.startPosition,
-                      bullet.position,
-                    ),
+                    Vec2.distanceSquared(bullet.startPosition, bullet.position),
                     bullet.maxDistance,
                     bullet.damage,
                     bullet.damageConfig,
@@ -481,15 +475,17 @@ function DestroyWall(wall, room) {
 }
 
 function calculateFinalDamage(
-  distanceUsed,
+  distanceSquaredUsed,
   bulletMaxDistance,
   normalDamage,
   layers,
 ) {
   if (!Array.isArray(layers) || layers.length === 0) return normalDamage;
+  const maxDistSq = bulletMaxDistance * bulletMaxDistance;
+
   for (const layer of layers) {
-    const thresholdDistance = (layer.threshold / 100) * bulletMaxDistance;
-    if (distanceUsed <= thresholdDistance)
+    const thresholdDistanceSq = (layer.threshold / 100) * maxDistSq;
+    if (distanceSquaredUsed <= thresholdDistanceSq)
       return Math.ceil(normalDamage * layer.damageMultiplier);
   }
   return 0;
