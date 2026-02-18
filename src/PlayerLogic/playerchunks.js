@@ -10,7 +10,7 @@ function getPlayersInRange(room, centerX, centerY) {
   const yMin = centerY - yThreshold;
   const yMax = centerY + yThreshold;
 
- const nearbyPlayers = room.grid.getObjectsInArea(xMin, xMax, yMin, yMax, "player", false);
+ const nearbyPlayers = room.grid.getObjectsInArea(xMin, xMax, yMin, yMax, "player");
 
   return nearbyPlayers;
 }

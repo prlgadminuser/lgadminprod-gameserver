@@ -8,6 +8,7 @@ const {
   getCollidedWallsWithBullet,
 } = require("../utils/collision");
 const { AddNewUnseenObject } = require("../utils/game");
+const { isPositionOutsideMapBounds } = require("../utils/math");
 
 const playerWidth = playerhitbox.width;
 const playerHeight = playerhitbox.height;
@@ -241,6 +242,14 @@ class BulletManager {
         bullet.x = nextPos.x;
         bullet.y = nextPos.y;
         this.room.grid.updateObject(bullet, nextPos.x, nextPos.y);
+
+
+      if (isPositionOutsideMapBounds(this.room, bullet.position.x, bullet.position.y)) {
+
+        toRemove.push(id);
+        collided = true;
+        break
+      }
 
         const centerX = bullet.position.x;
         const centerY = bullet.position.y;

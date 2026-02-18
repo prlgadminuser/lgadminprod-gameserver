@@ -9,6 +9,12 @@ module.exports = {
     };
   },
 
+  isPositionOutsideMapBounds(room, x, y) {
+
+    const mapWidth = room.mapWidth;
+    const mapHeight = room.mapHeight;
+    return x < -mapWidth || x > mapWidth || y < -mapHeight || y > mapHeight;
+},
 
   getDistance(x1, y1, x2, y2) {
     return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));

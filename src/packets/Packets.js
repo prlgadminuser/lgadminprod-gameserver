@@ -115,7 +115,7 @@ function SendPreStartMessage(room) {
     modifiers: Array.from(room.modifiers), // set needs array converting
     sb: room.scoreboard,
     plspeed: room.playerspeed,
-  //  mapdata: room.mapdata.compressedwalls
+   // mapdata: room.mapdata.compressedwalls
   };
 
   for (const player of players) {
@@ -347,6 +347,5 @@ function sendPlayerPackets(room) {
     }
   });
 }
-
 
 module.exports = { SendPreStartMessage, preparePlayerPackets, sendPlayerPackets }
