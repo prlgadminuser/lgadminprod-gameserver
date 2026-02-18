@@ -27,7 +27,8 @@ const { playerLookup, GetRoom } = require("./src/room/room");
 const { connectToMongoDB } = require("./src/database/mongoClient");
 
 const DEV_MODE = false;
-const CONNECTION_RATE_LIMIT_ENABLED = true;
+const CONNECTION_RATE_LIMIT_ENABLED = false;
+const IP_NO_DOUBLECONNECTION_ENABLED = false
 
 // Rate limiter per IP
 const connectionRateLimiter = new RateLimiterMemory(RATE_LIMITS.CONNECTION);
@@ -53,7 +54,7 @@ async function handleUpgrade(req, socket, head, wss) {
     if (CONNECTION_RATE_LIMIT_ENABLED) await connectionRateLimiter.consume(ip);
 
     // Prevent multiple connections from the same IP
-    if (activeIPs.has(ip)) {
+    if (IP_NO_DOUBLECONNECTION_ENABLED && activeIPs.has(ip)) {
       socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
       socket.destroy();
       return;
@@ -67,8 +68,8 @@ async function handleUpgrade(req, socket, head, wss) {
     }
 
     wss.handleUpgrade(req, socket, head, (ws) => {
-      activeIPs.set(ip, ws);
-      ws.on("close", () => activeIPs.delete(ip));
+     if (IP_NO_DOUBLECONNECTION_ENABLED) activeIPs.set(ip, ws);
+     if (IP_NO_DOUBLECONNECTION_ENABLED) ws.on("close", () => activeIPs.delete(ip));
       wss.emit("connection", ws, req);
     });
   } catch (err) {
