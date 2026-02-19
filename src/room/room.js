@@ -69,7 +69,7 @@ function getAvailableRoom(gamemode, spLevel) {
   return false;
 }
 
-async function GetRoom(ws, gamemode, playerVerified) {
+function GetRoom(ws, gamemode, playerVerified) {
   try {
     const max_length = 16;
     const min_length = 4;
@@ -219,13 +219,17 @@ class Room {
 
   addPlayer(ws, playerVerified) {
     const newPlayer = new Player(ws, playerVerified, this);
+
+    if (!this.canStartGame()) {
       playerLookup.set(newPlayer.playerId, newPlayer);
       this.connectedPlayers.add(newPlayer);
       this.alivePlayers.add(newPlayer);
-   //   if (newPlayer.wsReadyState() === ws.CLOSED) {
-   //     this.removePlayer(newPlayer);
-     //   return null;
-   // }
+
+      if (newPlayer.wsReadyState() === ws.CLOSED) {
+        this.removePlayer(newPlayer);
+        return null;
+      }
+    }
 
     if (this.canStartGame()) {
       this.startMatch();
@@ -234,7 +238,7 @@ class Room {
     return { room: this, player: newPlayer };
   }
 
-  removePlayer(player) {
+  async removePlayer(player) {
     if (!player) return;
 
     if (this && !player.eliminated && this.state !== "waiting")
@@ -807,7 +811,7 @@ async function SetupRoomStartGameData(room) {
   //  }
 }
 
-function setupRoomPlayers(room) {
+async function setupRoomPlayers(room) {
   let playerNumberID = 0; // Start with player number 0
 
   // Iterate over each player in the room's players collection
@@ -832,7 +836,7 @@ function setupRoomPlayers(room) {
   }
 }
 
-function CreateTeams(room) {
+async function CreateTeams(room) {
   if (!room.connectedPlayers || room.connectedPlayers.size === 0) return;
 
   const teamIDs = [
