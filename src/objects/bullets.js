@@ -7,8 +7,7 @@ const {
   isCollisionWithPlayer,
   getCollidedWallsWithBullet,
 } = require("../utils/collision");
-const { AddNewUnseenObject } = require("../utils/game");
-const { isPositionOutsideMapBounds } = require("../utils/math");
+const { AddNewUnseenObject, isPositionOutsideMapBounds } = require("../utils/game");
 
 const playerWidth = playerhitbox.width;
 const playerHeight = playerhitbox.height;

@@ -62,11 +62,11 @@ function updateHealingCircles(deltaTime, room) {
         "player"
         );
 
-    nearbyPlayers.forEach((player) => {
+   for (const player of nearbyPlayers) {
       if (player.state === 1 && isPlayerInsideCircle(player, circle) && circle.radius > Math.floor(circle.maxradius * 0.3)) {
         player.health = Math.min(player.health + circle.healAmount, player.starthealth);
       }
-    });
+    };
 
     // Shrink and remove circle if duration expired
     if (circle.elapsedTime >= circle.duration) {

@@ -1,12 +1,12 @@
 const { gadgetconfig } = require("../config/gadgets");
 const { playerhitbox } = require("../config/player");
-const { PlayerRateLimiter, GlobalRoomConfig } = require("../config/server");
+const { PlayerRateLimiter } = require("../config/server");
 const { UpdatePlayerPlace } = require("../database/ChangePlayerStats");
 const { spawnAnimation } = require("../modifiers/animations");
 const { addEntryToKillfeed } = require("../modifiers/killfeed");
 const { startSpectatingLogic } = require("../PlayerLogic/spectating");
 const { TeamPlayersActive } = require("../teamhandler/aliveteam");
-const { isCollisionWithCachedWalls } = require("../utils/collision");
+const { isCollisionWithWalls } = require("../utils/collision");
 const { createHitmarker } = require("../utils/game");
 const { DIRECTION_VECTORS } = require("../utils/movement");
 
@@ -212,10 +212,10 @@ class Player {
       targetPlayer.respawn();
       addEntryToKillfeed(room, 2, this.id, targetPlayer.id, gunid);
 
-      if (room.matchtype === "td") {
-        updateTeamScore(room, this, 1);
+    //  if (room.matchtype === "td") {
+    //    updateTeamScore(room, this, 1);
+   // }
       }
-    }
   }
 
   update() {
@@ -240,11 +240,12 @@ class Player {
       "wall",
     );
 
+
     let newX = this.x + deltaX;
     let newY = this.y + deltaY;
 
-    if (isCollisionWithCachedWalls(nearbyWalls, newX, this.y)) newX = this.x;
-    if (isCollisionWithCachedWalls(nearbyWalls, this.x, newY)) newY = this.y;
+    if (isCollisionWithWalls(nearbyWalls, newX, this.y)) newX = this.x;
+    if (isCollisionWithWalls(nearbyWalls, this.x, newY)) newY = this.y;
 
     const mapWidth = this.room.mapWidth;
     const mapHeight = this.room.mapHeight;
@@ -430,13 +431,13 @@ class Player {
         // Find the place for the eliminated team.
         const teamPlace =
           this.room.teams.size - this.room.eliminatedTeams.length;
-        team.players.forEach((player) => {
+       for (const player of team.players) {
           const p = player
           if (p) {
             p.place = teamPlace;
             UpdatePlayerPlace(p, teamPlace, this.room);
           }
-        });
+        };
         this.room.eliminatedTeams.push({ id: team.id, place: teamPlace });
       }
     } else {

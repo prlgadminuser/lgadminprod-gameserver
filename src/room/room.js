@@ -1,31 +1,57 @@
-
-//const { addRoomToIndex, removeRoomFromIndex } = require("./matchmaking");
-
 const { GlobalRoomConfig } = require("../config/server");
-const { UpdatePlayerKillsAndDamage, UpdatePlayerPlace, UpdatePlayerWins, UpdateEventKills } = require("../database/ChangePlayerStats");
+const {
+  UpdatePlayerKillsAndDamage,
+  UpdatePlayerPlace,
+  UpdatePlayerWins,
+  UpdateEventKills,
+} = require("../database/ChangePlayerStats");
 const { addEntryToKillfeed } = require("../modifiers/killfeed");
 const { BulletManager } = require("../objects/bullets");
 const { Player } = require("../objects/player");
-const { preparePlayerPackets, sendPlayerPackets } = require("../packets/Packets");
-const { deepCopy, generateUUID } = require("../utils/hash");
+const { deepCopy, generateUUID, arraysEqual } = require("../utils/hash");
 const { random_mapkeys, mapsconfig } = require("../config/maps");
+const { gadgetconfig } = require("../config/gadgets");
+const {
+  SkillbasedMatchmakingEnabled,
+  matchmakingsp,
+} = require("../config/matchmaking");
+const { GameGrid } = require("../config/grid");
+const { UseZone } = require("../modifiers/zone");
+const {
+  startDecreasingHealth,
+  startRegeneratingHealth,
+} = require("../modifiers/modifiers");
+const { initializeHealingCircles } = require("../modifiers/healingcircle");
+const { gamemodeconfig } = require("../config/gamemodes");
+const { HandleAfflictions } = require("../objects/bullets-effects");
+const {
+  SerializePlayerData,
+  BuildSelfData,
+  compressMessage,
+} = require("../utils/serialize");
+const { handleSpectatorMode } = require("../PlayerLogic/spectating");
+const { encodePosition, getTeamPlayersIds } = require("../utils/game");
 
 const rooms = new Map();
 const playerLookup = new Map();
 const roomIndex = new Map();
 
-//const { RoomIndexAdapter, inMemoryIndex } = require("./matchmaking/adapter.js");
+const state_map = {
+  waiting: 1,
+  await: 2,
+  countdown: 3,
+  playing: 4,
+};
 
-const { gadgetconfig } = require("../config/gadgets");
-const { SkillbasedMatchmakingEnabled, matchmakingsp } = require("../config/matchmaking");
-const { GameGrid } = require("../config/grid");
-const { SendPreStartMessage } = require("../packets/Packets");
-const { UseZone } = require("../modifiers/zone");
-const { startDecreasingHealth, startRegeneratingHealth } = require("../modifiers/modifiers");
-const { initializeHealingCircles } = require("../modifiers/healingcircle");
-const { gamemodeconfig } = require("../config/gamemodes");
-
-
+const PacketKeys = {
+  roomdata: 1,
+  selfdata: 2,
+  playerdata: 3,
+  bulletdata: 4,
+  objectupdates: 5,
+  animations: 6,
+  killfeed: 7,
+};
 
 function getAvailableRoom(gamemode, spLevel) {
   const key = `${gamemode}_${spLevel}`;
@@ -34,7 +60,10 @@ function getAvailableRoom(gamemode, spLevel) {
   if (!roomList) return null;
 
   for (const room of roomList.values()) {
-    if (room.state === 'waiting' && room.connectedPlayers.size < room.maxplayers) {
+    if (
+      room.state === "waiting" &&
+      room.connectedPlayers.size < room.maxplayers
+    ) {
       return room;
     }
   }
@@ -48,7 +77,6 @@ async function GetRoom(ws, gamemode, playerVerified) {
     const playername = playerVerified.playername;
     const gadgetselected = playerVerified.gadget || 1;
 
-
     if (
       playername.length < min_length ||
       playername.length > max_length ||
@@ -57,8 +85,9 @@ async function GetRoom(ws, gamemode, playerVerified) {
       return ws.close(4004);
     }
 
-
-    const finalskillpoints = SkillbasedMatchmakingEnabled ? playerVerified.skillpoints || 0 : 0;
+    const finalskillpoints = SkillbasedMatchmakingEnabled
+      ? playerVerified.skillpoints || 0
+      : 0;
 
     const room = await FindOrCreateRoom(gamemode, finalskillpoints);
     return await room.addPlayer(ws, playerVerified, room);
@@ -100,8 +129,6 @@ function removeRoomFromIndex(room) {
   }
 }
 
-
-
 class Room {
   constructor(roomId, gamemode, gmconfig, splevel) {
     // Select map
@@ -116,9 +143,8 @@ class Room {
     const mapdata = mapsconfig.get(mapid);
     if (!mapdata) console.error("map does not exist");
 
-
     // Core room state
-    this.allplayerkillscount = 0
+    this.allplayerkillscount = 0;
     this.roomId = roomId;
     this.state = "waiting";
     this.sp_level = splevel;
@@ -126,7 +152,7 @@ class Room {
     this.gamemode = gamemode;
     this.IsTeamMode = gmconfig.teamsize > 1;
     this.matchtype = gmconfig.matchtype;
-    
+
     this.alivePlayers = new Set();
     this.connectedPlayers = new Set();
 
@@ -197,8 +223,8 @@ class Room {
 
     if (!this.canStartGame()) {
       playerLookup.set(newPlayer.playerId, newPlayer);
-      this.connectedPlayers.add(newPlayer)
-      this.alivePlayers.add(newPlayer)
+      this.connectedPlayers.add(newPlayer);
+      this.alivePlayers.add(newPlayer);
 
       if (newPlayer.wsReadyState() === ws.CLOSED) {
         this.removePlayer(newPlayer);
@@ -210,21 +236,21 @@ class Room {
       await this.startMatch();
     }
 
-    return { room: this, player: newPlayer};
+    return { room: this, player: newPlayer };
   }
 
   async removePlayer(player) {
     if (!player) return;
 
     if (this && !player.eliminated && this.state !== "waiting")
-     player.eliminate();
+      player.eliminate();
     addEntryToKillfeed(this, 5, null, player.id, null);
 
     player.alive = false;
     player.eliminated = true;
 
-    this.connectedPlayers.delete(player)
-    this.alivePlayers.delete(player)
+    this.connectedPlayers.delete(player);
+    this.alivePlayers.delete(player);
 
     player.wsClose();
     playerLookup.delete(player.playerId);
@@ -233,7 +259,6 @@ class Room {
       UpdatePlayerKillsAndDamage(player);
 
     if (this.state === "waiting") {
-
       if (this.connectedPlayers.size < 1) {
         this.close();
         return;
@@ -259,10 +284,12 @@ class Room {
   }
 
   canStartGame() {
-    return this.state === "waiting" && this.connectedPlayers.size >= this.maxplayers;
+    return (
+      this.state === "waiting" && this.connectedPlayers.size >= this.maxplayers
+    );
   }
 
-  update() {}
+  //update() {}
 
   setRoomTimeout(fn, ms) {
     const id = setTimeout(fn, ms);
@@ -294,24 +321,22 @@ class Room {
 
   // Clean up all players
   cleanupPlayers() {
-    this.connectedPlayers.forEach((player) => {
+    for (const player of this.connectedPlayers) {
       // Close player connection
       player.wsClose();
-
 
       // Update player stats if needed
       if (player.kills > 0 || player.damage > 0) {
         UpdatePlayerKillsAndDamage(player, player.kills, player.damage);
       }
-    });
+    };
   }
 
   // Fully close the room
   close() {
     if (this.state === "closed") return;
 
-
-    UpdateEventKills(this.allplayerkillscount)
+    UpdateEventKills(this.allplayerkillscount);
 
     // Stop timers
     this.clearTimers();
@@ -355,26 +380,12 @@ class Room {
     });
   }
 
-  cleanupRoom(roomId) {
-  const room = rooms.get(roomId);
-  if (!room) {
-    return;
-  }
-
-  // Clear the cleanup interval if it exists
-  if (room.cleanupinterval) {
-    clearInterval(room.cleanupinterval);
-  }
-}
-
 
 
   initIntervals() {
     // Idle player cleanup
 
-  
-  
-     this.intervalIds.push(
+    this.intervalIds.push(
       setInterval(() => {
         const now = Date.now();
         for (const player of this.connectedPlayers) {
@@ -385,23 +396,23 @@ class Room {
             player.wsClose(4200, "disconnected_inactivity");
           }
         }
-      }, GlobalRoomConfig.player_noping_maxtime / 2)
+      }, GlobalRoomConfig.player_noping_maxtime / 2),
     );
     // Cleanup expired intervals/timeouts
     this.xcleaninterval = setInterval(() => {
       if (this.timeoutIds) {
         this.timeoutIds = this.clearAndRemoveCompletedTimeouts(
           this.timeoutIds,
-          clearTimeout
+          clearTimeout,
         );
       }
       if (this.intervalIds) {
         this.intervalIds = this.clearAndRemoveInactiveTimers(
           this.intervalIds,
-          clearInterval
+          clearInterval,
         );
       }
-    }, 30000);
+    }, 10000);
 
     // Matchmaking timeout
     this.matchmaketimeout = setTimeout(() => {
@@ -414,91 +425,319 @@ class Room {
     this.startGameLoop(GlobalRoomConfig.room_tick_rate_ms);
   }
 
-  startGameLoop2(game_tick_rate) {
-    const idealDt = game_tick_rate; // e.g., 25 ms for 40 Hz
-    this._tickTimes = [];
+  HasGameEnded() {
+    let remainingTeamsOrPlayers;
+    if (this.IsTeamMode) {
+      remainingTeamsOrPlayers = [...this.teams.values()].filter((team) =>
+        team.players.some((player) => !player.eliminated),
+      );
+    } else {
+      remainingTeamsOrPlayers = this.alivePlayers.size;
+    }
 
-    const tick = () => {
-      const now = Date.now();
-
-      // Run game logic
-      const tStart = now;
-      preparePlayerPackets(this);
-
-      this.timeoutdelaysending = setTimeout(() => sendPlayerPackets(this), 5);
-
-      // Track tick duration
-      const tickTime = Date.now() - tStart;
-      this._tickTimes.push(tickTime);
-
-      if (this._tickTimes.length >= 200) {
-        const mspt =
-          this._tickTimes.reduce((a, b) => a + b, 0) / this._tickTimes.length;
-        const variance =
-          this._tickTimes.reduce((a, b) => a + Math.pow(b - mspt, 2), 0) /
-          this._tickTimes.length;
-        const stddev = Math.sqrt(variance);
-        console.log(
-          `ms/tick: ${mspt.toFixed(2)} ± ${stddev.toFixed(2)} | Load: ${(
-            (mspt / idealDt) *
-            100
-          ).toFixed(1)}%`
-        );
-        this._tickTimes.length = 0;
+    // Check if a single winner remains.
+    if (remainingTeamsOrPlayers.length === 1) {
+      const winner = remainingTeamsOrPlayers[0];
+      if (this.IsTeamMode && this.winner === -1) {
+        this.winner = winner.id;
+        for (const player of winner.players) {
+          const p = player;
+          p.place = 1;
+          UpdatePlayerWins(p, 1);
+          UpdatePlayerPlace(p, 1, this);
+        };
+      } else if (this.winner === -1) {
+        this.winner = winner.id;
+        winner.place = 1;
+        UpdatePlayerWins(winner, 1);
+        UpdatePlayerPlace(winner, 1, this);
       }
+      // Set a timeout to close the room after a win.
+      this.setRoomTimeout(() => {
+        this.close();
+      }, GlobalRoomConfig.game_win_rest_time);
+    }
+    // If no one is left, also close the room.
+    else if (remainingTeamsOrPlayers.length === 0) {
+      this.setRoomTimeout(() => {
+        this.close();
+      }, GlobalRoomConfig.game_win_rest_time);
+    }
+  }
 
-      // Schedule next tick with drift compensation
-      const delay = Math.max(0, idealDt - (Date.now() - now));
-      this.driftdelay1 = setTimeout(tick, delay);
+  SendPreStartPacket() {
+    // Prebuild AllPlayerData
+
+    const players = this.alivePlayers;
+
+    const AllData = {};
+    for (const p of players) {
+      AllData[p.id] = [
+        p.hat || 0,
+        p.top || 0,
+        p.player_color,
+        p.hat_color,
+        p.top_color,
+        p.playername,
+        p.starthealth,
+      ];
+    }
+
+    const dummiesFiltered = this.dummies ? this.dummies : undefined;
+
+    const RoomData = {
+      mapid: this.map,
+      type: this.matchtype,
+      modifiers: Array.from(this.modifiers), // set needs array converting
+      sb: this.scoreboard,
+      mapdata: this.mapdata.compressedwalls,
     };
 
-    this.driftdelay2 = setTimeout(tick, idealDt);
-  }
+    for (const player of players) {
+      const self_info = {
+        id: player.id,
+        state: player.state,
+        h: player.health,
+        sh: player.starthealth,
+        s: +player.shooting,
+        g: player.gun,
+        kil: player.kills,
+        dmg: player.damage,
+        rwds: player.finalrewards,
+        killer: player.eliminator,
+        cg: +player.canusegadget,
+        lg: player.gadgetuselimit,
+        ag: +player.gadgetactive,
+        x: encodePosition(player.x),
+        y: encodePosition(player.y),
+        el: player.eliminations,
+        em: player.emote,
+        spc: player.spectatingPlayerId,
+        guns: player.loadout_formatted,
+        ht: [],
+      };
 
-  HasGameEnded() {
-  let remainingTeamsOrPlayers;
-  if (this.IsTeamMode) {
-    remainingTeamsOrPlayers = [...this.teams.values()].filter((team) =>
-      team.players.some((player) => !player.eliminated)
-    );
-  } else {
-    remainingTeamsOrPlayers = this.alivePlayers.size
-    
-  }
+      player.selflastmsg = self_info;
 
-  // Check if a single winner remains.
-  if (remainingTeamsOrPlayers.length === 1) {
-    const winner = remainingTeamsOrPlayers[0];
-    if (this.IsTeamMode && this.winner === -1) {
-      this.winner = winner.id;
-      winner.players.forEach((player) => {
-        const p = player;
-        p.place = 1;
-         UpdatePlayerWins(p, 1);
-        UpdatePlayerPlace(p, 1, this);
-      });
-    } else if (this.winner === -1) {
-      this.winner = winner.id;
-      winner.place = 1;
-       UpdatePlayerWins(winner, 1);
-      UpdatePlayerPlace(winner, 1, this);
+      const MessageToSend = {
+        AllData,
+        SelfData: {
+          allies: getTeamPlayersIds(this, player),
+          pid: player.id,
+          self_info,
+          dummies: dummiesFiltered,
+          gadget: player.gadgetid,
+        },
+        RoomData: RoomData,
+      };
+
+      player.send(compressMessage(MessageToSend), { binary: true });
     }
-    // Set a timeout to close the room after a win.
-     this.setRoomTimeout(() => {
-        this.close(); 
-    }, GlobalRoomConfig.game_win_rest_time)
-  }
-  // If no one is left, also close the room.
-  else if (remainingTeamsOrPlayers.length === 0) {
-       this.setRoomTimeout(() => {
-    this.close();
-  }, GlobalRoomConfig.game_win_rest_time);
-}
   }
 
+  update() {
+    const CachedEmptyMsg = compressMessage([]);
+
+    const players = this.connectedPlayers;
+    const GameRunning = this.state === "playing" || this.state === "countdown";
+
+    if (!GameRunning) {
+      const roomdata = [state_map[this.state], this.maxplayers, players.size];
+
+      const sendroomdata = [PacketKeys["roomdata"], roomdata];
+
+      for (const p of players) p.tick_send_allow = false;
+
+      if (!arraysEqual(this.rdlast, roomdata)) {
+        this.rdlast = roomdata;
+        const compressed = compressMessage(sendroomdata);
+        for (const p of players) {
+          if (!p.wsReadyState()) continue;
+          p.lastcompressedmessage = compressed;
+          p.tick_send_allow = true;
+          p.lastMessageHash = "default";
+        }
+      }
+      return;
+    }
+
+    const aliveCount = this.alivePlayers.size; // TODO
+    this.bulletManager.update();
+    HandleAfflictions(this);
+
+    for (const player of players) {
+      if (player.moving && player.alive) player.update();
+
+      player.updateView();
+    }
+
+    // ROOM DATA
+    const roomdata = [
+      state_map[this.state],
+      this.maxplayers,
+      aliveCount,
+      this.countdown,
+      this.winner,
+      this.zone,
+    ];
+
+    let finalroomdata;
+
+    if (!arraysEqual(this.rdlast, roomdata)) {
+      finalroomdata = roomdata;
+      this.rdlast = roomdata;
+    } else {
+      finalroomdata = undefined;
+    }
+
+    // Reuse buffers for bullets and player data
+    const playerData = this.playerDataBuffer;
+
+    for (const p of players) {
+      if (p.spectating) continue;
+
+      if (!p.alive) continue;
+
+      const serialized = SerializePlayerData(p);
+
+      const hash = serialized.join();
+
+      p.dirty = hash !== p._lastSerializedHash;
+      p._lastSerializedHash = hash;
+
+      playerData.set(p.id, serialized);
+    }
+
+    // ONE PASS: build messages
+    for (const p of players) {
+      if (!p.wsReadyState()) continue;
+
+      const selfdata = BuildSelfData(p);
+
+      const changes = {};
+      const lastSelf = p.selflastmsg;
+      for (const k in selfdata) {
+        if (selfdata[k] !== lastSelf[k]) changes[k] = selfdata[k];
+      }
+      if (Object.keys(changes).length)
+        p.selflastmsg = { ...lastSelf, ...changes };
+
+      if (p.spectating) handleSpectatorMode(p, this);
+
+      if (!p.spectating) {
+        const filteredPlayers = p.filteredPlayersBuffer;
+
+        filteredPlayers.length = 0;
+
+        for (const player of p.nearbyplayers) {
+          if (player.dirty || !p.nearbyplayersidslast.includes(player.id)) {
+            const data = playerData.get(player.id);
+            filteredPlayers.push(data); // if data is dirty or playerid is new from last tick then sent
+          }
+        }
+
+        if (filteredPlayers.length > 0) p.latestnozeropd = filteredPlayers;
+
+        p.pd = filteredPlayers;
+        p.nearbyplayersidslast = p.nearbyplayersids;
+      }
+
+      // --- Message assembly with buffer reuse ---
+      const msgArray = p.msgBuffer;
+      msgArray.length = 0;
+
+      const dataSource = p.spectatingTarget ? p.spectatingTarget : p;
+
+      // always send also for spectators
+      if (finalroomdata) msgArray.push(PacketKeys["roomdata"], finalroomdata);
+      if (Object.keys(changes).length)
+        msgArray.push(PacketKeys["selfdata"], changes);
+      if (p.newSeenObjectsStatic)
+        msgArray.push(PacketKeys["objectupdates"], p.newSeenObjectsStatic);
+      if (this.killfeed.length)
+        msgArray.push(PacketKeys["killfeed"], this.killfeed);
+
+      // for normal players and spectator handling
+      if (dataSource.nearbyanimations.length)
+        msgArray.push(PacketKeys["animations"], dataSource.nearbyanimations);
+      if (dataSource.finalbullets)
+        msgArray.push(PacketKeys["bulletdata"], dataSource.finalbullets);
+      if (p.pd.length) msgArray.push(PacketKeys["playerdata"], p.pd);
+
+      // Send message if changed
+      if (!msgArray.length) {
+        if (!p.emptySent) {
+          p.lastcompressedmessage = CachedEmptyMsg;
+          p.tick_send_allow = true;
+          p.emptySent = true;
+        } else {
+          p.tick_send_allow = false;
+        }
+      } else {
+        const compressed = compressMessage(msgArray);
+        p.lastcompressedmessage = compressed;
+        p.lastnotemptymessage = compressed;
+        p.tick_send_allow = true;
+        p.emptySent = false;
+      }
+    }
+
+    // CLEANUP
+    this.killfeed.length = 0;
+    for (const p of players) {
+      p.hitmarkers.length = 0;
+      p.eliminations.length = 0;
+      p.nearbyanimations.length = 0;
+    }
+
+    if (this.state === "playing" && this.maxplayers > 1) this.HasGameEnded();
+  }
+
+  sendPlayerPackets() {
+    for (const player of this.connectedPlayers) {
+      if (player.tick_send_allow) {
+        player.send(player.lastcompressedmessage, { binary: true });
+      }
+    }
+  }
 
   // Game tick loop
-  startGameLoop(game_tick_rate) {
+  startGameLoop(tickRateMs) {
+    let nextTick = performance.now() + tickRateMs;
+
+    const loop = () => {
+      const now = performance.now();
+
+      // Catch up if we're behind
+      while (now >= nextTick) {
+        // --- GAME LOGIC ---
+        this.update(); // your game world, physics, collisions, etc.
+
+        // Advance to next tick
+        nextTick += tickRateMs;
+      }
+
+      // Send packets once per tick
+      this.sendPlayerPackets();
+
+      // Calculate delay until next tick
+      const delay = Math.max(0, nextTick - performance.now());
+      this.loopHandle = setTimeout(loop, delay);
+    };
+
+    // Start the loop
+    this.loopHandle = setTimeout(loop, tickRateMs);
+  }
+
+  async startMatch() {
+    this.state = "await";
+    removeRoomFromIndex(this);
+    clearTimeout(this.matchmaketimeout);
+    await startMatch(this, this.roomId);
+  }
+
+
+   startGameLoop35(game_tick_rate) {
     let nextTick = performance.now();
     const tickRateMs = game_tick_rate;
 
@@ -507,9 +746,9 @@ class Room {
       const drift = now - nextTick;
 
       // Run game logic
-      preparePlayerPackets(this);
+      //preparePlayerPackets(this);
       this.timeoutdelaysending = setTimeout(() => {
-        sendPlayerPackets(this);
+      //  sendPlayerPackets(this);
       }, 5);
 
       // Schedule next frame compensating for drift
@@ -524,28 +763,6 @@ class Room {
     this.driftdelay2 = setTimeout(loop, tickRateMs);
   }
 
-  async startMatch() {
-    this.state = "await";
-    removeRoomFromIndex(this);
-    clearTimeout(this.matchmaketimeout);
-    await startMatch(this, this.roomId);
-
-  }
-  
-  // Cleanup cycle
- /* this.timeoutIds.push(
-      setTimeout(() => {
-        this.intervalIds.push(
-          setInterval(() => {
-            this.cleanupRoom(this);
-          }, 1000)
-        );
-      }, 10000)
-    );
-  }
-
-  */
-    
 }
 
 function cloneGrid(original) {
@@ -574,10 +791,9 @@ function cloneGrid(original) {
   return clone;
 }
 
-
 async function SetupRoomStartGameData(room) {
- // const mapData = room.mapdata
-  room.grid = cloneGrid(room.mapdata.grid)/* = new GameGrid(
+  // const mapData = room.mapdata
+  room.grid = cloneGrid(room.mapdata.grid); /* = new GameGrid(
       mapData.width,
       mapData.height,
       mapData.cellSize,
@@ -585,13 +801,9 @@ async function SetupRoomStartGameData(room) {
 
     */
 
-   
-
-   // for (const wall of mapData.walls) {
-    //    room.grid.addObject({ ...wall });
+  // for (const wall of mapData.walls) {
+  //    room.grid.addObject({ ...wall });
   //  }
-
-
 }
 
 async function setupRoomPlayers(room) {
@@ -599,81 +811,71 @@ async function setupRoomPlayers(room) {
 
   // Iterate over each player in the room's players collection
   for (const player of room.connectedPlayers) {
- 
     player.id = playerNumberID;
 
     const spawnPositions = room.spawns;
     const spawnIndex = playerNumberID % spawnPositions.length; // Distribute players across spawn positions
 
-    (player.x = spawnPositions[spawnIndex].x),
+    ((player.x = spawnPositions[spawnIndex].x),
       (player.y = spawnPositions[spawnIndex].y),
       // Assign the spawn position to the player
       (player.startspawn = {
         x: spawnPositions[spawnIndex].x,
         y: spawnPositions[spawnIndex].y,
-      });
+      }));
 
     // Increment the player number for the next player
     playerNumberID++;
 
     room.grid.addObject(player);
-  };
+  }
 }
 
 async function CreateTeams(room) {
-    if (!room.connectedPlayers || room.connectedPlayers.size === 0) return;
+  if (!room.connectedPlayers || room.connectedPlayers.size === 0) return;
 
-    const teamIDs = ['Red', 'Blue', 'Green', 'Yellow', 'Cyan', 'Pink', 'Purple', 'Orange'];
+  const teamIDs = [
+    "Red",
+    "Blue",
+    "Green",
+    "Yellow",
+    "Cyan",
+    "Pink",
+    "Purple",
+    "Orange",
+  ];
 
-    room.teams = new Map();
+  room.teams = new Map();
 
-    let teamIndex = 0;
-    for (const player in room.connectedPlayers) {
-        // Find or create the team.
-        const teamId = teamIDs[teamIndex] || `Team-${teamIndex + 1}`;
-        if (!room.teams.has(teamId)) {
-            room.teams.set(teamId, {
-                id: teamId,
-                players: [],
-                score: 0,
-            });
-        }
-        const team = room.teams.get(teamId);
+  let teamIndex = 0;
 
-        // Add the player to the team.
-        team.players.push(player);
-        player.teamId = teamId; // Use a simple reference to the team.
+  for (const player of room.connectedPlayers) {
+    const teamId = teamIDs[teamIndex] || `Team-${teamIndex + 1}`;
 
-        // Advance to the next team if the current one is full.
-        if (team.players.length >= room.teamsize) {
-            teamIndex++;
-        }
+    if (!room.teams.has(teamId)) {
+      room.teams.set(teamId, {
+        id: teamId,
+        players: [],
+        score: 0,
+      });
     }
 
-    // Create a single teamdata object and assign it to all players.
-    // This is more efficient than creating a separate object for each player.
-    const teamDataMap = new Map();
-    room.teams.forEach(team => {
-        const teamMembers = team.players.map(p => p.id);
-        teamDataMap.set(team.id, teamMembers);
-    });
+    const team = room.teams.get(teamId);
 
-    // Assign the completed teamdata to each player.
-     for (const player in room.connectedPlayers) {
-        const playerTeamId = player.teamId;
-        const playerTeamMembers = teamDataMap.get(playerTeamId);
-        player.teamdata = {
-            id: playerTeamMembers, // Array of team members' IDs
-            tid: playerTeamId,     // The player's team ID
-        };
-    };
+    team.players.push(player);
+    player.teamId = teamId;
+
+    if (team.players.length >= room.teamsize) {
+      teamIndex++;
+    }
+  }
 }
 
 function startCountdown(room) {
   const startTime = Date.now();
   room.countdownInterval = setInterval(() => {
     const elapsed = Date.now() - startTime;
-    const remaining = GlobalRoomConfig.room_max_open_time  - elapsed;
+    const remaining = GlobalRoomConfig.room_max_open_time - elapsed;
 
     if (remaining <= 0) {
       clearInterval(room.countdownInterval);
@@ -691,7 +893,10 @@ async function startMatch(room, roomId) {
     // Automatically close the room after max open time
     room.maxopentimeout = room.setRoomTimeout(() => {
       room.close();
-      if (room.gamemode !== "training") console.log("Warning: Room time limit reached forced closing on non training countdown mode")
+      if (room.gamemode !== "training")
+        console.log(
+          "Warning: Room time limit reached forced closing on non training countdown mode",
+        );
     }, GlobalRoomConfig.room_max_open_time);
 
     // Prepare room data and players
@@ -701,49 +906,48 @@ async function startMatch(room, roomId) {
 
     // Render players and send pre-start message
     for (const player of room.connectedPlayers) {
-     player.updateView()
+      player.updateView();
     }
 
-   // playerchunkrenderer(room);
-    SendPreStartMessage(room);
-
-      room.setRoomTimeout(() => {
-
-    // Countdown phase before the game starts
-    room.state = "countdown";
+    // playerchunkrenderer(room);
+    room.SendPreStartPacket();
 
     room.setRoomTimeout(() => {
-      if (!rooms.has(roomId)) return; // Room might have been closed
+      // Countdown phase before the game starts
+      room.state = "countdown";
 
-      room.state = "playing";
+      room.setRoomTimeout(() => {
+        if (!rooms.has(roomId)) return; // Room might have been closed
 
-      // Start countdown if the modifier is active
-      if (room.modifiers.has("countdown")) {
-        startCountdown(room);
-      }
+        room.state = "playing";
 
-      // Initialize game modifiers
-      if (room.modifiers.has("HealingCircles")) initializeHealingCircles(room);
-      if (room.modifiers.has("UseZone")) UseZone(room);
-      if (room.modifiers.has("AutoHealthRestore")) startRegeneratingHealth(room, 1);
-      if (room.modifiers.has("AutoHealthDamage")) startDecreasingHealth(room, 1);
+        // Start countdown if the modifier is active
+        if (room.modifiers.has("countdown")) {
+          startCountdown(room);
+        }
 
-    }, GlobalRoomConfig.game_start_delay); // Delay before game officially starts
-
-  }, 1000)
+        // Initialize game modifiers
+        if (room.modifiers.has("HealingCircles"))
+          initializeHealingCircles(room);
+        if (room.modifiers.has("UseZone")) UseZone(room);
+        if (room.modifiers.has("AutoHealthRestore"))
+          startRegeneratingHealth(room, 1);
+        if (room.modifiers.has("AutoHealthDamage"))
+          startDecreasingHealth(room, 1);
+      }, GlobalRoomConfig.game_start_delay); // Delay before game officially starts
+    }, 1000);
   } catch (err) {
     console.error(`Error starting match in room ${roomId}:`, err);
   }
 }
 
-
-module.exports = { 
+module.exports = {
   Room,
   rooms,
   playerLookup,
- roomIndex,
+  roomIndex,
   addRoomToIndex,
   removeRoomFromIndex,
   GetRoom,
-  startMatch
+  startMatch,
 };

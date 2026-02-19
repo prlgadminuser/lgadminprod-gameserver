@@ -24,7 +24,7 @@ const GlobalRoomConfig = {
 
 function PlayerRateLimiter() {
   return new RateLimiter({
-    maxRequests: 10, // max requests per interval
+    maxRequests: 20, // max requests per interval
     interval: 0.5, // in time seconds
   });
 }

@@ -135,7 +135,7 @@ function dealDamage(room) {
 
     if (room.winner !== -1) return;
 
-  room.alivePlayers.forEach((player) => {
+  for (const player of room.alivePlayers) {
     if (isWithinZone(room, player.x, player.y)) return;
 
     player.health -= damagePerSecond;
@@ -143,16 +143,14 @@ function dealDamage(room) {
 
     if (player.health > 0) return;
 
-    const teamActivePlayers = TeamPlayersActive(room, player);
-
-    if (player.respawns <= 0 && teamActivePlayers <= 1) {
+    if (player.IsEliminationAllowed()) {
       player.eliminate();
       addEntryToKillfeed(room, 3, null, player.id, null);
     } else {
       player.respawn();
       addEntryToKillfeed(room, 4, null, player.id, null);
     }
-  });
+  };
 }
 
 /* =========================================================
@@ -259,7 +257,7 @@ function UseZone(room) {
   // 30 FPS zone movement
   room.shrinkInterval = room.setRoomInterval(
     () => smoothZoneMovement(room),
-    33
+    100
   );
 
   // Damage every second

@@ -1,4 +1,5 @@
-const { getPlayersInRange } = require("../PlayerLogic/playerchunks");
+const { getPlayersInRange } = require("../utils/game");
+
 
 
   const animationtypes = {
