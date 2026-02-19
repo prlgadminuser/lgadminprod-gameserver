@@ -467,60 +467,79 @@ class Player {
     }, 5000);
   }
 
-  startSpectating() {
-    this.spectating = true;
+
+  startSpectating(initialTarget = null) {
+  this.spectating = true;
+  this.pendingSwitchAt = null;
+  this.lastSpectateSwitch = null;
+
+  if (initialTarget && !initialTarget.eliminated) {
+    this.updateSpectatingPlayer(initialTarget);
+  } else {
+    this.spectatingTarget = null;
+    this.spectatingPlayerId = null;
+  }
+}
+
+updateSpectatingPlayer(target) {
+  if (!target || target.eliminated) return;
+
+  this.spectatingTarget = target;
+  this.spectatingPlayerId = target.id;
+
+  this.x = target.x;
+  this.y = target.y;
+  this.pd = target.latestnozeropd;
+}
+
+updateSpectatorMode() {
+  const now = Date.now();
+
+  // If revived → stop spectating immediately
+  if (!this.eliminated) {
+    this.spectating = false;
+    this.spectatingTarget = null;
+    this.spectatingPlayerId = null;
+    this.pendingSwitchAt = null;
+    this.lastSpectateSwitch = null;
+    return;
   }
 
-  updateSpectatingPlayer(target) {
-    if (!target) return;
-    this.spectatingTarget = target;
-    this.spectatingPlayerId = target.id;
-    this.x = target.x;
-    this.y = target.y;
-    this.pd = target.latestnozeropd;
+  this.spectating = true;
+
+  const currentTarget = this.spectatingTarget;
+
+  // Follow current target if valid
+  if (currentTarget && !currentTarget.eliminated) {
+    this.updateSpectatingPlayer(currentTarget);
+    return;
   }
 
-  updateSpectatorMode() {
-    if (!this.eliminated) {
-      // No longer eliminated: stop spectating
-      this.spectating = false;
-      this.spectatingTarget = null;
-      this.lastSpectateSwitch = null;
-      this.pendingSwitchAt = null;
-      return;
-    }
-
-    this.spectating = true
-
-    const now = Date.now();
-    const currentTarget = this.spectatingTarget;
-
-    if (currentTarget) {
-      this.updateSpectatingPlayer(currentTarget);
-    }
-
-    // If current target just got eliminated → start a new 2s countdown
-    if (currentTarget && currentTarget.eliminated && !this.pendingSwitchAt) {
-      this.pendingSwitchAt = now + 2000; // wait exactly 2s
-    }
-
-    // Check if it's time to switch
-    if (
-      !currentTarget ||
-      (this.pendingSwitchAt && now >= this.pendingSwitchAt)
-    ) {
-      const nearestNonEliminated = findNearestPlayer(this, this.room.alivePlayers);
-
-      if (nearestNonEliminated) {
-        this.spectatingTarget = nearestNonEliminated;
-        this.spectatingPlayerId = nearestNonEliminated.id;
-        this.lastSpectateSwitch = now;
-        this.pendingSwitchAt = null; // reset
-        //  player.tick_send_allow = true
-        this.updateSpectatingPlayer(this, nearestNonEliminated);
-      }
-    }
+  // If target died, start countdown (once)
+  if (!this.pendingSwitchAt) {
+    this.pendingSwitchAt = now + 2000;
+    return;
   }
+
+  // Wait full 2 seconds
+  if (now < this.pendingSwitchAt) {
+    return;
+  }
+
+  // Time to switch
+  const nearest = findNearestPlayer(this, this.room.alivePlayers);
+
+  if (nearest && !nearest.eliminated) {
+    this.updateSpectatingPlayer(nearest);
+    this.lastSpectateSwitch = now;
+  } else {
+    // No valid players left
+    this.spectatingTarget = null;
+    this.spectatingPlayerId = null;
+  }
+
+  this.pendingSwitchAt = null;
+}
 }
 
 module.exports = {
