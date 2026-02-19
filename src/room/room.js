@@ -423,44 +423,54 @@ class Room {
   }
 
   HasGameEnded() {
-    let remainingTeamsOrPlayers;
+  let remaining;
+
+  if (this.IsTeamMode) {
+    remaining = [...this.teams.values()].filter(team =>
+      team.players.some(player => !player.eliminated)
+    );
+  } else {
+    remaining = this.alivePlayers; // Set
+  }
+
+  const remainingCount = this.IsTeamMode
+    ? remaining.length
+    : remaining.size;
+
+  if (remainingCount === 1 && this.winner === -1) {
+    let winner;
+
     if (this.IsTeamMode) {
-      remainingTeamsOrPlayers = [...this.teams.values()].filter((team) =>
-        team.players.some((player) => !player.eliminated),
-      );
+      winner = remaining[0];
+      this.winner = winner.id;
+
+      for (const player of winner.players) {
+        player.place = 1;
+        UpdatePlayerWins(player, 1);
+        UpdatePlayerPlace(player, 1, this);
+      }
+
     } else {
-      remainingTeamsOrPlayers = this.alivePlayers.size;
+      winner = [...remaining][0]; // extract from Set
+      this.winner = winner.id;
+
+      winner.place = 1;
+      UpdatePlayerWins(winner, 1);
+      UpdatePlayerPlace(winner, 1, this);
     }
 
-    // Check if a single winner remains.
-    if (remainingTeamsOrPlayers.length === 1) {
-      const winner = remainingTeamsOrPlayers[0];
-      if (this.IsTeamMode && this.winner === -1) {
-        this.winner = winner.id;
-        for (const player of winner.players) {
-          const p = player;
-          p.place = 1;
-          UpdatePlayerWins(p, 1);
-          UpdatePlayerPlace(p, 1, this);
-        }
-      } else if (this.winner === -1) {
-        this.winner = winner.id;
-        winner.place = 1;
-        UpdatePlayerWins(winner, 1);
-        UpdatePlayerPlace(winner, 1, this);
-      }
-      // Set a timeout to close the room after a win.
-      this.setRoomTimeout(() => {
-        this.close();
-      }, GlobalRoomConfig.game_win_rest_time);
-    }
-    // If no one is left, also close the room.
-    else if (remainingTeamsOrPlayers.length === 0) {
-      this.setRoomTimeout(() => {
-        this.close();
-      }, GlobalRoomConfig.game_win_rest_time);
-    }
+    this.setRoomTimeout(() => {
+      this.close();
+    }, GlobalRoomConfig.game_win_rest_time);
   }
+
+  else if (remainingCount === 0) {
+    this.setRoomTimeout(() => {
+      this.close();
+    }, this.connectedPlayers.size === 0 ? 0 : GlobalRoomConfig.game_win_rest_time
+    )}
+}
+
 
   SendPreStartPacket() {
     // Prebuild AllPlayerData
