@@ -189,10 +189,11 @@ class Matchmaker {
     queue.locked = true;
 
      
-  /*  const alive = [...queue.players].filter(
+  const alive = [...queue.players].filter(
       (e) => e.ws.readyState === e.ws.OPEN
     );
 
+    /*
     if (alive.length < queue.maxplayers) {
       queue.players = new Set(alive);
       queue.locked = false;
