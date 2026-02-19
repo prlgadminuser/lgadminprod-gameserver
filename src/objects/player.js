@@ -507,7 +507,7 @@ class Player {
       !currentTarget ||
       (this.pendingSwitchAt && now >= this.pendingSwitchAt)
     ) {
-      const nearestNonEliminated = findNearestPlayer(this, this.alivePlayers);
+      const nearestNonEliminated = findNearestPlayer(this, this.room.alivePlayers);
 
       if (nearestNonEliminated) {
         this.spectatingTarget = nearestNonEliminated;
@@ -524,3 +524,4 @@ class Player {
 module.exports = {
   Player,
 };
+
