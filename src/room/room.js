@@ -558,7 +558,7 @@ class Room {
       return;
     }
 
-    const aliveCount = this.alivePlayers.size; // TODO
+    const aliveCount = this.alivePlayers.size 
     this.bulletManager.update();
     HandleAfflictions(this);
 
@@ -699,7 +699,7 @@ class Room {
   }
 
   // Game tick loop
-  startGameLoop(tickRateMs) {
+  startGameLoop2(tickRateMs) {
     let nextTick = performance.now() + tickRateMs;
 
     const loop = () => {
@@ -733,7 +733,7 @@ class Room {
     await startMatch(this, this.roomId);
   }
 
-  startGameLoop35(game_tick_rate) {
+  startGameLoop(game_tick_rate) {
     let nextTick = performance.now();
     const tickRateMs = game_tick_rate;
 
@@ -742,9 +742,9 @@ class Room {
       const drift = now - nextTick;
 
       // Run game logic
-      //preparePlayerPackets(this);
+      this.update();
       this.timeoutdelaysending = setTimeout(() => {
-        //  sendPlayerPackets(this);
+         this.sendPlayerPackets();
       }, 5);
 
       // Schedule next frame compensating for drift
