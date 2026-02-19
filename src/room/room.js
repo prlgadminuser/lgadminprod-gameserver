@@ -321,7 +321,7 @@ class Room {
 }
 
   async removePlayer(player) {
-    console.log("f")
+
     if (!player) return;
 
     if (this && !player.eliminated && this.state !== "waiting")
@@ -340,25 +340,11 @@ class Room {
     if (player.kills > 0 || player.damage > 0)
       UpdatePlayerKillsAndDamage(player);
 
-    if (this.state === "waiting") {
       if (this.connectedPlayers.size < 1) {
         this.close();
         return;
       }
-
-      if (this) {
-        if (this.connectedPlayers.size > 1) {
-          this.setRoomTimeout(() => {
-            if (this) {
-              // optionally check if room is now empty
-              if (this.connectedPlayers.size < 1) {
-                this.close();
-              }
-            }
-          }, 4000);
-        }
-      }
-    }
+      
   }
 
   hasWinner() {
@@ -479,13 +465,7 @@ class Room {
       }
     }, 10000);
 
-    // Matchmaking timeout
-    this.matchmaketimeout = setTimeout(() => {
-      this.players.forEach((player) => {
-        player.send("matchmaking_timeout");
-      });
-      this.close();
-    }, GlobalRoomConfig.matchmaking_timeout);
+ 
 
     this.startGameLoop(GlobalRoomConfig.room_tick_rate_ms);
   }
@@ -614,27 +594,6 @@ class Room {
     const CachedEmptyMsg = compressMessage([]);
 
     const players = this.connectedPlayers;
-    const GameRunning = this.state === "playing" || this.state === "countdown";
-
-    if (!GameRunning) {
-      const roomdata = [state_map[this.state], this.maxplayers, players.size];
-
-      const sendroomdata = [PacketKeys["roomdata"], roomdata];
-
-      for (const p of players) p.tick_send_allow = false;
-
-      if (!arraysEqual(this.rdlast, roomdata)) {
-        this.rdlast = roomdata;
-        const compressed = compressMessage(sendroomdata);
-        for (const p of players) {
-          if (!p.wsReadyState()) continue;
-          p.lastcompressedmessage = compressed;
-          p.tick_send_allow = true;
-          p.lastMessageHash = "default";
-        }
-      }
-      return;
-    }
 
     const aliveCount = this.alivePlayers.size 
     this.bulletManager.update();
@@ -820,9 +779,9 @@ class Room {
 
       // Run game logic
       this.update();
-      this.timeoutdelaysending = setTimeout(() => {
-         this.sendPlayerPackets();
-      }, 5);
+    //  this.timeoutdelaysending = setTimeout(() => {
+     this.sendPlayerPackets();
+     // }, 5);
 
       // Schedule next frame compensating for drift
       nextTick += tickRateMs;
