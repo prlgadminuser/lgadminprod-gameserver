@@ -6,7 +6,7 @@ const { spawnAnimation } = require("../modifiers/animations");
 const { addEntryToKillfeed } = require("../modifiers/killfeed");
 const { TeamPlayersActive } = require("../teamhandler/aliveteam");
 const { isCollisionWithWalls } = require("../utils/collision");
-const { createHitmarker, findNearestPlayer } = require("../utils/game");
+const { createHitmarker, findNearestPlayer, getRandomPositionInMap } = require("../utils/game");
 const { DIRECTION_VECTORS } = require("../utils/movement");
 
 const added_hitbox = 5;
@@ -406,7 +406,7 @@ class Player {
 
     this.room.setRoomTimeout(() => {
       this.startSpectating();
-    }, 3000);
+    }, 2000);
 
     if (this.room.IsTeamMode) {
       // Check if the entire team is now eliminated.
@@ -451,12 +451,12 @@ class Player {
     this.respawns--;
     this.health = this.starthealth;
 
-    if (this.UseStartRespawnPoint) {
+ 
       this.room.setRoomTimeout(() => {
-        this.x = this.startspawn.x;
-        this.y = this.startspawn.y;
-      }, 3000);
-    }
+      const randomPosition = getRandomPositionInMap(this.room)
+     this.x = randomPosition.x
+     this.y = randomPosition.y
+      }, 5000);
 
     this.room.setRoomTimeout(() => {
       this.room.grid.addObject(this);

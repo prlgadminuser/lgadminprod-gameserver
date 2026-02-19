@@ -71,20 +71,7 @@ class GameGrid {
 
     this.objects.set(obj.gid, obj);
 
-    const cells = allow_cell_coverage
-      ? this.getCellsForObject(obj)
-      : new Set([this.getCellKeyFromCoords(
-          ...Object.values(this.getCellCoords(obj.x, obj.y))
-        )]);
-
-    for (const key of cells) {
-      if (!this.grid.has(key)) {
-        this.grid.set(key, new Set());
-      }
-      this.grid.get(key).add(obj.gid);
-    }
-
-    this.objectsCells.set(obj.gid, cells);
+   this.updateObject(obj);
   }
 
   removeObject(obj) {

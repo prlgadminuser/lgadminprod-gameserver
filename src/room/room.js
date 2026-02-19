@@ -88,8 +88,8 @@ async function GetRoom(ws, gamemode, playerVerified) {
       ? playerVerified.skillpoints || 0
       : 0;
 
-    const room = await FindOrCreateRoom(gamemode, finalskillpoints);
-    return await room.addPlayer(ws, playerVerified, room);
+    const room = FindOrCreateRoom(gamemode, finalskillpoints);
+    return room.addPlayer(ws, playerVerified, room);
   } catch (error) {
     console.error("Error joining room:", error);
     ws.close(4000, "Error joining room");
@@ -97,7 +97,7 @@ async function GetRoom(ws, gamemode, playerVerified) {
   }
 }
 
-async function FindOrCreateRoom(gamemode, finalskillpoints) {
+function FindOrCreateRoom(gamemode, finalskillpoints) {
   const roomjoiningvalue = matchmakingsp(finalskillpoints);
   const availableRoom = getAvailableRoom(gamemode, roomjoiningvalue);
   const gamemodeSettings = gamemodeconfig.get(gamemode);
@@ -217,28 +217,24 @@ class Room {
     this.initIntervals();
   }
 
-  async addPlayer(ws, playerVerified) {
+  addPlayer(ws, playerVerified) {
     const newPlayer = new Player(ws, playerVerified, this);
-
-    if (!this.canStartGame()) {
       playerLookup.set(newPlayer.playerId, newPlayer);
       this.connectedPlayers.add(newPlayer);
       this.alivePlayers.add(newPlayer);
-
-      if (newPlayer.wsReadyState() === ws.CLOSED) {
-        this.removePlayer(newPlayer);
-        return null;
-      }
-    }
+   //   if (newPlayer.wsReadyState() === ws.CLOSED) {
+   //     this.removePlayer(newPlayer);
+     //   return null;
+   // }
 
     if (this.canStartGame()) {
-      await this.startMatch();
+      this.startMatch();
     }
 
     return { room: this, player: newPlayer };
   }
 
-  async removePlayer(player) {
+  removePlayer(player) {
     if (!player) return;
 
     if (this && !player.eliminated && this.state !== "waiting")
@@ -736,11 +732,11 @@ class Room {
     this.loopHandle = setTimeout(loop, tickRateMs);
   }
 
-  async startMatch() {
+  startMatch() {
     this.state = "await";
     removeRoomFromIndex(this);
     clearTimeout(this.matchmaketimeout);
-    await startMatch(this, this.roomId);
+    startMatch(this, this.roomId);
   }
 
   startGameLoop(game_tick_rate) {
@@ -811,7 +807,7 @@ async function SetupRoomStartGameData(room) {
   //  }
 }
 
-async function setupRoomPlayers(room) {
+function setupRoomPlayers(room) {
   let playerNumberID = 0; // Start with player number 0
 
   // Iterate over each player in the room's players collection
@@ -836,7 +832,7 @@ async function setupRoomPlayers(room) {
   }
 }
 
-async function CreateTeams(room) {
+function CreateTeams(room) {
   if (!room.connectedPlayers || room.connectedPlayers.size === 0) return;
 
   const teamIDs = [
@@ -893,7 +889,7 @@ function startCountdown(room) {
   }, 1000);
 }
 
-async function startMatch(room, roomId) {
+function startMatch(room, roomId) {
   try {
     // Automatically close the room after max open time
     room.maxopentimeout = room.setRoomTimeout(() => {
@@ -905,9 +901,9 @@ async function startMatch(room, roomId) {
     }, GlobalRoomConfig.room_max_open_time);
 
     // Prepare room data and players
-    await SetupRoomStartGameData(room);
-    await setupRoomPlayers(room);
-    await CreateTeams(room);
+    SetupRoomStartGameData(room);
+    setupRoomPlayers(room);
+    CreateTeams(room);
 
     // Render players and send pre-start message
     for (const player of room.connectedPlayers) {

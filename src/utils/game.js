@@ -44,6 +44,14 @@ module.exports = {
     return x < -mapWidth || x > mapWidth || y < -mapHeight || y > mapHeight;
   },
 
+  getRandomPositionInMap(room) {
+  const x = Math.round((Math.random() * 2 - 1) * room.mapWidth);
+  const y = Math.round((Math.random() * 2 - 1) * room.mapHeight);
+
+  return { x, y };
+},
+
+
   getPlayersInRange(room, centerX, centerY) {
     const viewmultiplier = 1;
     const xThreshold = 420 * viewmultiplier;
