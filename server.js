@@ -22,9 +22,9 @@ const {
   redisClient,
   startHeartbeat,
 } = require("./src/database/redisClient");
-const { handleMessage } = require("./src/packets/HandleMessage");
 const { playerLookup, GetRoom } = require("./src/room/room");
 const { connectToMongoDB } = require("./src/database/mongoClient");
+const { handleMessage } = require("./src/network/HandleMessage");
 
 const DEV_MODE = false;
 const CONNECTION_RATE_LIMIT_ENABLED = false;
