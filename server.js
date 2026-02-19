@@ -243,13 +243,13 @@ setInterval(() => {
   for (const ws of activeSockets) {
  //   if (!ws.lastPing) continue;
 
-    if (now - ws.lastPing > 10000) {
-      console.log("Terminating idle socket");
+    if (now - ws.lastPing > 8000) {
+     // console.log("Terminating idle socket");
       ws.close(4000, "ping_timeout");
       activeSockets.delete(ws);
     }
   }
-}, 10000);
+}, 5000);
 
 
 function handleFatal(err) {
