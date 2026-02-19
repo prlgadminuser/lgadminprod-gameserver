@@ -490,6 +490,8 @@ class Player {
       return;
     }
 
+    this.spectating = true
+
     const now = Date.now();
     const currentTarget = this.spectatingTarget;
 
@@ -524,4 +526,5 @@ class Player {
 module.exports = {
   Player,
 };
+
 
