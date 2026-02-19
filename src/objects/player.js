@@ -143,7 +143,6 @@ class Player {
     this.pingnow = 0;
     this.ping_ms = 0;
     this.lastmsg = 0;
-    this.rateLimiter = PlayerRateLimiter();
 
     // Spectating
     this.spectating = false;

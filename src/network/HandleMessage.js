@@ -1,34 +1,13 @@
 const { handleBulletFired } = require("../objects/bullets");
 const { validDirections } = require("../utils/game");
 
-function handleMessage(room, player, message) {
-  message = message.toString("utf-8");
 
-  if (!player || !player.rateLimiter)
+
+
+function handleRoomMessage(room, player, message) {
+
+  if (!player)
     player.wsClose(4000, "message_cant_access_user");
-
-  if (!player.rateLimiter.consume(1) || message.length > 10) {
-    // Optionally close connection for abuse
-    player.wsClose(4000, "message_limit_violated");
-    return;
-  }
-
-  if (message.length > 10) {
-    player.wsClose(4000, "ahhh whyyyyy");
-    return;
-  }
-
-  if (!player) return;
-
-  switch (message) {
-    //case "0":
-    //   handleGlobalMSMeasurePong(player, room);
-    //  break;
-
-    case "1":
-      handlePong(player);
-      break;
-  }
 
   if (
     room.state !== "playing" ||
@@ -75,14 +54,6 @@ function handleGlobalMSMeasurePong(player, room) {
   player.ping_ms = now - room.lastglobalping;
 }
 
-function handlePong(player) {
-  const now = Date.now();
-
-  if (player.lastPing && now - player.lastPing < 1000) {
-    return;
-  }
-  player.lastPing = now;
-}
 
 function handleShoot(data, player, room) {
   const shoot_direction = data[1];
@@ -152,4 +123,4 @@ function updatePlayerDirection(player, direction) {
   }
 }
 
-module.exports = { handleMessage };
+module.exports = { handleRoomMessage };

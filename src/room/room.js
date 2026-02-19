@@ -13,7 +13,7 @@ const { random_mapkeys, mapsconfig } = require("../config/maps");
 const { gadgetconfig } = require("../config/gadgets");
 const {
   SkillbasedMatchmakingEnabled,
-  matchmakingsp,
+  RoundSkillpointsToNearestBucket,
 } = require("../config/matchmaking");
 const { GameGrid } = require("../config/grid");
 const { UseZone } = require("../modifiers/zone");
@@ -52,27 +52,14 @@ const PacketKeys = {
   killfeed: 7,
 };
 
-function getAvailableRoom(gamemode, spLevel) {
-  const key = `${gamemode}_${spLevel}`;
-  //console.log(roomIndex)
-  const roomList = roomIndex.get(key);
-  if (!roomList) return null;
 
-  for (const room of roomList.values()) {
-    if (
-      room.state === "waiting" &&
-      room.connectedPlayers.size < room.maxplayers
-    ) {
-      return room;
-    }
-  }
-  return false;
-}
 
-function GetRoom(ws, gamemode, playerVerified) {
+
+function StartMatchmaking(ws, gamemode, playerVerified) {
   try {
     const max_length = 16;
     const min_length = 4;
+
     const playername = playerVerified.playername;
     const gadgetselected = playerVerified.gadget || 1;
 
@@ -84,49 +71,154 @@ function GetRoom(ws, gamemode, playerVerified) {
       return ws.close(4004);
     }
 
-    const finalskillpoints = SkillbasedMatchmakingEnabled
-      ? playerVerified.skillpoints || 0
-      : 0;
-
-    const room = FindOrCreateRoom(gamemode, finalskillpoints);
-    return room.addPlayer(ws, playerVerified, room);
+    matchmaker.enqueue(ws, playerVerified, gamemode);
   } catch (error) {
-    console.error("Error joining room:", error);
-    ws.close(4000, "Error joining room");
-    throw error;
+    console.error("Error matchmaking:", error);
+    ws.close(4000);
+  }
+
+  return true
+}
+
+
+
+
+class Matchmaker {
+  constructor() {
+    this.queues = new Map();
+    // key => {
+    //   players: Set<entry>,
+    //   maxplayers: number,
+    //   locked: boolean
+    // }
+  }
+
+  getQueueKey(gamemode, spLevel) {
+    return `${gamemode}_${spLevel}`;
+  }
+
+  enqueue(ws, playerVerified, gamemode) {
+    if (ws.__inQueue) return; // prevent double enqueue
+
+
+    const sp = SkillbasedMatchmakingEnabled ? playerVerified.skillpoints : 0;
+
+    const spLevel = RoundSkillpointsToNearestBucket(sp); 
+    const key = this.getQueueKey(gamemode, spLevel);
+    const gmconfig = gamemodeconfig.get(gamemode);
+
+    if (!gmconfig) {
+      ws.close(4004, "invalid_gamemode");
+      return;
+    }
+
+    if (!this.queues.has(key)) {
+      this.queues.set(key, {
+        players: new Set(),
+        maxplayers: gmconfig.maxplayers,
+        locked: false,
+      });
+    }
+
+    const queue = this.queues.get(key);
+
+    const entry = { ws, playerVerified, key };
+
+    queue.players.add(entry);
+
+    ws.__inQueue = true;
+    ws.__queueKey = key;
+    ws.__queueEntry = entry;
+
+    ws.on("close", () => this.removeFromQueue(ws));
+    ws.on("error", () => this.removeFromQueue(ws));
+
+    this.sendQueueUpdate(queue);
+
+    this.tryCreateRoom(key, gamemode, gmconfig, spLevel);
+
+  }
+
+  removeFromQueue(ws) {
+    if (!ws.__inQueue) return;
+
+    const key = ws.__queueKey;
+    const entry = ws.__queueEntry;
+
+    const queue = this.queues.get(key);
+    if (!queue) return;
+
+    queue.players.delete(entry);
+
+    ws.__inQueue = false;
+    ws.__queueKey = null;
+    ws.__queueEntry = null;
+
+    if (queue.players.size === 0) {
+      this.queues.delete(key);
+      return;
+    }
+
+    this.sendQueueUpdate(queue);
+  }
+
+  sendQueueUpdate(queue) {
+    const size = queue.players.size;
+    const max = queue.maxplayers;
+
+    const packet = compressMessage([PacketKeys["roomdata"], [1, max, size]]);
+    // PacketKeys.roomdata = 1
+    // state_map.waiting = 1
+
+    for (const entry of queue.players) {
+      if (entry.ws.readyState === entry.ws.OPEN) {
+        try {
+          entry.ws.send(packet);
+        } catch {}
+      }
+    }
+  }
+
+  tryCreateRoom(key, gamemode, gmconfig, spLevel) {
+    const queue = this.queues.get(key);
+    if (!queue) return;
+
+    if (queue.locked) return;
+    if (queue.players.size < queue.maxplayers) return;
+
+    queue.locked = true;
+
+     
+  /*  const alive = [...queue.players].filter(
+      (e) => e.ws.readyState === e.ws.OPEN
+    );
+
+    if (alive.length < queue.maxplayers) {
+      queue.players = new Set(alive);
+      queue.locked = false;
+      return;
+    }
+
+    */
+
+    const selected = alive.slice(0, queue.maxplayers);
+
+    const roomId = generateUUID();
+    const room = new Room(roomId, gamemode, gmconfig, spLevel);
+
+    for (const entry of selected) {
+
+     this.removeFromQueue(entry.ws);
+     room.addPlayer(entry.ws, entry.playerVerified);
+    }
+
+    this.queues.delete(key);
+
+    room.startMatch();
   }
 }
 
-function FindOrCreateRoom(gamemode, finalskillpoints) {
-  const roomjoiningvalue = matchmakingsp(finalskillpoints);
-  const availableRoom = getAvailableRoom(gamemode, roomjoiningvalue);
-  const gamemodeSettings = gamemodeconfig.get(gamemode);
-
-  if (availableRoom) {
-    return availableRoom;
-  }
-
-  const roomId = generateUUID();
-  return new Room(roomId, gamemode, gamemodeSettings, roomjoiningvalue);
-}
-
-function addRoomToIndex(room) {
-  const key = `${room.gamemode}_${room.sp_level}`;
-  if (!roomIndex.has(key)) roomIndex.set(key, new Map());
-  roomIndex.get(key).set(room.roomId, room);
-}
-
-function removeRoomFromIndex(room) {
-  const key = `${room.gamemode}_${room.sp_level}`;
-  const roomList = roomIndex.get(key);
-  if (!roomList) return;
-
-  roomList.delete(room.roomId);
-
-  if (roomList.size === 0) {
-    roomIndex.delete(key);
-  }
-}
+const matchmaker  = new Matchmaker()
 
 class Room {
   constructor(roomId, gamemode, gmconfig, splevel) {
@@ -210,7 +302,6 @@ class Room {
     this.lastglobalping = 0;
 
     // Register room globally
-    addRoomToIndex(this);
     rooms.set(roomId, this);
 
     // Setup timers/intervals
@@ -218,27 +309,19 @@ class Room {
   }
 
   addPlayer(ws, playerVerified) {
-    const newPlayer = new Player(ws, playerVerified, this);
+  const newPlayer = new Player(ws, playerVerified, this);
 
-    if (!this.canStartGame()) {
-      playerLookup.set(newPlayer.playerId, newPlayer);
-      this.connectedPlayers.add(newPlayer);
-      this.alivePlayers.add(newPlayer);
+  playerLookup.set(newPlayer.playerId, newPlayer);
+  this.connectedPlayers.add(newPlayer);
+  this.alivePlayers.add(newPlayer);
 
-      if (newPlayer.wsReadyState() === ws.CLOSED) {
-        this.removePlayer(newPlayer);
-        return null;
-      }
-    }
+  ws.player = newPlayer
+  ws.room = this
 
-    if (this.canStartGame()) {
-      this.startMatch();
-    }
-
-    return { room: this, player: newPlayer };
-  }
+}
 
   async removePlayer(player) {
+    console.log("f")
     if (!player) return;
 
     if (this && !player.eliminated && this.state !== "waiting")
@@ -346,7 +429,6 @@ class Room {
     this.alivePlayers.clear();
 
     // Remove from global registries
-    removeRoomFromIndex(this);
     rooms.delete(this.roomId);
 
     this.state = "closed";
@@ -381,20 +463,6 @@ class Room {
 
   initIntervals() {
     // Idle player cleanup
-
-    this.intervalIds.push(
-      setInterval(() => {
-        const now = Date.now();
-        for (const player of this.connectedPlayers) {
-          if (
-            player.lastPing <= now - GlobalRoomConfig.player_noping_maxtime ||
-            !player.wsOpen()
-          ) {
-            player.wsClose(4200, "disconnected_inactivity");
-          }
-        }
-      }, GlobalRoomConfig.player_noping_maxtime / 2),
-    );
     // Cleanup expired intervals/timeouts
     this.xcleaninterval = setInterval(() => {
       if (this.timeoutIds) {
@@ -738,7 +806,6 @@ class Room {
 
   startMatch() {
     this.state = "await";
-    removeRoomFromIndex(this);
     clearTimeout(this.matchmaketimeout);
     startMatch(this, this.roomId);
   }
@@ -951,8 +1018,7 @@ module.exports = {
   rooms,
   playerLookup,
   roomIndex,
-  addRoomToIndex,
-  removeRoomFromIndex,
-  GetRoom,
+  StartMatchmaking,
   startMatch,
+  matchmaker
 };

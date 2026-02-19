@@ -22,19 +22,22 @@ const {
   redisClient,
   startHeartbeat,
 } = require("./src/database/redisClient");
-const { playerLookup, GetRoom } = require("./src/room/room");
+const { playerLookup, StartMatchmaking } = require("./src/room/room");
 const { connectToMongoDB } = require("./src/database/mongoClient");
-const { handleMessage } = require("./src/network/HandleMessage");
+const { handleRoomMessage, handlePong } = require("./src/network/HandleMessage");
+const RateLimiter = require("./src/utils/ratelimit");
 
 const DEV_MODE = false;
 const CONNECTION_RATE_LIMIT_ENABLED = false;
 const IP_NO_DOUBLECONNECTION_ENABLED = false
+const MAX_CONNECTED_PLAYERS = 60
 
 // Rate limiter per IP
 const connectionRateLimiter = new RateLimiterMemory(RATE_LIMITS.CONNECTION);
 
 // Track IPs to prevent multiple connections from same IP
 const activeIPs = new Map();
+const activeSockets = new Set();
 
 
 // ---------------- UTIL ----------------
@@ -54,7 +57,7 @@ async function handleUpgrade(req, socket, head, wss) {
     if (CONNECTION_RATE_LIMIT_ENABLED) await connectionRateLimiter.consume(ip);
 
     // Prevent multiple connections from the same IP
-    if (IP_NO_DOUBLECONNECTION_ENABLED && activeIPs.has(ip)) {
+    if (IP_NO_DOUBLECONNECTION_ENABLED && activeIPs.has(ip) || global.playerCount > MAX_CONNECTED_PLAYERS) {
       socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
       socket.destroy();
       return;
@@ -70,6 +73,13 @@ async function handleUpgrade(req, socket, head, wss) {
     wss.handleUpgrade(req, socket, head, (ws) => {
      if (IP_NO_DOUBLECONNECTION_ENABLED) activeIPs.set(ip, ws);
      if (IP_NO_DOUBLECONNECTION_ENABLED) ws.on("close", () => activeIPs.delete(ip));
+
+       ws.lastPing = Date.now();  
+    ws.rateLimiter = new RateLimiter({
+    maxRequests: 20, // max requests per interval
+    interval: 0.5, // in time seconds
+  });
+
       wss.emit("connection", ws, req);
     });
   } catch (err) {
@@ -82,6 +92,8 @@ async function handleUpgrade(req, socket, head, wss) {
 function setupWebSocketServer(wss, server) {
   wss.on("connection", async (ws, req) => {
     let userId, player, room;
+
+   activeSockets.add(ws);
 
     try {
       if (await checkForMaintenance()) {
@@ -129,22 +141,42 @@ function setupWebSocketServer(wss, server) {
 
       if (!DEV_MODE) await addSession(userId);
 
-      const joinResult = GetRoom(ws, gamemode, playerVerified);
+      const joinResult = StartMatchmaking(ws, gamemode, playerVerified);
       if (!joinResult) {
         if (!DEV_MODE) await removeSession(userId);
-        ws.close(4001, "Invalid token or room full");
+        ws.close(4001, "Invalid token");
         return;
       }
-
-      room = joinResult.room
-      player = joinResult.player
 
       playerLookup.set(userId, ws);
       global.playerCount++;
 
-      ws.on("message", (message) => handleMessage(room, player, message));
+      ws.on("message", (message) => {
+
+      message = message.toString("utf-8");
+        
+     if (!ws.rateLimiter.consume(1) || message.length > 10) {
+
+        ws.close(4000, "message_limit_violated");
+        return;
+     } else {
+
+      const type =  message.split(":")[0]
+
+      if (type === "1") { // ping type
+
+        ws.lastPing = Date.now();
+        
+      } else {
+
+      if (ws.player && ws.room) handleRoomMessage(ws.room, ws.player, message)
+        
+      }
+     }
+});
 
       ws.on("close", async () => {
+        activeSockets.delete(ws);
         playerLookup.delete(userId);
         if (player) player.room.removePlayer(player);
         if (!DEV_MODE) await removeSession(userId);
@@ -205,6 +237,20 @@ async function startServer() {
     handleFatal(err);
   }
 }
+
+setInterval(() => {
+  const now = Date.now();
+  for (const ws of activeSockets) {
+ //   if (!ws.lastPing) continue;
+
+    if (now - ws.lastPing > 10000) {
+      console.log("Terminating idle socket");
+      ws.close(4000, "ping_timeout");
+      activeSockets.delete(ws);
+    }
+  }
+}, 10000);
+
 
 function handleFatal(err) {
   console.error("Fatal error:", err);

@@ -1,4 +1,3 @@
-const RateLimiter = require("../utils/ratelimit");
 
 const TICK_RATE = 40;
 
@@ -22,11 +21,6 @@ const GlobalRoomConfig = {
   bullet_updates_per_tick: 20,
 };
 
-function PlayerRateLimiter() {
-  return new RateLimiter({
-    maxRequests: 20, // max requests per interval
-    interval: 0.5, // in time seconds
-  });
-}
 
-module.exports = { GlobalServerConfig, GlobalRoomConfig, PlayerRateLimiter };
+
+module.exports = { GlobalServerConfig, GlobalRoomConfig };
