@@ -4,38 +4,33 @@
 
   // info all players under the first value here are all matched together players that have more
 //  than that will be between the first and second value and so on
-const matchmaking = {
- 
-  1: {
-    1: 1000,
-    2: 2000,
-  }
-}
+const matchmakingBuckets = [0, 1000, 2000]
 
-const SkillbasedMatchmakingEnabled = false
+.sort((a, b) => a - b);
 
-function RoundSkillpointsToNearestBucket(target) {
-    // Convert the nested object into an array of values and sort them
-    const values = Object.values(matchmaking[1]).sort((a, b) => a - b);
-    
-    let higherBound = values[values.length - 1]; // Start with the last value
-    
-    for (let i = 0; i < values.length; i++) {
-      if (target < values[i]) {
-        higherBound = values[i];
-        break;
-      }
+const SkillbasedMatchmakingEnabled = false;
+
+function roundSkillpointsToFloorBucket(target) {
+  if (!matchmakingBuckets.length) return 0;
+
+  let result = matchmakingBuckets[0];
+
+  for (let i = 0; i < matchmakingBuckets.length; i++) {
+    if (target >= matchmakingBuckets[i]) {
+      result = matchmakingBuckets[i];
+    } else {
+      break;
     }
-  
-    return higherBound;
   }
 
+  return result;
+}
 
 
 
  // console.log(matchmakingsp("999"))
   
 module.exports = {
-    RoundSkillpointsToNearestBucket,
+    roundSkillpointsToFloorBucket,
     SkillbasedMatchmakingEnabled,
 }
