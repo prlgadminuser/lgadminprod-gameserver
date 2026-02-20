@@ -792,10 +792,10 @@ class Room {
       const drift = now - nextTick;
 
       // Run game logic
-    //  this.timeoutdelaysending = setTimeout(() => {
+       this.update();
+     this.timeoutdelaysending = setTimeout(() => {
      this.sendPlayerPackets();
-     this.update();
-     // }, 5);
+      }, 5);
 
       // Schedule next frame compensating for drift
       nextTick += tickRateMs;
@@ -997,4 +997,5 @@ module.exports = {
   startMatch,
   matchmaker
 };
+
 
