@@ -785,8 +785,6 @@ class Room {
     let nextTick = performance.now();
     const tickRateMs = game_tick_rate;
 
-     this.update();
-
     const loop = () => {
       const now = performance.now();
       const drift = now - nextTick;
@@ -997,5 +995,6 @@ module.exports = {
   startMatch,
   matchmaker
 };
+
 
 
