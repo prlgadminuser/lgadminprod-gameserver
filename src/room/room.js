@@ -13,7 +13,7 @@ const { random_mapkeys, mapsconfig } = require("../config/maps");
 const { gadgetconfig } = require("../config/gadgets");
 const {
   SkillbasedMatchmakingEnabled,
-  RoundSkillpointsToNearestBucket,
+  roundSkillpointsToFloorBucket
 } = require("../config/matchmaking");
 const { GameGrid } = require("../config/grid");
 const { UseZone } = require("../modifiers/zone");
@@ -103,7 +103,7 @@ class Matchmaker {
 
     const sp = SkillbasedMatchmakingEnabled ? playerVerified.skillpoints : 0;
 
-    const spLevel = RoundSkillpointsToNearestBucket(sp); 
+    const spLevel = roundSkillpointsToFloorBucket(sp); 
     const key = this.getQueueKey(gamemode, spLevel);
     const gmconfig = gamemodeconfig.get(gamemode);
 
@@ -321,7 +321,7 @@ class Room {
 
 }
 
-  async removePlayer(player) {
+  removePlayer(player) {
 
     if (!player) return;
 
@@ -513,7 +513,7 @@ class Room {
     }, GlobalRoomConfig.game_win_rest_time);
   }
 
-  else if (remainingCount === 0) {
+  if (remainingCount === 0) {
     this.setRoomTimeout(() => {
       this.close();
     }, this.connectedPlayers.size === 0 ? 0 : GlobalRoomConfig.game_win_rest_time
@@ -525,6 +525,16 @@ class Room {
     // Prebuild AllPlayerData
 
     const players = this.alivePlayers;
+
+    const dummiesFiltered = this.dummies ? this.dummies : undefined;
+
+    const RoomData = {
+      mapid: this.map,
+      type: this.matchtype,
+      modifiers: Array.from(this.modifiers), // set needs array converting
+      sb: this.scoreboard,
+      mapdata: this.mapdata.compressedwalls,
+    };
 
     const AllData = {};
     for (const p of players) {
@@ -539,37 +549,38 @@ class Room {
       ];
     }
 
-    const dummiesFiltered = this.dummies ? this.dummies : undefined;
+    for (const p of players) {
 
-    const RoomData = {
-      mapid: this.map,
-      type: this.matchtype,
-      modifiers: Array.from(this.modifiers), // set needs array converting
-      sb: this.scoreboard,
-      mapdata: this.mapdata.compressedwalls,
-    };
+      AllData[p.id] = [
+        p.hat || 0,
+        p.top || 0,
+        p.player_color,
+        p.hat_color,
+        p.top_color,
+        p.playername,
+        p.starthealth,
+      ];
 
-    for (const player of players) {
       const self_info = {
-        id: player.id,
-        state: player.state,
-        h: player.health,
-        sh: player.starthealth,
-        s: +player.shooting,
-        g: player.gun,
-        kil: player.kills,
-        dmg: player.damage,
-        rwds: player.finalrewards,
-        killer: player.eliminator,
-        cg: +player.canusegadget,
-        lg: player.gadgetuselimit,
-        ag: +player.gadgetactive,
-        x: encodePosition(player.x),
-        y: encodePosition(player.y),
-        el: player.eliminations,
-        em: player.emote,
-        spc: player.spectatingPlayerId,
-        guns: player.loadout_formatted,
+        id: p.id,
+        state: p.state,
+        h: p.health,
+        sh: p.starthealth,
+        s: +p.shooting,
+        g: p.gun,
+        kil: p.kills,
+        dmg: p.damage,
+        rwds: p.finalrewards,
+        killer: p.eliminator,
+        cg: +p.canusegadget,
+        lg: p.gadgetuselimit,
+        ag: +p.gadgetactive,
+        x: encodePosition(p.x),
+        y: encodePosition(p.y),
+        el: p.eliminations,
+        em: p.emote,
+        spc: p.spectatingPlayerId,
+        guns: p.loadout_formatted,
         ht: [],
       };
 
