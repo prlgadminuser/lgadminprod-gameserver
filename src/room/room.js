@@ -584,21 +584,21 @@ class Room {
         ht: [],
       };
 
-      player.selflastmsg = self_info;
+      p.selflastmsg = self_info;
 
       const MessageToSend = {
         AllData,
         SelfData: {
-          allies: getTeamPlayersIds(this, player),
-          pid: player.id,
+          allies: getTeamPlayersIds(this, p),
+          pid: p.id,
           self_info,
           dummies: dummiesFiltered,
-          gadget: player.gadgetid,
+          gadget: p.gadgetid,
         },
         RoomData: RoomData,
       };
 
-      player.send(compressMessage(MessageToSend), { binary: true });
+      p.send(compressMessage(MessageToSend), { binary: true });
     }
   }
 
