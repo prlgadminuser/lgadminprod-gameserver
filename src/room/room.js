@@ -955,6 +955,9 @@ function startMatch(room, roomId) {
     // playerchunkrenderer(room);
     room.SendPreStartPacket();
 
+
+    room.setRoomTimeout(() => {
+
       // Countdown phase before the game starts
       room.state = "countdown";
 
@@ -977,6 +980,7 @@ function startMatch(room, roomId) {
         if (room.modifiers.has("AutoHealthDamage"))
           startDecreasingHealth(room, 1);
       }, GlobalRoomConfig.game_start_delay); // Delay before game officially starts
+       }, 1000);
   } catch (err) {
     console.error(`Error starting match in room ${roomId}:`, err);
   }
