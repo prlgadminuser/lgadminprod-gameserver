@@ -178,7 +178,7 @@ function setupWebSocketServer(wss, server) {
       ws.on("close", async () => {
         activeSockets.delete(ws);
         playerLookup.delete(userId);
-        if (ws.player) ws.room.removePlayer(ws.player);
+        if (ws.player && ws.room) ws.room.removePlayer(ws.player);
         if (!DEV_MODE) await removeSession(userId);
         global.playerCount--;
       });

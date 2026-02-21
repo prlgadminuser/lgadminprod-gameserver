@@ -53,22 +53,44 @@ sub.on("message", (channel, message) => {
 });
 
 function startHeartbeat() {
- redisClient.setex(heartbeatKey, HEARTBEAT_TTL_SECONDS,   JSON.stringify({  timestamp: Date.now(),  playercount: global.playerCount,  url: ServerUrl  }));
- setInterval(async () => {
-      try {
-        await redisClient.setex(
-          heartbeatKey, 
-          HEARTBEAT_TTL_SECONDS, 
-          JSON.stringify({
-    timestamp: Date.now(),
-    playercount: global.playerCount,
-    url: ServerUrl
-  })
-);
-      } catch (error) {
-        console.error("Error sending heartbeat to Redis:", error);
-      }
-    }, HEARTBEAT_INTERVAL_MS);
+  const serverKey = ServerUrl;                 // e.g. ws://10.0.0.2:5000
+  const healthKey = `health:${ServerUrl}`;     // health tracker
+
+  async function heartbeat() {
+    try {
+      const playerCount = global.playerCount;
+
+      // 1) Update server load (used by matchmaker)
+      await redisClient.zadd("gameservers", playerCount, serverKey);
+
+      // 2) Health TTL (used for liveness detection)
+      await redisClient.setex(
+        healthKey,
+        HEARTBEAT_TTL_SECONDS,
+        "ok"
+      );
+
+      // 3) Optional metadata (debug/monitoring)
+      await redisClient.setex(
+        `meta:${ServerUrl}`,
+        HEARTBEAT_TTL_SECONDS,
+        JSON.stringify({
+          timestamp: Date.now(),
+          playercount: playerCount,
+          url: ServerUrl
+        })
+      );
+
+    } catch (error) {
+      console.error("Heartbeat error:", error);
+    }
+  }
+
+  // run immediately
+  heartbeat();
+
+  // run continuously
+  setInterval(heartbeat, HEARTBEAT_INTERVAL_MS);
 }
 
 async function addSession(username) {
@@ -110,32 +132,7 @@ async function checkExistingSession(username) {
   return parsed.sid;
 }
 
-async function getTotalPlayers() {
-  // 1. Find keys that start with "battleServer"
-  const keys = await redisClient.keys("battleServer*");
 
-  // 2. Fetch their values
-  const values = await redisClient.mget(keys);
-
-  // 3. Sum up playercount from JSON
-  let totalPlayers = 0;
-
-  for (const v of values) {
-    if (!v) continue;
-    try {
-      const data = JSON.parse(v);
-      if (typeof data.playercount === "number") {
-        totalPlayers += data.playercount;
-      }
-    } catch (err) {
-      console.error("Invalid JSON in key:", v);
-    }
-  }
-  console.log("Total players across all battle servers:", totalPlayers);
-
-
-  return totalPlayers;
-}
 
 
 

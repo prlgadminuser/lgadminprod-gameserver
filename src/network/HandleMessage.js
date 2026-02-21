@@ -1,25 +1,23 @@
 const { handleBulletFired } = require("../objects/bullets");
 const { validDirections } = require("../utils/game");
 
-
-
-
 function handleRoomMessage(room, player, message) {
+  if (!player) player.wsClose(4000, "message_cant_access_user");
 
-  if (!player)
-    player.wsClose(4000, "message_cant_access_user");
-
-  if (
-    room.state !== "playing" ||
-    player.alive === false ||
-    player.eliminated ||
-    !room.winner === -1
-  )
+  if (room.state !== "playing" || player.alive === false || player.eliminated)
     return;
 
   const data = message.split(":");
 
   const type = data[0];
+
+  if (room.gameEnded) {
+    if (type === "6") {
+      // emote only
+      handleEmote(data, player, room);
+    }
+    return;
+  }
 
   switch (type) {
     case "3":
@@ -53,7 +51,6 @@ function handleGlobalMSMeasurePong(player, room) {
 
   player.ping_ms = now - room.lastglobalping;
 }
-
 
 function handleShoot(data, player, room) {
   const shoot_direction = data[1];

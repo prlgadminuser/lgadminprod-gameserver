@@ -29,15 +29,6 @@ module.exports = {
     room.grid.addObject(obj);
   },
 
-  getTeamPlayersIds(room, player) {
-    if (!room.teams || !player.teamId) return [];
-
-    const team = room.teams.get(player.teamId);
-    if (!team) return [];
-
-    return team.players.map((p) => p.id);
-  },
-
   isPositionOutsideMapBounds(room, x, y) {
     const mapWidth = room.mapWidth;
     const mapHeight = room.mapHeight;

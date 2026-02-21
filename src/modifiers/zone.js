@@ -2,7 +2,6 @@
 
 const { addEntryToKillfeed } = require("./killfeed");
 const { playerhitbox } = require("../config/player");
-const { TeamPlayersActive } = require("../teamhandler/aliveteam");
 
 const RandomZone = true;
 
@@ -139,19 +138,7 @@ function dealDamage(room) {
 
 
     if (isWithinZone(room, player.x, player.y)) return;
-
-    player.health -= damagePerSecond;
-    player.last_hit_time = now();
-
-    if (player.health > 0) return;
-
-    if (player.IsEliminationAllowed()) {
-      player.eliminate();
-      addEntryToKillfeed(room, 3, null, player.id, null);
-    } else {
-      player.respawn();
-      addEntryToKillfeed(room, 4, null, player.id, null);
-    }
+    player.damagePlayer(damagePerSecond)
   };
 }
 

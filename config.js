@@ -25,7 +25,7 @@ module.exports = {
   HEARTBEAT_TTL_SECONDS: HEARTBEAT_INTERVAL_MS / 1000 * 3, // 30 seconds TTL
   WS_OPTIONS: {
     perMessageDeflate: false,
-    maxPayload: 10, // 10MB
+    maxPayload: 10, 
   },
   ALLOWED_ORIGINS: new Set([
     "https://skilldown.io",

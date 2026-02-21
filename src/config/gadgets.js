@@ -32,7 +32,7 @@ const gadgetconfig = {
         cooldown: 500,
         gadget(player) {
             const healthToAdd = Math.round(player.starthealth / 5);  // 20%
-            player.health = Math.min(player.health + healthToAdd, player.starthealth);
+            player.healPlayer(healthToAdd)
         }
     },
 

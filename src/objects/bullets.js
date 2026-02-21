@@ -433,7 +433,7 @@ class BulletManager {
     }
 
     // In team mode, players are allies if they have the same teamId.
-    return owner.teamId === other.teamId;
+    return owner.team.id === other.team.id;
   }
 
   processScheduledBullets() {
