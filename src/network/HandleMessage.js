@@ -11,7 +11,7 @@ function handleRoomMessage(room, player, message) {
 
   const type = data[0];
 
-  if (room.gameEnded) {
+  if (room.OnlyAllowEmoteAllPlayers) {
     if (type === "6") {
       // emote only
       handleEmote(data, player, room);

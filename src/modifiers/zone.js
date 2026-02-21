@@ -129,16 +129,18 @@ function smoothZoneMovement(room) {
 ========================================================= */
 
 function dealDamage(room) {
+  
   const phase = room.zonephases[room.currentPhase];
   const damagePerSecond = phase ? phase.damagePerSecond : 1;
 
+   
+
     if (room.winner !== -1) return;
+
 
   for (const player of room.alivePlayers) {
 
-
-    if (isWithinZone(room, player.x, player.y)) return;
-    player.damagePlayer(damagePerSecond)
+    if (!isWithinZone(room, player.x, player.y)) player.damagePlayer(damagePerSecond)
   };
 }
 

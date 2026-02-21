@@ -13,7 +13,7 @@ const { random_mapkeys, mapsconfig } = require("../config/maps");
 const { gadgetconfig } = require("../config/gadgets");
 const {
   SkillbasedMatchmakingEnabled,
-  roundSkillpointsToFloorBucket
+  roundSkillpointsToFloorBucket,
 } = require("../config/matchmaking");
 const { GameGrid } = require("../config/grid");
 const { gamemodeconfig } = require("../config/gamemodes");
@@ -46,9 +46,6 @@ const PacketKeys = {
   killfeed: 7,
 };
 
-
-
-
 function StartMatchmaking(ws, gamemode, playerVerified) {
   try {
     const max_length = 16;
@@ -71,11 +68,8 @@ function StartMatchmaking(ws, gamemode, playerVerified) {
     ws.close(4000);
   }
 
-  return true
+  return true;
 }
-
-
-
 
 class Matchmaker {
   constructor() {
@@ -94,10 +88,9 @@ class Matchmaker {
   enqueue(ws, playerVerified, gamemode) {
     if (ws.__inQueue) return; // prevent double enqueue
 
-
     const sp = SkillbasedMatchmakingEnabled ? playerVerified.skillpoints : 0;
 
-    const spLevel = roundSkillpointsToFloorBucket(sp); 
+    const spLevel = roundSkillpointsToFloorBucket(sp);
     const key = this.getQueueKey(gamemode, spLevel);
     const gmconfig = gamemodeconfig.get(gamemode);
 
@@ -130,7 +123,6 @@ class Matchmaker {
     this.sendQueueUpdate(queue);
 
     this.tryCreateRoom(key, gamemode, gmconfig, spLevel);
-
   }
 
   removeFromQueue(ws) {
@@ -182,9 +174,8 @@ class Matchmaker {
 
     queue.locked = true;
 
-     
-  const alive = [...queue.players].filter(
-      (e) => e.ws.readyState === e.ws.OPEN
+    const alive = [...queue.players].filter(
+      (e) => e.ws.readyState === e.ws.OPEN,
     );
 
     /*
@@ -202,9 +193,8 @@ class Matchmaker {
     const room = new Room(roomId, gamemode, gmconfig, spLevel);
 
     for (const entry of selected) {
-
-     this.removeFromQueue(entry.ws);
-     room.addPlayer(entry.ws, entry.playerVerified);
+      this.removeFromQueue(entry.ws);
+      room.addPlayer(entry.ws, entry.playerVerified);
     }
 
     this.queues.delete(key);
@@ -213,7 +203,7 @@ class Matchmaker {
   }
 }
 
-const matchmaker  = new Matchmaker()
+const matchmaker = new Matchmaker();
 
 class Room {
   constructor(roomId, gamemode, gmconfig, splevel) {
@@ -229,8 +219,8 @@ class Room {
     const mapdata = mapsconfig.get(mapid);
     if (!mapdata) console.error("map does not exist");
 
-    this.lastEliminatedPlayer = false
-    this.lastEliminatedTeam = false
+    this.lastEliminatedPlayer = false;
+    this.lastEliminatedTeam = false;
 
     // Core room state
     this.allplayerkillscount = 0;
@@ -245,7 +235,7 @@ class Room {
     this.alivePlayers = new Set();
     this.connectedPlayers = new Set();
 
-    this.aliveTeams = 0
+    this.aliveTeams = 0;
 
     this.eliminatedTeams = [];
     this.currentplayerid = 0;
@@ -272,7 +262,6 @@ class Room {
 
     // Map data
     this.mapdata = mapdata;
-  
 
     this.map = mapid;
     this.mapHeight = mapdata.height;
@@ -311,19 +300,17 @@ class Room {
   }
 
   addPlayer(ws, playerVerified) {
-  const newPlayer = new Player(ws, playerVerified, this);
+    const newPlayer = new Player(ws, playerVerified, this);
 
-  playerLookup.set(newPlayer.playerId, newPlayer);
-  this.connectedPlayers.add(newPlayer);
-  this.alivePlayers.add(newPlayer);
+    playerLookup.set(newPlayer.playerId, newPlayer);
+    this.connectedPlayers.add(newPlayer);
+    this.alivePlayers.add(newPlayer);
 
-  ws.player = newPlayer
-  ws.room = this
-
-}
+    ws.player = newPlayer;
+    ws.room = this;
+  }
 
   removePlayer(player) {
-
     if (!player) return;
 
     if (this && !player.eliminated && this.state !== "waiting")
@@ -342,11 +329,10 @@ class Room {
     if (player.kills > 0 || player.damage > 0)
       UpdatePlayerKillsAndDamage(player);
 
-      if (this.connectedPlayers.size < 1) {
-        this.close();
-        return;
-      }
-      
+    if (this.connectedPlayers.size < 1) {
+      this.close();
+      return;
+    }
   }
   //update() {}
 
@@ -456,13 +442,10 @@ class Room {
       }
     }, 10000);
 
- 
-
     this.startGameLoop(GlobalRoomConfig.room_tick_rate_ms);
   }
 
-
-    hasWinner() {
+  hasWinner() {
     return this.winner !== -1;
   }
 
@@ -472,70 +455,66 @@ class Room {
     );
   }
 
-
   HasGameEnded() {
-  let remaining;
-
-  if (this.IsTeamMode) {
-    remaining = [...this.teams.values()].filter(team =>
-      team.aliveCount > 0
-    );
-  } else {
-    remaining = this.alivePlayers; // Set
-  }
-
-  const remainingCount = this.IsTeamMode
-    ? remaining.length
-    : remaining.size;
-
- 
-
-
-  if (2 > remainingCount && this.winner === -1) {
-
-    this.gameEnded = true
-    for (const player of this.connectedPlayers) { player.moving = false }
-  
-
-    let winner;
+    let remaining;
 
     if (this.IsTeamMode) {
-      winner = remaining[0] || this.lastEliminatedTeam;
-
-      if (!winner) return
-      this.winner = winner.id;
-
-      for (const player of winner.players) {
-        player.place = 1;
-        UpdatePlayerWins(player, 1);
-        UpdatePlayerPlace(player, 1, this);
-      }
-
+      remaining = [...this.teams.values()].filter(
+        (team) => team.aliveCount > 0,
+      );
     } else {
-      winner = [...remaining][0] || this.lastEliminatedPlayer; // extract from Set
-
-      if (!winner) return
-      this.winner = winner.id;
-
-      winner.place = 1;
-      UpdatePlayerWins(winner, 1);
-      UpdatePlayerPlace(winner, 1, this);
+      remaining = this.alivePlayers; // Set
     }
 
+    const remainingCount = this.IsTeamMode ? remaining.length : remaining.size;
 
+    if (2 > remainingCount && this.winner === -1) {
+      this.OnlyAllowEmoteAllPlayers = true;
+      for (const player of this.connectedPlayers) {
+        player.moving = false;
+      }
 
-    this.setRoomTimeout(() => {
-      this.close();
-    }, GlobalRoomConfig.game_win_rest_time);
+      let winner;
+
+      if (this.IsTeamMode) {
+        winner = remaining[0] || this.lastEliminatedTeam;
+
+        if (!winner) return;
+        this.winner = winner.id;
+
+        for (const player of winner.players) {
+          player.place = 1;
+          UpdatePlayerWins(player, 1);
+          UpdatePlayerPlace(player, 1, this);
+        }
+      } else {
+        winner = [...remaining][0] || this.lastEliminatedPlayer; // extract from Set
+
+        if (!winner) return;
+        this.winner = winner.id;
+
+        winner.place = 1;
+        UpdatePlayerWins(winner, 1);
+        UpdatePlayerPlace(winner, 1, this);
+      }
+
+      this.setRoomTimeout(() => {
+        this.close();
+      }, GlobalRoomConfig.game_win_rest_time);
+    }
+
+    if (remainingCount === 0) {
+      // if no players connected close immediately, if the last 2 players are eliminated at the same time then there is a winner so wait the rest time
+      this.setRoomTimeout(
+        () => {
+          this.close();
+        },
+        this.connectedPlayers.size === 0
+          ? 0
+          : GlobalRoomConfig.game_win_rest_time,
+      );
+    }
   }
-
-  if (remainingCount === 0) { // if no players connected close immediately, if the last 2 players are eliminated at the same time then there is a winner so wait the rest time
-    this.setRoomTimeout(() => {
-      this.close();
-    }, this.connectedPlayers.size === 0 ? 0 : GlobalRoomConfig.game_win_rest_time
-    )}
-}
-
 
   SendPreStartPacket() {
     // Prebuild AllPlayerData
@@ -554,8 +533,7 @@ class Room {
 
     const AllData = {};
 
-     for (const p of players) {
-
+    for (const p of players) {
       AllData[p.id] = [
         p.hat || 0,
         p.top || 0,
@@ -566,11 +544,8 @@ class Room {
         p.starthealth,
       ];
     }
-    
+
     for (const p of players) {
-
-    
-
       const self_info = {
         id: p.id,
         state: p.state,
@@ -618,7 +593,7 @@ class Room {
 
     const players = this.connectedPlayers;
 
-    const aliveCount = this.alivePlayers.size 
+    const aliveCount = this.alivePlayers.size;
     this.bulletManager.update();
     HandleAfflictions(this);
 
@@ -747,7 +722,12 @@ class Room {
       p.nearbyanimations.length = 0;
     }
 
-    if (this.state === "playing" && this.maxplayers > 1 && this.maxplayers !== this.teamsize) this.HasGameEnded();
+    if (
+      this.state === "playing" &&
+      this.maxplayers > 1 &&
+      this.maxplayers !== this.teamsize
+    )
+      this.HasGameEnded();
   }
 
   sendPlayerPackets() {
@@ -758,17 +738,13 @@ class Room {
     }
   }
 
-
-
   startMatch() {
     this.state = "await";
     clearTimeout(this.matchmaketimeout);
     startMatch(this, this.roomId);
   }
 
-
-
-    // Game tick loop
+  // Game tick loop
   startGameLoop2(tickRateMs) {
     let nextTick = performance.now() + tickRateMs;
 
@@ -806,9 +782,9 @@ class Room {
 
       // Run game logic
       this.update();
-    //  this.timeoutdelaysending = setTimeout(() => {
-     this.sendPlayerPackets();
-     // }, 5);
+      //  this.timeoutdelaysending = setTimeout(() => {
+      this.sendPlayerPackets();
+      // }, 5);
 
       // Schedule next frame compensating for drift
       nextTick += tickRateMs;
@@ -849,7 +825,6 @@ function cloneGrid(original) {
   return clone;
 }
 
-
 async function setupRoomPlayers(room) {
   let playerNumberID = 0; // Start with player number 0
 
@@ -860,13 +835,13 @@ async function setupRoomPlayers(room) {
     const spawnPositions = room.spawns;
     const spawnIndex = playerNumberID % spawnPositions.length; // Distribute players across spawn positions
 
-     player.x = spawnPositions[spawnIndex].x,
-     player.y = spawnPositions[spawnIndex].y,
+    ((player.x = spawnPositions[spawnIndex].x),
+      (player.y = spawnPositions[spawnIndex].y),
       // Assign the spawn position to the player
-      player.startspawn = {
+      (player.startspawn = {
         x: spawnPositions[spawnIndex].x,
         y: spawnPositions[spawnIndex].y,
-      };
+      }));
 
     // Increment the player number for the next player
     playerNumberID++;
@@ -892,24 +867,23 @@ async function CreateTeams(room) {
   room.teams = new Map();
 
   let teamIndex = 0;
-  let ThisIndexTeamCreated = false
+  let ThisIndexTeamCreated = false;
 
-  for (const player of room.connectedPlayers) { 
-
+  for (const player of room.connectedPlayers) {
     const teamId = teamIDs[teamIndex] || `Team-${teamIndex + 1}`;
 
-     if (!ThisIndexTeamCreated) {
-    team = {
+    if (!ThisIndexTeamCreated) {
+      team = {
         id: teamId,
         players: [],
         score: 0,
-        aliveCount: 0, 
+        aliveCount: 0,
       };
 
       room.teams.set(teamId, team);
-      room.aliveTeams++
-    
-      ThisIndexTeamCreated = true
+      room.aliveTeams++;
+
+      ThisIndexTeamCreated = true;
     }
 
     // bind both ways
@@ -920,7 +894,7 @@ async function CreateTeams(room) {
 
     if (team.players.length >= room.teamsize) {
       teamIndex++;
-      ThisIndexTeamCreated = false
+      ThisIndexTeamCreated = false;
     }
   }
 }
@@ -942,9 +916,11 @@ function startCountdown(room) {
   }, 1000);
 }
 
-
 const { UseZone } = require("../modifiers/zone");
-const { startDecreasingHealth, startRegeneratingHealth } = require("../modifiers/modifiers");
+const {
+  startDecreasingHealth,
+  startRegeneratingHealth,
+} = require("../modifiers/modifiers");
 const { initializeHealingCircles } = require("../modifiers/healingcircle");
 
 //const modifierHandlers = { startCountdown, initializeHealingCircles, UseZone, AutoHealthRestore, AutoHealthDamage};
@@ -976,7 +952,7 @@ function startMatch(room, roomId) {
     }, GlobalRoomConfig.room_max_open_time);
 
     // Prepare room data and players
-    SetupRoomStartGameData(room)
+    SetupRoomStartGameData(room);
     setupRoomPlayers(room);
     CreateTeams(room);
 
@@ -988,9 +964,7 @@ function startMatch(room, roomId) {
     // playerchunkrenderer(room);
     room.SendPreStartPacket();
 
-
     room.setRoomTimeout(() => {
-
       // Countdown phase before the game starts
       room.state = "countdown";
 
@@ -1004,13 +978,12 @@ function startMatch(room, roomId) {
           startCountdown(room);
         }
 
-
-       // for (const modifier of room.modifiers) {
-   // const handler = modifierHandlers[modifier];
-   // if (handler) {
-   //   handler(room);
-   // }
- // }
+        // for (const modifier of room.modifiers) {
+        // const handler = modifierHandlers[modifier];
+        // if (handler) {
+        //   handler(room);
+        // }
+        // }
         // Initialize game modifiers
         if (room.modifiers.has("HealingCircles"))
           initializeHealingCircles(room);
@@ -1020,7 +993,7 @@ function startMatch(room, roomId) {
         if (room.modifiers.has("AutoHealthDamage"))
           startDecreasingHealth(room, 1);
       }, GlobalRoomConfig.game_start_delay); // Delay before game officially starts
-       }, 1000);
+    }, 1000);
   } catch (err) {
     console.error(`Error starting match in room ${roomId}:`, err);
   }
@@ -1033,5 +1006,5 @@ module.exports = {
   roomIndex,
   StartMatchmaking,
   startMatch,
-  matchmaker
+  matchmaker,
 };
