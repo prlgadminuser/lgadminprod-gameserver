@@ -71,7 +71,7 @@ class Player {
 
     this.lastfinalbulletsSet = new Set();
 
-    this.serializeBuffer = new Array(8);
+    this.serializeBuffer = new Array(7);
     this.bulletBuffer = [];
     this.msgBuffer = [];
     this.filteredPlayersBuffer = [];
@@ -575,3 +575,4 @@ class Player {
 module.exports = {
   Player,
 };
+
