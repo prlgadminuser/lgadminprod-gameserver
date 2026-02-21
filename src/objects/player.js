@@ -71,7 +71,7 @@ class Player {
 
     this.lastfinalbulletsSet = new Set();
 
-    this.serializeBuffer = new Array(7);
+    this.serializeBuffer = new Array(8);
     this.bulletBuffer = [];
     this.msgBuffer = [];
     this.filteredPlayersBuffer = [];
@@ -441,6 +441,7 @@ class Player {
 
     if (this.timeout) {
       clearTimeout(this.timeout);
+
     }
 
     this.room.setRoomTimeout(() => {
@@ -449,12 +450,18 @@ class Player {
 
       if (this.room.IsTeamMode && this.team.aliveCount === 0) {
         // Find the place for the eliminated team.
+        if  (this.team.eliminated) return
+        this.team.eliminated = true
         const teamPlace = this.room.aliveTeams
         this.room.aliveTeams--
-        for (const player of team.players) {
+        for (const player of this.team.players) {
           if (player) {
             player.place = teamPlace;
-            clearTimeout(player.respawnTimeout)
+            
+           if (!player.eliminated) player.eliminate()
+           // if (player.respawnTimeout && !player.spectating)   player.startSpectating()
+
+           // clearTimeout(player.respawnTimeout) 
             UpdatePlayerPlace(player, teamPlace, this.room);
           }
         }
@@ -486,15 +493,22 @@ class Player {
     this.respawns--;
     this.health = this.starthealth;
 
-    if (this.UseStartRespawnPoint) {
-      this.room.setRoomTimeout(() => {
-        this.x = this.startspawn.x;
-        this.y = this.startspawn.y;
-      }, 3000);
-    }
+  
+
 
   this.room.setRoomTimeout(() => { 
     if (this.room.IsTeamMode && 1 > this.team.aliveCount) return 
+
+    if (this.team.aliveCount > 0) {     
+      let aliveTeamPlayer = false
+      for (const teamplayer of this.team.players) {  
+        if (teamplayer.alive) {
+        this.x = teamplayer.x
+        this.y = teamplayer.y
+        continue
+        }
+      }
+    }
       this.room.grid.addObject(this);
       this.room.alivePlayers.add(this);
       this.spectating = false;
