@@ -7,7 +7,7 @@ const { AddNewUnseenObject, isPositionOutsideMapBounds } = require("../utils/gam
 const playerWidth = playerhitbox.width;
 const playerHeight = playerhitbox.height;
 
-const BULLET_TICK_RATE = 20; // 5Hz server bullet tick
+const BULLET_TICK_RATE = 10; // 5Hz server bullet tick
 const BULLET_TICK_MS = 1000 / BULLET_TICK_RATE;
 
 /* =========================
@@ -179,7 +179,7 @@ class BulletManager {
 
      if (bullet.updatesTick > 1) {
      bullet.updatesTick = 0
-      console.log(Date.now())
+    //  console.log(Date.now())
 
       const prevPos = bullet.position;
       const nextPos = bullet.nextPosition();
@@ -373,7 +373,7 @@ function handleBulletFired(room, player, gunType) {
     room.bulletManager.scheduleBullet(
       player,
       {
-        speed: Math.round(bulletConfig.speed),
+        speed: Math.round(bulletConfig.speed * 2),
         offset: bulletConfig.offset,
         damage: gun.damage,
         angle: gun.useplayerangle
@@ -404,3 +404,4 @@ module.exports = {
   BULLET_TICK_RATE,
 
 };
+
