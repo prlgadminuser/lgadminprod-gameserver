@@ -279,7 +279,7 @@ class BulletManager {
 
           toRemove.push(id);
           break;
-    //    }
+       }
       }
     }
   }
@@ -403,4 +403,5 @@ module.exports = {
   Vec2,
   BULLET_TICK_RATE,
 };
+
 
