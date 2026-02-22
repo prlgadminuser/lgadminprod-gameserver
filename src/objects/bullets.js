@@ -203,7 +203,7 @@ class BulletManager {
     bullet.x = initialPosition.x;
     bullet.y = initialPosition.y;
     bullet.objectType = "bullet";
-    bullet.updateTicks = 0;
+    bullet.updateTicks = 100;
 
     this.bullets.set(id, bullet);
     this.room.grid.addObject(bullet);
