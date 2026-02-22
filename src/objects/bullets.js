@@ -7,7 +7,7 @@ const { AddNewUnseenObject, isPositionOutsideMapBounds } = require("../utils/gam
 const playerWidth = playerhitbox.width;
 const playerHeight = playerhitbox.height;
 
-const BULLET_TICK_RATE = 40; // 5Hz server bullet tick
+const BULLET_TICK_RATE = 20; // 5Hz server bullet tick
 const BULLET_TICK_MS = 1000 / BULLET_TICK_RATE;
 
 /* =========================
@@ -16,7 +16,7 @@ const BULLET_TICK_MS = 1000 / BULLET_TICK_RATE;
 
 // Swept rectangle vs AABB (Minkowski sum + slab test)
 function sweptRectAABB(segStart, segEnd, boxCenter, boxW, boxH, rectW, rectH) {
-  const minX = boxCenter.x - boxW / 2 - rectW / 2;
+  const minX = boxCenter.x - boxW / 2 - rectW / 2;a
   const maxX = boxCenter.x + boxW / 2 + rectW / 2;
   const minY = boxCenter.y - boxH / 2 - rectH / 2;
   const maxY = boxCenter.y + boxH / 2 + rectH / 2;
@@ -403,5 +403,6 @@ module.exports = {
   Vec2,
   BULLET_TICK_RATE,
 };
+
 
 
