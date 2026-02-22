@@ -175,13 +175,19 @@ class BulletManager {
         continue;
       }
 
+     bullet.updatesTick++
+
+     if (bullet.updatesTick > 1) {
+     bullet.updatesTick = 0
+      console.log(Date.now())
+
       const prevPos = bullet.position;
       const nextPos = bullet.nextPosition();
 
       bullet.prevPosition = prevPos;
       bullet.position = nextPos;
-      bullet.x = nextPos.x;
-      bullet.y = nextPos.y;
+      bullet.x = prevPos.x;
+      bullet.y = prevPos.y;
 
       if (isPositionOutsideMapBounds(this.room, nextPos.x, nextPos.y)) {
         toRemove.push(id);
@@ -274,6 +280,7 @@ class BulletManager {
           toRemove.push(id);
           break;
        }
+      }
     }
   }
 
@@ -396,9 +403,3 @@ module.exports = {
   Vec2,
   BULLET_TICK_RATE,
 };
-
-
-
-
-
-

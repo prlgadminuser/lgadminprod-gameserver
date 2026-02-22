@@ -6,7 +6,7 @@ const {
   UpdateEventKills,
 } = require("../database/ChangePlayerStats");
 const { addEntryToKillfeed } = require("../modifiers/killfeed");
-const { BulletManager } = require("../objects/bullets");
+const { BulletManager, BULLET_TICK_RATE } = require("../objects/bullets");
 const { Player } = require("../objects/player");
 const { deepCopy, generateUUID, arraysEqual } = require("../utils/hash");
 const { random_mapkeys, mapsconfig } = require("../config/maps");
@@ -287,6 +287,7 @@ class Room {
 
     // Managers + helpers
     this.bulletManager = new BulletManager(this);
+    this.bulletUpdatesTick = 20
     this.playerDataBuffer = new Map();
     this.intervalIds = [];
     this.timeoutIds = [];
@@ -594,7 +595,9 @@ class Room {
     const players = this.connectedPlayers;
 
     const aliveCount = this.alivePlayers.size;
-    this.bulletManager.update();
+
+     this.bulletManager.update(); 
+
     HandleAfflictions(this);
 
     for (const player of players) {

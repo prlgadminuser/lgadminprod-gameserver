@@ -7,6 +7,7 @@ const { addEntryToKillfeed } = require("../modifiers/killfeed");
 const { isCollisionWithWalls } = require("../utils/collision");
 const { createHitmarker, findNearestPlayer } = require("../utils/game");
 const { DIRECTION_VECTORS } = require("../utils/movement");
+const { bullets_tick_rate, BULLET_TICK_RATE } = require("./bullets");
 
 const added_hitbox = 5;
 const hitboxXMin = playerhitbox.xMin + added_hitbox;
@@ -387,7 +388,7 @@ class Player {
             bullet.gunId,
             bullet.effect,
             bullet.speed,
-            bullet.updates_per_tick,
+            BULLET_TICK_RATE
 
             /// (GlobalRoomConfig.room_tick_rate_ms / GlobalRoomConfig.bullet_updates_per_tick),
           ]);
@@ -575,4 +576,3 @@ class Player {
 module.exports = {
   Player,
 };
-
