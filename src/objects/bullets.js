@@ -189,7 +189,7 @@ class BulletManager {
       bullet.x = nextPos.x;
       bullet.y = nextPos.y;
 
-      if (isPositionOutsideMapBounds(this.room, nextPos.x, nextPos.y)) {
+      if (isPositionOutsideMapBounds(this.room, prevPos.x, prevPos.y)) {
         toRemove.push(id);
         continue;
       }
@@ -404,6 +404,7 @@ module.exports = {
   BULLET_TICK_RATE,
 
 };
+
 
 
 
