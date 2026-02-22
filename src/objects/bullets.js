@@ -90,6 +90,7 @@ class Bullet {
     this.spawnTime = Date.now();
     this.alive = true;
     this.updatesTick = 1000
+    this.effect = 1
   }
 
   nextPosition() {
@@ -184,6 +185,8 @@ class BulletManager {
       const prevPos = bullet.position;
       const nextPos = bullet.nextPosition();
 
+      let collided = false
+
       bullet.prevPosition = prevPos;
       bullet.position = nextPos;
       bullet.x = nextPos.x;
@@ -218,6 +221,7 @@ class BulletManager {
           if (GunHasModifier("DestroyWalls", this.room, bullet.modifiers)) {
             DestroyWall(wall, this.room);
           }
+          collided = true
           toRemove.push(id);
           break;
         }
@@ -277,10 +281,18 @@ class BulletManager {
             });
           }
 
+          collided = true
           toRemove.push(id);
           break;
        }
       }
+
+       if (!collided) {
+        //  bullet.effect = bullet.new ? 1 : newEffect;
+        }
+
+        bullet.new = false;
+      
     }
   }
 
@@ -404,7 +416,6 @@ module.exports = {
   BULLET_TICK_RATE,
 
 };
-
 
 
 
