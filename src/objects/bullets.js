@@ -89,7 +89,7 @@ class Bullet {
     this.prevPosition = this.position;
     this.spawnTime = Date.now();
     this.alive = true;
-    this.updatesTick = 0
+    this.updatesTick = 1000
   }
 
   nextPosition() {
@@ -136,7 +136,7 @@ class BulletManager {
 
     const initialPosition = new Vec2(player.x, player.y)
       .add(baseDir.scale(offset))
-      .add(perpDir.scale(50));
+      .add(perpDir.scale(20));
 
     const bullet = new Bullet({
       id,
@@ -404,6 +404,7 @@ module.exports = {
   BULLET_TICK_RATE,
 
 };
+
 
 
 
