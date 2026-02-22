@@ -136,7 +136,7 @@ class BulletManager {
 
     const initialPosition = new Vec2(player.x, player.y)
       .add(baseDir.scale(offset))
-      .add(perpDir.scale(30));
+      .add(perpDir.scale(50));
 
     const bullet = new Bullet({
       id,
@@ -404,6 +404,7 @@ module.exports = {
   BULLET_TICK_RATE,
 
 };
+
 
 
 
