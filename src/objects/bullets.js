@@ -7,7 +7,7 @@ const { AddNewUnseenObject, isPositionOutsideMapBounds } = require("../utils/gam
 const playerWidth = playerhitbox.width;
 const playerHeight = playerhitbox.height;
 
-const BULLET_TICK_RATE = 20; // 5Hz server bullet tick
+const BULLET_TICK_RATE = 40; // 5Hz server bullet tick
 const BULLET_TICK_MS = 1000 / BULLET_TICK_RATE;
 
 /* =========================
@@ -180,8 +180,8 @@ class BulletManager {
 
       bullet.prevPosition = prevPos;
       bullet.position = nextPos;
-      bullet.x = prevPos.x;
-      bullet.y = prevPos.y;
+      bullet.x = nextPos.x;
+      bullet.y = nextPos.y;
 
       if (isPositionOutsideMapBounds(this.room, nextPos.x, nextPos.y)) {
         toRemove.push(id);
@@ -396,6 +396,7 @@ module.exports = {
   Vec2,
   BULLET_TICK_RATE,
 };
+
 
 
 
