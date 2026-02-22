@@ -89,7 +89,7 @@ class Bullet {
     this.prevPosition = this.position;
     this.spawnTime = Date.now();
     this.alive = true;
-    this.updatesTick = 1000
+    this.updatesTick = 0
   }
 
   nextPosition() {
@@ -157,7 +157,7 @@ class BulletManager {
       x: initialPosition.x,
       y: initialPosition.y,
       objectType: "bullet",
-      updatesTick: 1000,
+      updatesTick: 0,
     });
 
     this.bullets.set(id, bullet);
@@ -175,10 +175,10 @@ class BulletManager {
         continue;
       }
 
-     // bullet.updatesTick++
+     bullet.updatesTick++
 
-     // if (bullet.updatesTick > 1) {
-     // bullet.updatesTick = 0
+     if (bullet.updatesTick > 1) {
+     bullet.updatesTick = 0
       console.log(Date.now())
 
       const prevPos = bullet.position;
@@ -403,3 +403,4 @@ module.exports = {
   Vec2,
   BULLET_TICK_RATE,
 };
+
