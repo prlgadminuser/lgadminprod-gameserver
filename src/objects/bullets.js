@@ -175,12 +175,6 @@ class BulletManager {
         continue;
       }
 
-     bullet.updatesTick++
-
-     if (bullet.updatesTick > 1) {
-     bullet.updatesTick = 0
-      console.log(Date.now())
-
       const prevPos = bullet.position;
       const nextPos = bullet.nextPosition();
 
@@ -280,7 +274,6 @@ class BulletManager {
           toRemove.push(id);
           break;
        }
-      }
     }
   }
 
@@ -403,6 +396,7 @@ module.exports = {
   Vec2,
   BULLET_TICK_RATE,
 };
+
 
 
 
