@@ -7,7 +7,7 @@ const { AddNewUnseenObject, isPositionOutsideMapBounds } = require("../utils/gam
 const playerWidth = playerhitbox.width;
 const playerHeight = playerhitbox.height;
 
-const BULLET_TICK_RATE = 10; // 5Hz server bullet tick
+const BULLET_TICK_RATE = 5; // 5Hz server bullet tick
 const BULLET_TICK_MS = 1000 / BULLET_TICK_RATE;
 
 /* =========================
@@ -404,4 +404,5 @@ module.exports = {
   BULLET_TICK_RATE,
 
 };
+
 
