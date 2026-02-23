@@ -167,73 +167,64 @@ class BulletManager {
   }
 
   update() {
-    this.processScheduledBullets();
-    const toRemove = [];
+  this.processScheduledBullets();
+  const toRemove = [];
 
-    for (const [id, bullet] of this.bullets.entries()) {
-      if (!bullet || !bullet.alive || bullet.isExpired()) {
-        toRemove.push(id);
-        continue;
-      }
+  for (const [id, bullet] of this.bullets.entries()) {
+    if (!bullet || !bullet.alive || bullet.isExpired()) {
+      toRemove.push(id);
+      continue;
+    }
 
-     bullet.updatesTick++
+    bullet.updatesTick++;
+    if (bullet.updatesTick <= 1) continue;
+    bullet.updatesTick = 0;
 
-     if (bullet.updatesTick > 1) {
-     bullet.updatesTick = 0
-    //  console.log(Date.now())
+    const prevPos = bullet.position;
+    const nextPos = bullet.nextPosition();
 
-      const prevPos = bullet.position;
-      const nextPos = bullet.nextPosition();
+    // map bounds check (early reject)
+    if (isPositionOutsideMapBounds(this.room, prevPos.x, prevPos.y)) {
+      toRemove.push(id);
+      continue;
+    }
 
-      let collided = false
+    // ===== Proper Broadphase (NO MAGIC NUMBERS) =====
+    const minX = Math.min(prevPos.x, nextPos.x) - bullet.width;
+    const maxX = Math.max(prevPos.x, nextPos.x) + bullet.width;
+    const minY = Math.min(prevPos.y, nextPos.y) - bullet.height;
+    const maxY = Math.max(prevPos.y, nextPos.y) + bullet.height;
 
-      bullet.prevPosition = prevPos;
-      bullet.position = nextPos;
-      bullet.x = nextPos.x;
-      bullet.y = nextPos.y;
+    let hitType = null;     // "wall" | "player" | null
+    let hitObject = null;
 
-      if (isPositionOutsideMapBounds(this.room, prevPos.x, prevPos.y)) {
-        toRemove.push(id);
-        continue;
-      }
+    /* ================= WALL PASS (HARD BLOCK) ================= */
+    const nearbyWalls = this.room.grid.getObjectsInArea(
+      minX, maxX, minY, maxY, "wall"
+    );
 
-      /* ==== WALLS ==== */
-      const nearbyWalls = this.room.grid.getObjectsInArea(
-        Math.min(prevPos.x, nextPos.x) - 80,
-        Math.max(prevPos.x, nextPos.x) + 80,
-        Math.min(prevPos.y, nextPos.y) - 80,
-        Math.max(prevPos.y, nextPos.y) + 80,
-        "wall"
+    for (const wall of nearbyWalls) {
+      const hit = sweptRectAABB(
+        prevPos,
+        nextPos,
+        { x: wall.x, y: wall.y },
+        wall.width,
+        wall.height,
+        bullet.width,
+        bullet.height
       );
 
-      for (const wall of nearbyWalls) {
-        const hit = sweptRectAABB(
-          prevPos,
-          nextPos,
-          { x: wall.x, y: wall.y },
-          wall.width,
-          wall.height,
-          bullet.width,
-          bullet.height
-        );
-
-        if (hit) {
-          if (GunHasModifier("DestroyWalls", this.room, bullet.modifiers)) {
-            DestroyWall(wall, this.room);
-          }
-          collided = true
-          toRemove.push(id);
-          break;
-        }
+      if (hit) {
+        hitType = "wall";
+        hitObject = wall;
+        break; // walls block everything
       }
+    }
 
-      /* ==== PLAYERS ==== */
+    /* ================= PLAYER PASS (ONLY IF NO WALL) ================= */
+    if (!hitType) {
       const nearbyPlayers = this.room.grid.getObjectsInArea(
-        Math.min(prevPos.x, nextPos.x) - 80,
-        Math.max(prevPos.x, nextPos.x) + 80,
-        Math.min(prevPos.y, nextPos.y) - 80,
-        Math.max(prevPos.y, nextPos.y) + 80,
-        "player"
+        minX, maxX, minY, maxY, "player"
       );
 
       for (const obj of nearbyPlayers) {
@@ -251,53 +242,70 @@ class BulletManager {
         );
 
         if (hit) {
-          const finalDamage = bullet.damageConfig.length
-            ? calculateFinalDamage(
-                Vec2.distanceSquared(bullet.startPosition, bullet.position),
-                bullet.maxDistance,
-                bullet.damage,
-                bullet.damageConfig
-              )
-            : bullet.damage;
-
-          bullet.owner.HandleSelfBulletsOtherPlayerCollision(
-            obj,
-            finalDamage,
-            bullet.gunId,
-            this.room
-          );
-
-          if (bullet.afflictionConfig) {
-            const a = bullet.afflictionConfig;
-            this.room.activeAfflictions.push({
-              shootingPlayer: bullet.owner,
-              target: obj,
-              target_type: "player",
-              damage: a.damage,
-              speed: a.waitTime,
-              gunid: bullet.gunId,
-              nextTick: Date.now() + a.waitTime,
-              expires: Date.now() + a.activeTime,
-            });
-          }
-
-          collided = true
-          toRemove.push(id);
+          hitType = "player";
+          hitObject = obj;
           break;
-       }
+        }
+      }
+    }
+
+    /* ================= RESOLUTION ================= */
+
+    // WALL HIT
+    if (hitType === "wall") {
+      if (GunHasModifier("DestroyWalls", this.room, bullet.modifiers)) {
+        DestroyWall(hitObject, this.room);
+      }
+      toRemove.push(id);
+      continue;
+    }
+
+    // PLAYER HIT
+    if (hitType === "player") {
+      const finalDamage = bullet.damageConfig.length
+        ? calculateFinalDamage(
+            Vec2.distanceSquared(bullet.startPosition, prevPos),
+            bullet.maxDistance,
+            bullet.damage,
+            bullet.damageConfig
+          )
+        : bullet.damage;
+
+      bullet.owner.HandleSelfBulletsOtherPlayerCollision(
+        hitObject,
+        finalDamage,
+        bullet.gunId,
+        this.room
+      );
+
+      if (bullet.afflictionConfig) {
+        const a = bullet.afflictionConfig;
+        this.room.activeAfflictions.push({
+          shootingPlayer: bullet.owner,
+          target: hitObject,
+          target_type: "player",
+          damage: a.damage,
+          speed: a.waitTime,
+          gunid: bullet.gunId,
+          nextTick: Date.now() + a.waitTime,
+          expires: Date.now() + a.activeTime,
+        });
       }
 
-       if (!collided) {
-        //  bullet.effect = bullet.new ? 1 : newEffect;
-        }
-
-        bullet.new = false;
-      
+      toRemove.push(id);
+      continue;
     }
+
+    /* ================= NO HIT → MOVE ================= */
+    bullet.prevPosition = prevPos;
+    bullet.position = nextPos;
+    bullet.x = nextPos.x;
+    bullet.y = nextPos.y;
+    bullet.new = false;
   }
 
-    for (const id of toRemove) this.killBullet(id);
-  }
+  for (const id of toRemove) this.killBullet(id);
+}
 
   killBullet(bulletId) {
     const bullet = this.bullets.get(bulletId);
@@ -416,9 +424,6 @@ module.exports = {
   BULLET_TICK_RATE,
 
 };
-
-
-
 
 
 
