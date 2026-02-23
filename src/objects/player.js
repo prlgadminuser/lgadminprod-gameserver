@@ -78,7 +78,6 @@ class Player {
     this.filteredPlayersBuffer = [];
     this.selflastmsg = {};
     this.pdHashes = {};
-    this.latestnozeropd = [];
     this.pd = 0;
     this.spectating = false;
     this.pdHashes = {};
@@ -219,11 +218,10 @@ class Player {
       const ElimMessage = [elimType, targetPlayer.id];
       this.eliminations.push(ElimMessage);
 
-      targetPlayer.eliminate();
-      addEntryToKillfeed(room, 1, this.id, targetPlayer.id, gunid);
-
       targetPlayer.eliminator = this.id;
       targetPlayer.spectatingTarget = this;
+      targetPlayer.eliminate();
+
       this.kills += 1;
       room.allplayerkillscount += 1;
     }
@@ -235,7 +233,6 @@ class Player {
       this.eliminations.push(ElimMessage);
 
       targetPlayer.respawn();
-      addEntryToKillfeed(room, 2, this.id, targetPlayer.id, gunid);
     }
   }
 
@@ -286,9 +283,9 @@ class Player {
     // this.ticksSinceLastChunkUpdate++
     //  if (this.ticksSinceLastChunkUpdate > 5) {
     //  this.ticksSinceLastChunkUpdate = 0;
-
-    const centerX = this.x;
-    const centerY = this.y;
+    const positionSource = this.spectatingTarget ? this.spectatingTarget : this
+    const centerX = positionSource.x;
+    const centerY = positionSource.y;
 
     const xMin = centerX - xThreshold;
     const xMax = centerX + xThreshold;
@@ -360,6 +357,7 @@ class Player {
     this.nearbyplayers = otherPlayers;
     this.nearbybullets = nearbyBullets;
 
+
     this.newSeenObjectsStatic = staticObjects.length
       ? staticObjects
       : undefined;
@@ -414,6 +412,12 @@ class Player {
   eliminate() {
     if (this.room.state !== "playing" || this.room.winner !== -1) return;
 
+    addEntryToKillfeed({
+     room: this.room, 
+     type: 1,
+     target: this.id
+  })
+
     if (this.alive) spawnAnimation(this.room, this, "eliminated"); // this is if one team member is not alive but other team members are to avoid that a team member gets an animation who is not alive
     this.eliminated = true;
     this.alive = false;
@@ -462,6 +466,13 @@ class Player {
   }
 
   respawn() {
+
+    addEntryToKillfeed({
+     room: this.room, 
+     type: 1,
+     target: this.id
+  })
+
     spawnAnimation(this.room, this, "respawning");
     this.alive = false;
     this.state = 2;
@@ -495,6 +506,13 @@ class Player {
       this.alive = true;
       this.team.aliveCount++;
       this.state = 1;
+
+      addEntryToKillfeed({
+     room: this.room, 
+     type: 2,
+     target: this.id
+  })
+
     }, 5000);
   }
 
@@ -504,30 +522,19 @@ class Player {
     this.lastSpectateSwitch = null;
 
     if (initialTarget && !initialTarget.eliminated) {
-      this.updateSpectatingPlayer(initialTarget);
+       this.spectatingTarget = target;
+    this.spectatingPlayerId = target.id;
     } else {
       this.spectatingTarget = null;
       this.spectatingPlayerId = null;
     }
   }
 
-  updateSpectatingPlayer(target) {
-    if (!target || target.eliminated) return;
-
-    this.spectatingTarget = target;
-    this.spectatingPlayerId = target.id;
-
-    this.x = target.x;
-    this.y = target.y;
-    this.pd = target.latestnozeropd;
-    // this.nearbyanimations = target.nearbyanimations
-  }
-
   updateSpectatorMode() {
     const now = Date.now();
 
     // If revived → stop spectating immediately
-    if (!this.eliminated) {
+    if (this.alive) {
       this.spectating = false;
       this.spectatingTarget = null;
       this.spectatingPlayerId = null;
@@ -542,7 +549,8 @@ class Player {
 
     // Follow current target if valid
     if (currentTarget && !currentTarget.eliminated) {
-      this.updateSpectatingPlayer(currentTarget);
+      this.spectatingTarget = currentTarget;
+    this.spectatingPlayerId = currentTarget.id;
       return;
     }
 
@@ -561,7 +569,8 @@ class Player {
     const nearest = findNearestPlayer(this, this.room.alivePlayers);
 
     if (nearest && !nearest.eliminated) {
-      this.updateSpectatingPlayer(nearest);
+       this.spectatingTarget = nearest;
+    this.spectatingPlayerId = nearest.id;
       this.lastSpectateSwitch = now;
     } else {
       // No valid players left

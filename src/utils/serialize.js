@@ -24,9 +24,6 @@ SerializePlayerData(p) {
 },
 
 BuildSelfData(p) {
-  //  const dataSource =  p.spectatingTarget ? p.spectatingTarget : p;
-
-  const dataSource = p;
 
   const selfdata = {
     state: p.state,
@@ -41,9 +38,6 @@ BuildSelfData(p) {
     el: p.eliminations.length > 0 ? p.eliminations : undefined,
     spc: p.spectatingPlayerId,
     guns: p.loadout_formatted,
-    np: !arraysEqual(dataSource.nearbyplayersids, dataSource.lastplayerids)
-      ? dataSource.nearbyplayersids
-      : undefined,
     ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
   };
 

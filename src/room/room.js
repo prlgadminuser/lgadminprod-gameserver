@@ -5,7 +5,6 @@ const {
   UpdatePlayerWins,
   UpdateEventKills,
 } = require("../database/ChangePlayerStats");
-const { addEntryToKillfeed } = require("../modifiers/killfeed");
 const { BulletManager, BULLET_TICK_RATE } = require("../objects/bullets");
 const { Player } = require("../objects/player");
 const { deepCopy, generateUUID, arraysEqual } = require("../utils/hash");
@@ -316,7 +315,6 @@ class Room {
 
     if (this && !player.eliminated && this.state !== "waiting")
       player.eliminate();
-    addEntryToKillfeed(this, 5, null, player.id, null);
 
     player.alive = false;
     player.eliminated = true;
@@ -604,6 +602,8 @@ class Room {
       if (player.alive && player.moving) player.update();
 
       player.updateView();
+      
+     if (player.spectating) player.updateSpectatorMode();
     }
 
     // ROOM DATA
@@ -629,9 +629,8 @@ class Room {
     const playerData = this.playerDataBuffer;
 
     for (const p of players) {
-      if (p.spectating) continue;
 
-      if (!p.alive) continue;
+      if (!p.alive || p.spectating) continue;
 
       const serialized = SerializePlayerData(p);
 
@@ -657,9 +656,6 @@ class Room {
       if (Object.keys(changes).length)
         p.selflastmsg = { ...lastSelf, ...changes };
 
-      if (p.spectating) p.updateSpectatorMode();
-
-      if (!p.spectating) {
         const filteredPlayers = p.filteredPlayersBuffer;
 
         filteredPlayers.length = 0;
@@ -669,9 +665,8 @@ class Room {
             const data = playerData.get(player.id);
             filteredPlayers.push(data); // if data is dirty or playerid is new from last tick then sent
           }
-        }
+        
 
-        if (filteredPlayers.length > 0) p.latestnozeropd = filteredPlayers;
 
         p.pd = filteredPlayers;
         p.nearbyplayersidslast = p.nearbyplayersids;
@@ -681,7 +676,7 @@ class Room {
       const msgArray = p.msgBuffer;
       msgArray.length = 0;
 
-      const dataSource = p.spectatingTarget ? p.spectatingTarget : p;
+      const dataSource = p;
 
       // always send also for spectators
       if (finalroomdata) msgArray.push(PacketKeys["roomdata"], finalroomdata);
@@ -697,7 +692,7 @@ class Room {
         msgArray.push(PacketKeys["animations"], dataSource.nearbyanimations);
       if (dataSource.finalbullets)
         msgArray.push(PacketKeys["bulletdata"], dataSource.finalbullets);
-      if (p.pd.length) msgArray.push(PacketKeys["playerdata"], p.pd);
+      if (p.pd) msgArray.push(PacketKeys["playerdata"], p.pd);
 
       // Send message if changed
       if (!msgArray.length) {
@@ -718,12 +713,14 @@ class Room {
     }
 
     // CLEANUP
-    this.killfeed.length = 0;
+  
     for (const p of players) {
       p.hitmarkers.length = 0;
       p.eliminations.length = 0;
       p.nearbyanimations.length = 0;
     }
+
+      this.killfeed.length = 0;
 
     if (
       this.state === "playing" &&
@@ -838,13 +835,13 @@ async function setupRoomPlayers(room) {
     const spawnPositions = room.spawns;
     const spawnIndex = playerNumberID % spawnPositions.length; // Distribute players across spawn positions
 
-    ((player.x = spawnPositions[spawnIndex].x),
-      (player.y = spawnPositions[spawnIndex].y),
+    player.x = spawnPositions[spawnIndex].x,
+      player.y = spawnPositions[spawnIndex].y,
       // Assign the spawn position to the player
-      (player.startspawn = {
+      player.startspawn = {
         x: spawnPositions[spawnIndex].x,
         y: spawnPositions[spawnIndex].y,
-      }));
+      };
 
     // Increment the player number for the next player
     playerNumberID++;

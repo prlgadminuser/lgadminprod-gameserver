@@ -1,26 +1,37 @@
 
-function addEntryToKillfeed(room, type, killer, target, gunid) {
+function addEntryToKillfeed({room, type, target, gunid}) {
 
   let entryMessage;
 
   switch (type) {
-    case 1: // eliminated
+
+    // player eliminated/alive again without type
+
+    case 1: // player eliminated
+ entryMessage = [type, target];
+      break;
+
+   case 2: // alive / alive again
+ entryMessage = [type, target];
+      break;
+
+    case 3: // eliminated
       entryMessage = [type, killer, target, gunid];
       break;
 
-    case 2: // knocked
+    case 4: // knocked
       entryMessage = [type, killer, target, gunid];
       break;
 
-    case 3: // eliminated by storm
+    case 5: // eliminated by storm
       entryMessage = [type, target];
       break;
 
-    case 4: // knocked by storm
+    case 6: // knocked by storm
       entryMessage = [type, target];
       break;
 
-    case 5: // left the game
+    case 7: // left the game
       entryMessage = [type, target];
       break;
   }

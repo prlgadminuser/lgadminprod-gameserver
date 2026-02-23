@@ -1,6 +1,5 @@
 "use strict";
 
-const { addEntryToKillfeed } = require("./killfeed");
 const { playerhitbox } = require("../config/player");
 
 const RandomZone = true;
