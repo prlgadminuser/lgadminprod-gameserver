@@ -292,10 +292,10 @@ class Player {
     //console.log(encodePosition(x) - encodePosition(player.x))
     const PositionChanged = this.x !== lastposition.x || this.y !== lastposition.y
 
-   // if (PositionChanged) {
+   if (PositionChanged) {
       this.room.grid.updateObject(this, this.x, this.y);
       this.dirty = true
-  //  }
+   }
   }
 
   updateView() {

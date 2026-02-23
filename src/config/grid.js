@@ -65,6 +65,8 @@ class GameGrid {
     }
   }
 
+  console.log(cells.size)
+
   return cells;
 }
 
