@@ -99,7 +99,7 @@ const gamemodeconfig = {
     placereward: [16, -8],
     seasoncoinsreward: [25, 12],
 
-    custom_map: "prism_party",
+    custom_map: "training",
   },
 
 
@@ -191,3 +191,4 @@ module.exports = {
   gamemodeconfig: new Map(Object.entries(gamemodeconfig)),
   allowed_gamemodes,
 };
+
