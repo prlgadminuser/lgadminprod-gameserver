@@ -48,6 +48,10 @@ class Player {
 
     // Game state
     this.objectType = "player";
+    this.width = playerhitbox.width
+    this.height = playerhitbox.height
+
+
     this.health = gamemodeSettings.playerhealth;
     this.starthealth = gamemodeSettings.playerhealth;
     this.speed = gamemodeSettings.playerspeed;

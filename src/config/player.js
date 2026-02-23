@@ -6,8 +6,8 @@ const playerhitbox = {
   xMax: 13,
   yMin: 43,
   yMax: 44,
-  width: 22,
-  height: 47,
+  width: 22 * 2,
+  height: 44 * 2,
   zonewidth: 35,
   zoneheight: 57,
 }

@@ -647,7 +647,7 @@ class Room {
       for (const k in selfdata) {
         if (selfdata[k] !== lastSelf[k]) changes[k] = selfdata[k];
       }
-      
+
       if (Object.keys(changes).length)
         p.selflastmsg = { ...lastSelf, ...changes };
 
@@ -845,7 +845,6 @@ async function setupRoomPlayers(room) {
 
     // Increment the player number for the next player
     playerNumberID++;
-
     room.grid.addObject(player);
   }
 }

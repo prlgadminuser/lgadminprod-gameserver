@@ -235,8 +235,8 @@ class BulletManager {
           prevPos,
           nextPos,
           { x: obj.x, y: obj.y },
-          playerWidth * 2,
-          playerHeight * 2,
+          playerWidth,
+          playerHeight,
           bullet.width,
           bullet.height
         );
