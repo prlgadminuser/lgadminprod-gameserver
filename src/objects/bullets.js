@@ -235,8 +235,8 @@ class BulletManager {
           prevPos,
           nextPos,
           { x: obj.x, y: obj.y },
-          playerWidth * 2,
-          playerHeight * 2,
+          playerWidth,
+          playerHeight,
           bullet.width,
           bullet.height
         );
@@ -424,6 +424,9 @@ module.exports = {
   BULLET_TICK_RATE,
 
 };
+
+
+
 
 
 
