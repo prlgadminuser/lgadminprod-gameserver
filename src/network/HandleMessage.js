@@ -69,6 +69,7 @@ function handleSwitchGun(data, player) {
     player.loadout[`slot${GunSlot}`] !== player.gun
   ) {
     player.gun = player.loadout[`slot${GunSlot}`];
+    player.dirty = true
   }
 }
 
@@ -76,8 +77,10 @@ function handleEmote(data, player, room) {
   const emoteid = data[1];
   if (emoteid >= 1 && emoteid <= 4 && player.emote === 0) {
     player.emote = emoteid;
+    player.dirty = true
     room.setRoomTimeout(() => {
       player.emote = 0;
+      player.dirty = true
     }, 3000);
   }
 }
@@ -115,8 +118,11 @@ function handleMovementData(data, player) {
 function updatePlayerDirection(player, direction) {
   player.direction = direction;
 
+  const lastDirection = 90
+
   if (player.direction != -180 && player.direction != 0) {
-    player.direction2 = direction > 0 ? -90 : 90; // Adjust otherwisew
+    player.direction2 = direction > 0 ? -90 : 90; // Adjust otherwise
+    if (lastDirection !== player.direction2) player.dirty = true
   }
 }
 

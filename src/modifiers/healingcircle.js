@@ -65,6 +65,7 @@ function updateHealingCircles(deltaTime, room) {
    for (const player of nearbyPlayers) {
       if (player.state === 1 && isPlayerInsideCircle(player, circle) && circle.radius > Math.floor(circle.maxradius * 0.3)) {
         player.health = Math.min(player.health + circle.healAmount, player.starthealth);
+        player.dirty = true
       }
     };
 

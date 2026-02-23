@@ -6,8 +6,8 @@ class GameGrid {
     this.width = Math.floor(width / cellSize);
     this.height = Math.floor(height / cellSize);
 
-    this.offsetX = -(cellSize / 2); 
-    this.offsetY = -(cellSize / 2); 
+    this.offsetX = 0
+    this.offsetY = 0 
 
     // Single unified grid (faster + simpler)
     this.grid = new Map();          // key -> Set<gid>

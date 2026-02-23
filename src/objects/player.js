@@ -89,7 +89,6 @@ class Player {
     this.emptySent = false;
 
     this.lastdata = [];
-    this.dirty = true;
 
     // Movement
     this.moving = false;
@@ -173,15 +172,21 @@ class Player {
   }
 
   healPlayer(healthToAdd, source) {
+
+    const lastHealth = this.health
     const maxHealthLimit = this.starthealth;
 
     this.health = Math.min(this.health + healthToAdd, maxHealthLimit);
     this.last_healing_time = Date.now();
 
     //   createHitmarker(this, this, damage);
+    if (this.health !== lastHealth) this.dirty = true
   }
 
   damagePlayer(damage) {
+
+    const lastHealth = this.health
+
     this.health -= damage;
     this.last_hit_time = Date.now();
 
@@ -190,6 +195,8 @@ class Player {
     if (this.health > 0) return;
 
     // now we know that player has no health left
+
+    if (this.health !== lastHealth) this.dirty = true
 
     if (this.IsEliminationAllowed()) {
       this.eliminate();
@@ -202,6 +209,7 @@ class Player {
     const GUN_BULLET_DAMAGE = Math.min(damage, targetPlayer.health);
 
     targetPlayer.health -= GUN_BULLET_DAMAGE;
+    targetPlayer.dirty = true
     this.damage += GUN_BULLET_DAMAGE;
     targetPlayer.last_hit_time = Date.now();
     targetPlayer.last_hitter = this; // Track who last hit the player
@@ -240,6 +248,11 @@ class Player {
     // HANDLE MOVEMENT
     if (!this.moving) return;
 
+    const lastposition = {
+    x: this.x,
+    y: this.y,
+    }
+
     const dir = this.direction - 90;
     const vec = DIRECTION_VECTORS[dir];
     if (!vec) return;
@@ -273,8 +286,12 @@ class Player {
     this.y = newY;
 
     //console.log(encodePosition(x) - encodePosition(player.x))
+    const PositionChanged = this.x !== lastposition.x || this.y !== lastposition.y
 
-    this.room.grid.updateObject(this, this.x, this.y);
+   // if (PositionChanged) {
+      this.room.grid.updateObject(this, this.x, this.y);
+      this.dirty = true
+  //  }
   }
 
   updateView() {
@@ -512,6 +529,8 @@ class Player {
      type: 2,
      target: this.id
   })
+
+  this.dirty = true
 
     }, 5000);
   }

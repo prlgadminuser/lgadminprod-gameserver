@@ -632,14 +632,8 @@ class Room {
 
       if (!p.alive || p.spectating) continue;
 
-      const serialized = SerializePlayerData(p);
 
-      const hash = serialized.join();
-
-      p.dirty = hash !== p._lastSerializedHash;
-      p._lastSerializedHash = hash;
-
-      playerData.set(p.id, serialized);
+     if (p.dirty) playerData.set(p.id, SerializePlayerData(p));
     }
 
     // ONE PASS: build messages
@@ -653,6 +647,7 @@ class Room {
       for (const k in selfdata) {
         if (selfdata[k] !== lastSelf[k]) changes[k] = selfdata[k];
       }
+      
       if (Object.keys(changes).length)
         p.selflastmsg = { ...lastSelf, ...changes };
 
@@ -663,7 +658,7 @@ class Room {
         for (const player of p.nearbyplayers) {
           if (player.dirty || !p.nearbyplayersidslast.includes(player.id)) {
             const data = playerData.get(player.id);
-            filteredPlayers.push(data); // if data is dirty or playerid is new from last tick then sent
+            if (data) filteredPlayers.push(data); // if data is dirty or playerid is new from last tick then sent
           }
         
 
@@ -718,8 +713,13 @@ class Room {
       p.hitmarkers.length = 0;
       p.eliminations.length = 0;
       p.nearbyanimations.length = 0;
+
+      // remove dirty
+      p.dirty = false
+
     }
 
+      this.gamedata_dirty = false
       this.killfeed.length = 0;
 
     if (
