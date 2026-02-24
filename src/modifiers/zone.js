@@ -81,6 +81,7 @@ function startPhase(room) {
 }
 
 function smoothZoneMovement(room) {
+
   const phase = room.zonephases[room.currentPhase];
   if (!phase) return;
 
@@ -207,7 +208,7 @@ function UseZone(room) {
   };
 
   const zones = [
-    { targetSize: room.mapHeight * 2,   waitTime: 20000, shrinkTime: 50000, damage: 2 },
+    { targetSize: room.mapHeight * 2,   waitTime: 2000, shrinkTime: 50000, damage: 2 },
     { targetSize: room.mapHeight * 1.3, waitTime: 20000, shrinkTime: 50000, damage: 5 },
     { targetSize: room.mapHeight * 0.6, waitTime: 20000, shrinkTime: 50000, damage: 12 },
     { targetSize: room.mapHeight * 0.4, waitTime: 20000, shrinkTime: 50000, damage: 20, drift_allowed: 0.7 },
@@ -247,7 +248,7 @@ function UseZone(room) {
   // 30 FPS zone movement
   room.shrinkInterval = room.setRoomInterval(
     () => smoothZoneMovement(room),
-    100
+    500
   );
 
   // Damage every second

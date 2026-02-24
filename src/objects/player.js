@@ -48,9 +48,8 @@ class Player {
 
     // Game state
     this.objectType = "player";
-    this.width = playerhitbox.width
-    this.height = playerhitbox.height
-
+    this.width = playerhitbox.width;
+    this.height = playerhitbox.height;
 
     this.health = gamemodeSettings.playerhealth;
     this.starthealth = gamemodeSettings.playerhealth;
@@ -176,31 +175,31 @@ class Player {
   }
 
   healPlayer(healthToAdd, source) {
-
-    const lastHealth = this.health
+    const lastHealth = this.health;
     const maxHealthLimit = this.starthealth;
 
     this.health = Math.min(this.health + healthToAdd, maxHealthLimit);
     this.last_healing_time = Date.now();
 
     //   createHitmarker(this, this, damage);
-    if (this.health !== lastHealth) this.dirty = true
+    if (this.health !== lastHealth) this.dirty = true;
   }
 
   damagePlayer(damage) {
+    const lastHealth = this.health;
 
-    const lastHealth = this.health
+    console.log(damage)
 
     this.health -= damage;
     this.last_hit_time = Date.now();
 
     //   createHitmarker(this, this, damage);
+     if (this.health !== lastHealth) this.dirty = true;
 
     if (this.health > 0) return;
 
     // now we know that player has no health left
 
-    if (this.health !== lastHealth) this.dirty = true
 
     if (this.IsEliminationAllowed()) {
       this.eliminate();
@@ -213,7 +212,7 @@ class Player {
     const GUN_BULLET_DAMAGE = Math.min(damage, targetPlayer.health);
 
     targetPlayer.health -= GUN_BULLET_DAMAGE;
-    targetPlayer.dirty = true
+    targetPlayer.dirty = true;
     this.damage += GUN_BULLET_DAMAGE;
     targetPlayer.last_hit_time = Date.now();
     targetPlayer.last_hitter = this; // Track who last hit the player
@@ -253,9 +252,9 @@ class Player {
     if (!this.moving) return;
 
     const lastposition = {
-    x: this.x,
-    y: this.y,
-    }
+      x: this.x,
+      y: this.y,
+    };
 
     const dir = this.direction - 90;
     const vec = DIRECTION_VECTORS[dir];
@@ -290,12 +289,13 @@ class Player {
     this.y = newY;
 
     //console.log(encodePosition(x) - encodePosition(player.x))
-    const PositionChanged = this.x !== lastposition.x || this.y !== lastposition.y
+    const PositionChanged =
+      this.x !== lastposition.x || this.y !== lastposition.y;
 
-   if (PositionChanged) {
+    if (PositionChanged) {
       this.room.grid.updateObject(this, this.x, this.y);
-      this.dirty = true
-   }
+      this.dirty = true;
+    }
   }
 
   updateView() {
@@ -304,7 +304,7 @@ class Player {
     // this.ticksSinceLastChunkUpdate++
     //  if (this.ticksSinceLastChunkUpdate > 5) {
     //  this.ticksSinceLastChunkUpdate = 0;
-    const positionSource = this.spectatingTarget ? this.spectatingTarget : this
+    const positionSource = this.spectatingTarget ? this.spectatingTarget : this;
     const centerX = positionSource.x;
     const centerY = positionSource.y;
 
@@ -378,7 +378,6 @@ class Player {
     this.nearbyplayers = otherPlayers;
     this.nearbybullets = nearbyBullets;
 
-
     this.newSeenObjectsStatic = staticObjects.length
       ? staticObjects
       : undefined;
@@ -407,7 +406,7 @@ class Player {
             bullet.gunId,
             bullet.effect,
             bullet.speed,
-            BULLET_TICK_RATE
+            BULLET_TICK_RATE,
 
             /// (GlobalRoomConfig.room_tick_rate_ms / GlobalRoomConfig.bullet_updates_per_tick),
           ]);
@@ -430,17 +429,20 @@ class Player {
     }
   }
 
+
+
+
+
   eliminate() {
     if (this.room.state !== "playing" || this.room.winner !== -1) return;
 
     addEntryToKillfeed({
-     room: this.room, 
-     type: 1,
-     target: this.id
-  })
+      room: this.room,
+      type: 1,
+      target: this.id,
+    });
 
-
-    this.dirty = false
+    this.dirty = false;
 
     if (this.alive) spawnAnimation(this.room, this, "eliminated"); // this is if one team member is not alive but other team members are to avoid that a team member gets an animation who is not alive
     this.eliminated = true;
@@ -452,13 +454,7 @@ class Player {
     this.room.grid.removeObject(this);
     this.room.alivePlayers.delete(this);
 
-    if (this.timeout) {
-      clearTimeout(this.timeout);
-    }
-
-    //this.room.setRoomTimeout(() => {
-      this.startSpectating();
-   // }, 0);
+    this.startSpectating();
 
     if (this.room.IsTeamMode && this.team.aliveCount === 0) {
       // Find the place for the eliminated team.
@@ -471,9 +467,6 @@ class Player {
           player.place = teamPlace;
 
           if (!player.eliminated) player.eliminate();
-          // if (player.respawnTimeout && !player.spectating)   player.startSpectating()
-
-          // clearTimeout(player.respawnTimeout)
           UpdatePlayerPlace(player, teamPlace, this.room);
         }
       }
@@ -486,18 +479,19 @@ class Player {
       UpdatePlayerPlace(this, playerPlace, this.room);
     }
 
-    // Final check for a winner or end-of-game condition.
   }
 
+
+
+
   respawn() {
-
     addEntryToKillfeed({
-     room: this.room, 
-     type: 1,
-     target: this.id
-  })
+      room: this.room,
+      type: 1,
+      target: this.id,
+    });
 
-  this.dirty = false
+    this.dirty = false;
 
     spawnAnimation(this.room, this, "respawning");
     this.alive = false;
@@ -505,17 +499,17 @@ class Player {
     this.moving = false;
     this.team.aliveCount--;
 
-    this.last_hitter = false;
-
     this.room.grid.removeObject(this);
     this.room.alivePlayers.delete(this);
+
+    this.last_hitter = false;
 
     this.respawns--;
     this.health = this.starthealth;
 
-
     this.room.setRoomTimeout(() => {
-      if (this.room.IsTeamMode && 1 > this.team.aliveCount) return;
+      if (this.room.IsTeamMode && 1 > this.team.aliveCount)
+        if (this.eliminated) return;
 
       if (this.team.aliveCount > 0) {
         let aliveTeamPlayer = false;
@@ -533,17 +527,19 @@ class Player {
       this.alive = true;
       this.team.aliveCount++;
       this.state = 1;
+      this.dirty = true;
 
       addEntryToKillfeed({
-     room: this.room, 
-     type: 2,
-     target: this.id
-  })
-
-  this.room.newRespawns.push(this)
-
+        room: this.room,
+        type: 2,
+        target: this.id,
+      });
     }, 5000);
   }
+
+
+
+
 
   startSpectating(initialTarget = null) {
     this.spectating = true;
@@ -551,8 +547,8 @@ class Player {
     this.lastSpectateSwitch = null;
 
     if (initialTarget && !initialTarget.eliminated) {
-       this.spectatingTarget = target;
-    this.spectatingPlayerId = target.id;
+      this.spectatingTarget = target;
+      this.spectatingPlayerId = target.id;
     } else {
       this.spectatingTarget = null;
       this.spectatingPlayerId = null;
@@ -579,7 +575,7 @@ class Player {
     // Follow current target if valid
     if (currentTarget && !currentTarget.eliminated) {
       this.spectatingTarget = currentTarget;
-    this.spectatingPlayerId = currentTarget.id;
+      this.spectatingPlayerId = currentTarget.id;
       return;
     }
 
@@ -598,8 +594,8 @@ class Player {
     const nearest = findNearestPlayer(this, this.room.alivePlayers);
 
     if (nearest && !nearest.eliminated) {
-       this.spectatingTarget = nearest;
-    this.spectatingPlayerId = nearest.id;
+      this.spectatingTarget = nearest;
+      this.spectatingPlayerId = nearest.id;
       this.lastSpectateSwitch = now;
     } else {
       // No valid players left

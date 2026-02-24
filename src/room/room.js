@@ -144,7 +144,7 @@ class Matchmaker {
       return;
     }
 
-   if (!enoughPlayers) this.sendQueueUpdate(queue);
+    if (!enoughPlayers) this.sendQueueUpdate(queue);
   }
 
   sendQueueUpdate(queue) {
@@ -250,8 +250,8 @@ class Room {
     this.bullets = new Map();
     this.bulletUpdateTick = 1;
     this.activeAfflictions = [];
-    this.RespawnsRequests = []
-    this.newRespawns = []
+    this.RespawnsRequests = [];
+
     // Game configuration
     this.modifiers = gmconfig.modifiers;
     this.respawns = gmconfig.respawns_allowed;
@@ -287,7 +287,7 @@ class Room {
 
     // Managers + helpers
     this.bulletManager = new BulletManager(this);
-    this.bulletUpdatesTick = 20
+    this.bulletUpdatesTick = 20;
     this.playerDataBuffer = new Map();
     this.intervalIds = [];
     this.timeoutIds = [];
@@ -589,27 +589,16 @@ class Room {
   }
 
   update() {
-
-
-    if (!this.state === "playing") return
+    if (!this.state === "playing") return;
     const CachedEmptyMsg = compressMessage([]);
 
     const players = this.connectedPlayers;
 
     const aliveCount = this.alivePlayers.size;
 
-     this.bulletManager.update(); 
+    this.bulletManager.update();
 
-    HandleAfflictions(this)
- //   HandleRespawns(this)
-
-    for (const player of players) {
-      if (player.alive && player.moving) player.update();
-
-      player.updateView();
-      
-     if (player.spectating) player.updateSpectatorMode();
-    }
+    HandleAfflictions(this);
 
     // ROOM DATA
     const roomdata = [
@@ -629,22 +618,23 @@ class Room {
     } else {
       finalroomdata = undefined;
     }
+    //   HandleRespawns(this)
+
+    for (const player of players) {
+      if (player.alive && player.moving) player.update();
+
+      player.updateView();
+
+      if (player.spectating) player.updateSpectatorMode();
+    }
 
     // Reuse buffers for bullets and player data
     const playerData = this.playerDataBuffer;
 
-      for (const player of this.newRespawns) {
-
-      player.dirty = true
-    }
-
-
     for (const p of players) {
+      if (p.spectating) continue;
 
-   if (p.spectating) continue;
-
-
-     if (p.dirty) playerData.set(p.id, SerializePlayerData(p));
+      if (p.dirty) playerData.set(p.id, SerializePlayerData(p));
     }
 
     // ONE PASS: build messages
@@ -662,17 +652,15 @@ class Room {
       if (Object.keys(changes).length)
         p.selflastmsg = { ...lastSelf, ...changes };
 
-        const filteredPlayers = p.filteredPlayersBuffer;
+      const filteredPlayers = p.filteredPlayersBuffer;
 
-        filteredPlayers.length = 0;
+      filteredPlayers.length = 0;
 
-        for (const player of p.nearbyplayers) {
-          if (player.dirty || !p.nearbyplayersidslast.includes(player.id)) {
-            const data = playerData.get(player.id);
-            if (data) filteredPlayers.push(data); // if data is dirty or playerid is new from last tick then sent
-          }
-        
-
+      for (const player of p.nearbyplayers) {
+        if (player.dirty || !p.nearbyplayersidslast.includes(player.id)) {
+          const data = playerData.get(player.id);
+          if (data) filteredPlayers.push(data); // if data is dirty or playerid is new from last tick then sent
+        }
 
         p.pd = filteredPlayers;
         p.nearbyplayersidslast = p.nearbyplayersids;
@@ -719,20 +707,18 @@ class Room {
     }
 
     // CLEANUP
-  
+
     for (const p of players) {
       p.hitmarkers.length = 0;
       p.eliminations.length = 0;
       p.nearbyanimations.length = 0;
 
       // remove dirty
-      p.dirty = false
-
+      p.dirty = false;
     }
 
-      this.gamedata_dirty = false
-      this.killfeed.length = 0;
-      this.newRespawns.length = 0;
+    this.gamedata_dirty = false;
+    this.killfeed.length = 0;
 
     if (
       this.state === "playing" &&
@@ -847,13 +833,13 @@ async function setupRoomPlayers(room) {
     const spawnPositions = room.spawns;
     const spawnIndex = playerNumberID % spawnPositions.length; // Distribute players across spawn positions
 
-    player.x = spawnPositions[spawnIndex].x,
-      player.y = spawnPositions[spawnIndex].y,
+    ((player.x = spawnPositions[spawnIndex].x),
+      (player.y = spawnPositions[spawnIndex].y),
       // Assign the spawn position to the player
-      player.startspawn = {
+      (player.startspawn = {
         x: spawnPositions[spawnIndex].x,
         y: spawnPositions[spawnIndex].y,
-      };
+      }));
 
     // Increment the player number for the next player
     playerNumberID++;
@@ -1019,4 +1005,3 @@ module.exports = {
   startMatch,
   matchmaker,
 };
-
