@@ -1,4 +1,3 @@
-
 const { gadgetconfig } = require("../config/gadgets");
 const { playerhitbox } = require("../config/player");
 const { PlayerRateLimiter } = require("../config/server");
@@ -8,6 +7,7 @@ const { addEntryToKillfeed } = require("../modifiers/killfeed");
 const { isCollisionWithWalls } = require("../utils/collision");
 const { createHitmarker, findNearestPlayer } = require("../utils/game");
 const { DIRECTION_VECTORS } = require("../utils/movement");
+const { SerializePlayerData } = require("../utils/serialize");
 const { bullets_tick_rate, BULLET_TICK_RATE } = require("./bullets");
 
 const added_hitbox = 5;
@@ -190,7 +190,7 @@ class Player {
     const lastHealth = this.health;
 
     this.health -= damage;
-    this.last_hit_time = Date.now();
+    this.last_damaged_time = Date.now();
 
     //   createHitmarker(this, this, damage);
      if (this.health !== lastHealth) this.dirty = true;
@@ -213,7 +213,7 @@ class Player {
     targetPlayer.health -= GUN_BULLET_DAMAGE;
     targetPlayer.dirty = true;
     this.damage += GUN_BULLET_DAMAGE;
-    targetPlayer.last_hit_time = Date.now();
+    targetPlayer.last_damaged_time = Date.now();
     targetPlayer.last_hitter = this; // Track who last hit the player
 
     createHitmarker(targetPlayer, this, GUN_BULLET_DAMAGE);
@@ -526,6 +526,7 @@ class Player {
       this.alive = true;
       this.team.aliveCount++;
       this.state = 1;
+      this.room.playerDataBuffer.set(this.id, SerializePlayerData(this));
       this.dirty = true;
 
       addEntryToKillfeed({

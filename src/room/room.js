@@ -593,11 +593,10 @@ class Room {
     const CachedEmptyMsg = compressMessage([]);
 
     const players = this.connectedPlayers;
+    const alivePlayers = this.alivePlayers
 
     const aliveCount = this.alivePlayers.size;
-
     this.bulletManager.update();
-
     HandleAfflictions(this);
 
     // ROOM DATA
@@ -631,8 +630,8 @@ class Room {
     // Reuse buffers for bullets and player data
     const playerData = this.playerDataBuffer;
 
-    for (const p of players) {
-      if (p.spectating) continue;
+    for (const p of alivePlayers) {
+    //  if (p.spectating) continue;
 
       if (p.dirty) playerData.set(p.id, SerializePlayerData(p));
     }

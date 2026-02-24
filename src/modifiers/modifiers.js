@@ -29,7 +29,7 @@ function startRegeneratingHealth(room, seconds) {
 function regenerateHealth(room) {
   const now = Date.now();
   forEachAlive(room, (player) => {
-    if (now - player.last_hit_time > 10000) player.healPlayer(6);
+    if (now - player.last_damaged_time > 10000) player.healPlayer(6);
   });
 }
 
