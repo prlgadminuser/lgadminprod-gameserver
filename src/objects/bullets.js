@@ -123,7 +123,7 @@ class BulletManager {
 
   generateBulletId() {
     const id = this.nextBulletId++;
-    if (this.nextBulletId > 65535) this.nextBulletId = 1;
+    if (this.nextBulletId > 655) this.nextBulletId = 1;
     return id;
   }
 

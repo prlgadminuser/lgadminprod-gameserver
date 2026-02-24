@@ -21,7 +21,7 @@ let mapsconfig = {
       width: 400,
       height: 500,
       spawns: [
-        {"x":50,"y":40},
+        {"x":0,"y":0},
       ],
       dummies: {
         a1: { x: 100, y: 0, health: 100, starthealth: 100, type: 1 },

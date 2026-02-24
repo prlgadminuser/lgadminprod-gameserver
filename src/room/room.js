@@ -124,7 +124,7 @@ class Matchmaker {
     this.tryCreateRoom(key, gamemode, gmconfig, spLevel);
   }
 
-  removeFromQueue(ws) {
+  removeFromQueue(ws, enoughPlayers) {
     if (!ws.__inQueue) return;
 
     const key = ws.__queueKey;
@@ -144,7 +144,7 @@ class Matchmaker {
       return;
     }
 
-    this.sendQueueUpdate(queue);
+   if (!enoughPlayers) this.sendQueueUpdate(queue);
   }
 
   sendQueueUpdate(queue) {
@@ -192,7 +192,7 @@ class Matchmaker {
     const room = new Room(roomId, gamemode, gmconfig, spLevel);
 
     for (const entry of selected) {
-      this.removeFromQueue(entry.ws);
+      this.removeFromQueue(entry.ws, true);
       room.addPlayer(entry.ws, entry.playerVerified);
     }
 
@@ -250,7 +250,8 @@ class Room {
     this.bullets = new Map();
     this.bulletUpdateTick = 1;
     this.activeAfflictions = [];
-
+    this.RespawnsRequests = []
+    this.newRespawns = []
     // Game configuration
     this.modifiers = gmconfig.modifiers;
     this.respawns = gmconfig.respawns_allowed;
@@ -588,6 +589,9 @@ class Room {
   }
 
   update() {
+
+
+    if (!this.state === "playing") return
     const CachedEmptyMsg = compressMessage([]);
 
     const players = this.connectedPlayers;
@@ -596,7 +600,8 @@ class Room {
 
      this.bulletManager.update(); 
 
-    HandleAfflictions(this);
+    HandleAfflictions(this)
+ //   HandleRespawns(this)
 
     for (const player of players) {
       if (player.alive && player.moving) player.update();
@@ -628,9 +633,15 @@ class Room {
     // Reuse buffers for bullets and player data
     const playerData = this.playerDataBuffer;
 
+      for (const player of this.newRespawns) {
+
+      player.dirty = true
+    }
+
+
     for (const p of players) {
 
-      if (!p.alive || p.spectating) continue;
+   if (!p.dirty)   if (!p.alive || p.spectating) continue;
 
 
      if (p.dirty) playerData.set(p.id, SerializePlayerData(p));
@@ -721,6 +732,7 @@ class Room {
 
       this.gamedata_dirty = false
       this.killfeed.length = 0;
+      this.newRespawns.length = 0;
 
     if (
       this.state === "playing" &&

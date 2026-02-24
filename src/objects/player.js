@@ -439,6 +439,9 @@ class Player {
      target: this.id
   })
 
+
+    this.dirty = false
+
     if (this.alive) spawnAnimation(this.room, this, "eliminated"); // this is if one team member is not alive but other team members are to avoid that a team member gets an animation who is not alive
     this.eliminated = true;
     this.alive = false;
@@ -494,6 +497,8 @@ class Player {
      target: this.id
   })
 
+  this.dirty = false
+
     spawnAnimation(this.room, this, "respawning");
     this.alive = false;
     this.state = 2;
@@ -507,6 +512,7 @@ class Player {
 
     this.respawns--;
     this.health = this.starthealth;
+
 
     this.room.setRoomTimeout(() => {
       if (this.room.IsTeamMode && 1 > this.team.aliveCount) return;
@@ -534,7 +540,7 @@ class Player {
      target: this.id
   })
 
-  this.dirty = true
+  this.room.newRespawns.push(this)
 
     }, 5000);
   }

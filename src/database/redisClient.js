@@ -70,7 +70,7 @@ function startHeartbeat() {
         "ok"
       );
 
-      // 3) Optional metadata (debug/monitoring)
+   /*   // 3) Optional metadata (debug/monitoring)
       await redisClient.setex(
         `meta:${ServerUrl}`,
         HEARTBEAT_TTL_SECONDS,
@@ -80,7 +80,7 @@ function startHeartbeat() {
           url: ServerUrl
         })
       );
-
+*/
     } catch (error) {
       console.error("Heartbeat error:", error);
     }
