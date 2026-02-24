@@ -641,7 +641,7 @@ class Room {
 
     for (const p of players) {
 
-   if (!p.dirty)   if (!p.alive || p.spectating) continue;
+   if (p.spectating) continue;
 
 
      if (p.dirty) playerData.set(p.id, SerializePlayerData(p));
@@ -1019,3 +1019,4 @@ module.exports = {
   startMatch,
   matchmaker,
 };
+
