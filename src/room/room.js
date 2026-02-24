@@ -686,7 +686,7 @@ class Room {
         msgArray.push(PacketKeys["animations"], dataSource.nearbyanimations);
       if (dataSource.finalbullets)
         msgArray.push(PacketKeys["bulletdata"], dataSource.finalbullets);
-      if (p.pd) msgArray.push(PacketKeys["playerdata"], p.pd);
+      if (dataSource.pd.length) msgArray.push(PacketKeys["playerdata"], dataSource.pd);
 
       // Send message if changed
       if (!msgArray.length) {
