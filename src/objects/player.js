@@ -1,3 +1,4 @@
+
 const { gadgetconfig } = require("../config/gadgets");
 const { playerhitbox } = require("../config/player");
 const { PlayerRateLimiter } = require("../config/server");
@@ -187,8 +188,6 @@ class Player {
 
   damagePlayer(damage) {
     const lastHealth = this.health;
-
-    console.log(damage)
 
     this.health -= damage;
     this.last_hit_time = Date.now();
