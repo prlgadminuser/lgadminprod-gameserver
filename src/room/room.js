@@ -560,8 +560,8 @@ class Room {
         cg: +p.canusegadget,
         lg: p.gadgetuselimit,
         ag: +p.gadgetactive,
-        x: encodePosition(p.x),
-        y: encodePosition(p.y),
+        x: encodePosition(p.position.x),
+        y: encodePosition(p.position.y),
         el: p.eliminations,
         em: p.emote,
         spc: p.spectatingPlayerId,
@@ -832,14 +832,17 @@ async function setupRoomPlayers(room) {
     const spawnPositions = room.spawns;
     const spawnIndex = playerNumberID % spawnPositions.length; // Distribute players across spawn positions
 
-    ((player.x = spawnPositions[spawnIndex].x),
-      (player.y = spawnPositions[spawnIndex].y),
-      // Assign the spawn position to the player
-      (player.startspawn = {
-        x: spawnPositions[spawnIndex].x,
-        y: spawnPositions[spawnIndex].y,
-      }));
+    const spawn = spawnPositions[spawnIndex];
 
+// set live position
+player.position.x = spawn.x;
+player.position.y = spawn.y;
+
+// store spawn reference
+player.startspawn = {
+  x: spawn.x,
+  y: spawn.y,
+};
     // Increment the player number for the next player
     playerNumberID++;
     room.grid.addObject(player);

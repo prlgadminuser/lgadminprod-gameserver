@@ -19,8 +19,8 @@ module.exports = {
 
   createHitmarker(target, shooter, damage) {
     shooter.hitmarkers.push([
-      Math.round(target.x),
-      Math.round(target.y),
+      Math.round(target.position.x),
+      Math.round(target.position.y),
       damage,
     ]);
   },
@@ -29,10 +29,12 @@ module.exports = {
     room.grid.addObject(obj);
   },
 
-  isPositionOutsideMapBounds(room, x, y) {
+  isPositionOutsideMapBounds(room, position) {
+    const { x, y } = position
     const mapWidth = room.mapWidth;
     const mapHeight = room.mapHeight;
     return x < -mapWidth || x > mapWidth || y < -mapHeight || y > mapHeight;
+
   },
 
   getPlayersInRange(room, centerX, centerY) {
@@ -56,23 +58,27 @@ module.exports = {
     return nearbyPlayers;
   },
 
-  findNearestPlayer(eliminatedPlayer, players) {
-  if (!players.size) return
-  let nearestPlayer = null;
-  let shortestDistanceSq = Infinity;
+ findNearestPlayer(eliminatedPlayer, players) {
+  if (!players || !players.size) return null;
 
-  for (const player of players) {
-    const dx = player.x - eliminatedPlayer.x;
-    const dy = player.y - eliminatedPlayer.y;
-    const distanceSq = dx * dx + dy * dy; // squared distance
+  const ex = eliminatedPlayer.position.x;
+  const ey = eliminatedPlayer.position.y;
 
-    if (distanceSq < shortestDistanceSq) {
-      shortestDistanceSq = distanceSq;
-      nearestPlayer = player;
+  let nearest = null;
+  let minDistSq = Infinity;
+
+  for (const p of players) {
+    const dx = p.position.x - ex;
+    const dy = p.position.y - ey;
+    const d2 = dx * dx + dy * dy;
+
+    if (d2 < minDistSq) {
+      minDistSq = d2;
+      nearest = p;
     }
   }
 
-  return nearestPlayer;
+  return nearest;
 }
 
 

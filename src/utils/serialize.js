@@ -12,8 +12,8 @@ module.exports = {
 SerializePlayerData(p) {
   const arr = p.serializeBuffer;
   arr[0] = p.id;
-  arr[1] = encodePosition(p.x);
-  arr[2] = encodePosition(p.y);
+  arr[1] = encodePosition(p.position.x);
+  arr[2] = encodePosition(p.position.y);
   arr[3] = p.direction2;
   arr[4] = p.health;
   arr[5] = Number(p.gun);

@@ -9,8 +9,8 @@ function spawnAnimation(room, player, type) {
   if (!player) return; // Ensure the player exists
 
   const animationtype = animationtypes[type];
-  const x = Math.round(player.x);
-  const y = Math.round(player.y);
+  const x = Math.round(player.position.x);
+  const y = Math.round(player.position.y);
 
   const newAnimation = [animationtype, x, y];
   // currently not touching grid cause we would need to put animations in player.updateView which would use more capacity
@@ -31,8 +31,7 @@ function spawnAnimation(room, player, type) {
 
   for (const player of room.connectedPlayers) {
     
-   const x = player.x
-   const y = player.y // or player.x / player.y depending on your structure
+   const { x, y } = player.position
 
   const isNearby  = x >= xMin && x <= xMax && y >= yMin && y <= yMax
 

@@ -31,17 +31,19 @@ isCollisionWithWalls(walls, x, y) {
     const halfH = wall.height * 0.5;
     const type = wall.hitboxtype || "rect";
 
+      const { x: wx, y: wy } = wall.position
+
     if (type === "rect") {
-      const wLeft = wall.x - halfW;
-      const wRight = wall.x + halfW;
-      const wTop = wall.y - halfH;
-      const wBottom = wall.y + halfH;
+      const wLeft = wx - halfW;
+      const wRight = wx + halfW;
+      const wTop = wy - halfH;
+      const wBottom = wy + halfH;
 
       if (rectRectIntersection(xMin, xMax, yMin, yMax, wLeft, wRight, wTop, wBottom))
         return true;
     } else { // circle
       const radius = Math.min(halfW, halfH);
-      if (rectCircleIntersection(xMin, xMax, yMin, yMax, wall.x, wall.y, radius))
+      if (rectCircleIntersection(xMin, xMax, yMin, yMax, wx, wy, radius))
         return true;
     }
   }
@@ -53,8 +55,7 @@ isCollisionWithWalls(walls, x, y) {
 isCollisionWithPlayer(bullet, player, bulletHeight, bulletWidth, bulletAngle) {
   const bCorners = getBulletCorners(bullet, bulletWidth, bulletHeight, bulletAngle);
 
-  const px = player.x;
-  const py = player.y;
+   const { x: px, y: py } = player.position;
 
   // re-use constants, no array creation per tick
   const pCorners = [

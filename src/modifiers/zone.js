@@ -22,7 +22,8 @@ function formatTime(ms) {
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
-function isWithinZone(room, playerX, playerY) {
+function isWithinZone(room, position) {
+  const { x: playerX, y: playerY } = position
   return (
     playerX - PLAYER_WIDTH >= room.zoneStartX &&
     playerX + PLAYER_WIDTH <= room.zoneEndX &&
@@ -140,7 +141,7 @@ function dealDamage(room) {
 
   for (const player of room.alivePlayers) {
 
-    if (!isWithinZone(room, player.x, player.y)) player.damagePlayer(damagePerSecond)
+    if (!isWithinZone(room, player.position)) player.damagePlayer(damagePerSecond)
   };
 }
 

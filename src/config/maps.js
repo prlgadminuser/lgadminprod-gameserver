@@ -77,6 +77,10 @@ let mapsconfig = {
       width: 30,
       height: 30,
       walkable: wall.walkable === "true", // walkable means that this is not an obstacle so the player can walk through. this is for example an gras block 
+      position: {
+        x: wall.x,
+        y: wall.y,
+      }
     };
 
 

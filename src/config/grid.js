@@ -6,7 +6,6 @@ class GameGrid {
     this.width = Math.floor(width / cellSize);
     this.height = Math.floor(height / cellSize);
 
-    // NO OFFSET. EVER.
     this.offsetX = 0;
     this.offsetY = 0;
 
@@ -22,10 +21,10 @@ class GameGrid {
   // Cell Utilities
   // -------------------------
 
- getCellCoords(x, y) {
+ getCellCoords(newPosition) {
   return {
-    cx: Math.floor(x / this.cellSize),
-    cy: Math.floor(y / this.cellSize),
+    cx: Math.floor(newPosition.x / this.cellSize),
+    cy: Math.floor(newPosition.y / this.cellSize),
   };
 }
 
@@ -38,7 +37,7 @@ class GameGrid {
   // -------------------------
 
  getCellsForObject(obj) {
-  if (typeof obj.x !== "number" || typeof obj.y !== "number") {
+     if (!obj.position || typeof obj.position.x !== "number" || typeof obj.position.y !== "number") {
     throw new Error(`GameGrid error: object ${obj.gid || "unknown"} missing x/y`);
   }
 
@@ -47,10 +46,10 @@ class GameGrid {
   const width = obj.width || 0;
   const height = obj.height || 0;
 
-  const xMin = obj.x - width / 2;
-  const xMax = obj.x + width / 2;
-  const yMin = obj.y - height / 2;
-  const yMax = obj.y + height / 2;
+  const xMin = obj.position.x - width / 2;
+  const xMax = obj.position.x + width / 2;
+  const yMin = obj.position.y - height / 2;
+  const yMax = obj.position.y + height / 2;
 
   const xStart = Math.floor((xMin - EPS) / this.cellSize);
   const xEnd   = Math.floor((xMax + EPS) / this.cellSize);
@@ -74,9 +73,10 @@ class GameGrid {
 
   addObject(obj) {
   
-    if (typeof obj.x !== "number" || typeof obj.y !== "number") {
-      throw new Error("Object must have numeric 'x' and 'y'.");
+       if (!obj.position || typeof obj.position.x !== "number" || typeof obj.position.y !== "number") {
+      throw new Error("Object must have position: { x, y }");
     }
+
 
     if (!obj.gid) obj.gid = this.nextId++;
 
@@ -86,7 +86,7 @@ class GameGrid {
       ? this.getCellsForObject(obj)
       : new Set([
           this.getCellKeyFromCoords(
-            ...Object.values(this.getCellCoords(obj.x, obj.y))
+            ...Object.values(this.getCellCoords(newPosition))
           ),
         ]);
 
@@ -120,19 +120,18 @@ class GameGrid {
     this.objects.delete(obj.gid);
   }
 
-  updateObject(obj, newX, newY) {
+  updateObject(obj, newPosition) {
     if (!obj?.gid) return;
+    if (!obj.position) return
 
     const oldCells = this.objectsCells.get(obj.gid) || new Set();
 
-    obj.x = newX;
-    obj.y = newY;
 
     const newCells = allow_cell_coverage
       ? this.getCellsForObject(obj)
       : new Set([
           this.getCellKeyFromCoords(
-            ...Object.values(this.getCellCoords(newX, newY))
+            ...Object.values(this.getCellCoords(newPosition))
           ),
         ]);
 
@@ -169,34 +168,34 @@ class GameGrid {
   // Queries (Broadphase ONLY)
   // -------------------------
 
- getObjectsInArea(xMin, xMax, yMin, yMax, typeFilter = null) {
-  const EPS = 0.0001;
+  getObjectsInArea(xMin, xMax, yMin, yMax, typeFilter = null) {
+    const EPS = 0.0001;
 
-  const xStart = Math.floor((xMin - EPS) / this.cellSize);
-  const xEnd   = Math.floor((xMax + EPS) / this.cellSize);
-  const yStart = Math.floor((yMin - EPS) / this.cellSize);
-  const yEnd   = Math.floor((yMax + EPS) / this.cellSize);
+    const xStart = Math.floor((xMin - EPS) / this.cellSize);
+    const xEnd   = Math.floor((xMax + EPS) / this.cellSize);
+    const yStart = Math.floor((yMin - EPS) / this.cellSize);
+    const yEnd   = Math.floor((yMax + EPS) / this.cellSize);
 
-  const result = new Set();
+    const result = new Set();
 
-  for (let x = xStart; x <= xEnd; x++) {
-    for (let y = yStart; y <= yEnd; y++) {
-      const key = `${x},${y}`;
-      const set = this.grid.get(key);
-      if (!set) continue;
+    for (let cx = xStart; cx <= xEnd; cx++) {
+      for (let cy = yStart; cy <= yEnd; cy++) {
+        const key = `${cx},${cy}`;
+        const set = this.grid.get(key);
+        if (!set) continue;
 
-      for (const gid of set) {
-        const obj = this.objects.get(gid);
-        if (!obj) continue;
-        if (!typeFilter || obj.objectType === typeFilter) {
-          result.add(obj);
+        for (const gid of set) {
+          const obj = this.objects.get(gid);
+          if (!obj) continue;
+          if (!typeFilter || obj.objectType === typeFilter) {
+            result.add(obj);
+          }
         }
       }
     }
-  }
 
-  return [...result];
-}
+    return [...result];
+  }
 
   // -------------------------
   // Internal Helpers

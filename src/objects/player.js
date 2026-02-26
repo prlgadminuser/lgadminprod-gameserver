@@ -44,10 +44,11 @@ class Player {
     this.top = top;
     this.player_color = player_color;
     this.hat_color = hat_color;
-    this.top_color = top_color;
+    this.top_color = top_color
 
     // Game state
     this.objectType = "player";
+    this.position = {}
     this.width = playerhitbox.width;
     this.height = playerhitbox.height;
 
@@ -249,10 +250,7 @@ class Player {
     // HANDLE MOVEMENT
     if (!this.moving) return;
 
-    const lastposition = {
-      x: this.x,
-      y: this.y,
-    };
+    const { x: lastX, y: lastY } = this.position
 
     const dir = this.direction - 90;
     const vec = DIRECTION_VECTORS[dir];
@@ -261,40 +259,39 @@ class Player {
     const speed = this.speed;
 
     // Use exact precalculated direction vector
-    const deltaX = speed * vec.x;
-    const deltaY = speed * vec.y;
+    const dx = speed * vec.x;
+    const dy = speed * vec.y;
+
+    const { x, y } = this.position;
 
     const nearbyWalls = this.room.grid.getObjectsInArea(
-      this.x - hitboxXMin,
-      this.x + hitboxXMax,
-      this.y - hitboxYMin,
-      this.y + hitboxYMax,
+      x - hitboxXMin,
+      x + hitboxXMax,
+      y - hitboxYMin,
+      y + hitboxYMax,
       "wall",
     );
 
-    let newX = this.x + deltaX;
-    let newY = this.y + deltaY;
+    let newX = x + dx;
+    let newY = y + dy;
 
-    if (isCollisionWithWalls(nearbyWalls, newX, this.y)) newX = this.x;
-    if (isCollisionWithWalls(nearbyWalls, this.x, newY)) newY = this.y;
+    if (isCollisionWithWalls(nearbyWalls, newX, y)) newX = x;
+    if (isCollisionWithWalls(nearbyWalls, x, newY)) newY = y;
 
-    const mapWidth = this.room.mapWidth;
-    const mapHeight = this.room.mapHeight;
-    newX = Math.max(-mapWidth, Math.min(mapWidth, newX));
-    newY = Math.max(-mapHeight, Math.min(mapHeight, newY));
-    // Clean rounding — no floating drift
-    this.x = newX;
-    this.y = newY;
+      const { mapWidth, mapHeight } = this.room;
+  newX = Math.max(-mapWidth, Math.min(mapWidth, newX));
+  newY = Math.max(-mapHeight, Math.min(mapHeight, newY));
 
-    //console.log(encodePosition(x) - encodePosition(player.x))
-    const PositionChanged =
-      this.x !== lastposition.x || this.y !== lastposition.y;
 
-    if (PositionChanged) {
-      this.room.grid.updateObject(this, this.x, this.y);
-      this.dirty = true;
-    }
+   this.position.x = newX;
+   this.position.y = newY;
+
+  // change detection (numeric, deterministic)
+  if (newX !== lastX || newY !== lastY) {
+    this.room.grid.updateObject(this, this.position);
+    this.dirty = true;
   }
+}
 
   updateView() {
     this.ticksSinceLastChunkUpdate++;
@@ -303,8 +300,8 @@ class Player {
     //  if (this.ticksSinceLastChunkUpdate > 5) {
     //  this.ticksSinceLastChunkUpdate = 0;
     const positionSource = this.spectatingTarget ? this.spectatingTarget : this;
-    const centerX = positionSource.x;
-    const centerY = positionSource.y;
+    const centerX = positionSource.position.x;
+    const centerY = positionSource.position.y;
 
     const xMin = centerX - xThreshold;
     const xMax = centerX + xThreshold;
@@ -359,8 +356,8 @@ class Player {
               RealtimeObjects.push([
                 obj.id,
                 obj.objectType,
-                obj.x,
-                obj.y,
+                obj.position.x,
+                obj.position.y,
                 obj.hp,
                 obj.rotation,
               ]);
@@ -409,7 +406,7 @@ class Player {
             /// (GlobalRoomConfig.room_tick_rate_ms / GlobalRoomConfig.bullet_updates_per_tick),
           ]);
 
-          console.log( bullet.directionChange ? [Object.values(bullet.directionChange)] : undefined)
+        //  console.log( bullet.directionChange ? [Object.values(bullet.directionChange)] : undefined)
         }
 
         newLastBulletIds.add(bullet.id);
@@ -515,8 +512,7 @@ class Player {
         let aliveTeamPlayer = false;
         for (const teamplayer of this.team.players) {
           if (teamplayer.alive) {
-            this.x = teamplayer.x;
-            this.y = teamplayer.y;
+            this.position = teamplayer.position;
             continue;
           }
         }
