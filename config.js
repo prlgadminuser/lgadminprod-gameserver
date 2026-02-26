@@ -1,7 +1,7 @@
 // src/config.js
 const { allowed_gamemodes } = require("./src/config/gamemodes");
 
-const HEARTBEAT_INTERVAL_MS = 1000000;
+const HEARTBEAT_INTERVAL_MS = 1000000; // 1000 seconds
 
 global.playerCount = 0
 

@@ -8,7 +8,6 @@ const { isCollisionWithWalls } = require("../utils/collision");
 const { createHitmarker, findNearestPlayer } = require("../utils/game");
 const { DIRECTION_VECTORS } = require("../utils/movement");
 const { SerializePlayerData } = require("../utils/serialize");
-const { bullets_tick_rate, BULLET_TICK_RATE } = require("./bullets");
 
 const added_hitbox = 5;
 const hitboxXMin = playerhitbox.xMin + added_hitbox;
@@ -76,7 +75,7 @@ class Player {
 
     this.lastfinalbulletsSet = new Set();
 
-    this.serializeBuffer = new Array(7);
+    this.serializeBuffer = new Array(8);
     this.bulletBuffer = [];
     this.msgBuffer = [];
     this.filteredPlayersBuffer = [];
@@ -404,11 +403,13 @@ class Player {
             Math.round(bullet.direction),
             bullet.gunId,
             bullet.effect,
-            bullet.speed,
-            BULLET_TICK_RATE,
+            bullet.client_render_speed,
+            bullet.directionChange ? Object.values(bullet.directionChange) : undefined
 
             /// (GlobalRoomConfig.room_tick_rate_ms / GlobalRoomConfig.bullet_updates_per_tick),
           ]);
+
+          console.log( bullet.directionChange ? [Object.values(bullet.directionChange)] : undefined)
         }
 
         newLastBulletIds.add(bullet.id);

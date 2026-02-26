@@ -5,7 +5,7 @@ const {
   UpdatePlayerWins,
   UpdateEventKills,
 } = require("../database/ChangePlayerStats");
-const { BulletManager, BULLET_TICK_RATE } = require("../objects/bullets");
+const { BulletManager } = require("../objects/bullets");
 const { Player } = require("../objects/player");
 const { deepCopy, generateUUID, arraysEqual } = require("../utils/hash");
 const { random_mapkeys, mapsconfig } = require("../config/maps");
@@ -779,9 +779,9 @@ class Room {
 
       // Run game logic
       this.update();
-      this.timeoutdelaysending = setTimeout(() => {
+      //  this.timeoutdelaysending = setTimeout(() => {
       this.sendPlayerPackets();
-      }, 5);
+      // }, 5);
 
       // Schedule next frame compensating for drift
       nextTick += tickRateMs;
@@ -1004,4 +1004,3 @@ module.exports = {
   startMatch,
   matchmaker,
 };
-

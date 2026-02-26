@@ -39,6 +39,7 @@ function handleRoomMessage(room, player, message) {
 
   if (type === "2") {
     player.moving = false;
+    player.dirty = true
   }
 }
 
