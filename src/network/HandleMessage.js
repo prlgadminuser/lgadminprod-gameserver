@@ -1,4 +1,4 @@
-const { handleBulletFired } = require("../objects/bullets");
+const { handleBulletFired } = require("../objects/weapons/bullet");
 const { validDirections } = require("../utils/game");
 
 function handleRoomMessage(room, player, message) {

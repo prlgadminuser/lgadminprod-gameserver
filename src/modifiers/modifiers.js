@@ -6,10 +6,6 @@ function forEachAlive(room, fn) {
   }
 }
 
-
-
-
-
 function startDecreasingHealth(room, seconds) {
   room.setRoomInterval(() => decreaseHealth(room), seconds * 1000);
 }
@@ -17,10 +13,6 @@ function startDecreasingHealth(room, seconds) {
 function decreaseHealth(room) {
   forEachAlive(room, (player) => player.damagePlayer(6));
 }
-
-
-
-
 
 function startRegeneratingHealth(room, seconds) {
   room.setRoomInterval(() => regenerateHealth(room), seconds * 1000);
@@ -32,8 +24,5 @@ function regenerateHealth(room) {
     if (now - player.last_damaged_time > 10000) player.healPlayer(6);
   });
 }
-
-
-
 
 module.exports = { startDecreasingHealth, startRegeneratingHealth };

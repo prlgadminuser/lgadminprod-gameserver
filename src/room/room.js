@@ -5,7 +5,7 @@ const {
   UpdatePlayerWins,
   UpdateEventKills,
 } = require("../database/ChangePlayerStats");
-const { BulletManager } = require("../objects/bullets");
+const { BulletManager } = require("../objects/weapons/bullet");
 const { Player } = require("../objects/player");
 const { deepCopy, generateUUID, arraysEqual } = require("../utils/hash");
 const { random_mapkeys, mapsconfig } = require("../config/maps");
@@ -16,7 +16,7 @@ const {
 } = require("../config/matchmaking");
 const { GameGrid } = require("../config/grid");
 const { gamemodeconfig } = require("../config/gamemodes");
-const { HandleAfflictions } = require("../objects/bullets-effects");
+const { HandleAfflictions } = require("../objects/weapons/weapon-effects");
 const {
   SerializePlayerData,
   BuildSelfData,
