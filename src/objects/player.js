@@ -512,7 +512,8 @@ class Player {
         let aliveTeamPlayer = false;
         for (const teamplayer of this.team.players) {
           if (teamplayer.alive) {
-            this.position = teamplayer.position;
+            this.position.x = teamplayer.position.x;
+            this.position.y = teamplayer.position.y
             continue;
           }
         }
