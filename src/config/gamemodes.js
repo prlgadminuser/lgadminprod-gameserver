@@ -61,7 +61,7 @@ const gamemodeconfig = {
     teamsize: 2,
     respawns_allowed: 0,
 
-    playerhealth: 1000,
+    playerhealth: 150,
     playerspeed: 2,
 
     modifiers: new Set(["UseZone"]),
@@ -191,3 +191,4 @@ module.exports = {
   gamemodeconfig: new Map(Object.entries(gamemodeconfig)),
   allowed_gamemodes,
 };
+
