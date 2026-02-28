@@ -21,7 +21,12 @@ let mapsconfig = {
       width: 400,
       height: 500,
       spawns: [
-        {"x":0,"y":0},
+        {"x":0,"y":200},
+        {"x":0,"y":200},
+        {"x":0,"y":-200},
+        {"x":0,"y":-200},
+        {"x":200,"y":0},
+         {"x":200,"y":0},
       ],
       dummies: {
         a1: { x: 100, y: 0, health: 100, starthealth: 100, type: 1 },
@@ -107,4 +112,5 @@ let mapsconfig = {
   module.exports = {
      mapsconfig,
      random_mapkeys: Array.from(Object.keys(mapsconfig)).slice(0, -2)
+
 }
