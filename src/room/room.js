@@ -660,20 +660,19 @@ class Room {
           const data = playerData.get(player.id);
           if (data) filteredPlayers.push(data); // if data is dirty or playerid is new from last tick then sent
         }
-
-        p.pd = filteredPlayers;
-        p.nearbyplayersidslast = p.nearbyplayersids;
       }
+
+
+     p.nearbyplayersidslast = p.nearbyplayersids;
 
       // --- Message assembly with buffer reuse ---
       const msgArray = p.msgBuffer;
       msgArray.length = 0;
 
-      const dataSource = p;
-
       // always send also for spectators
       if (finalroomdata) msgArray.push(PacketKeys["roomdata"], finalroomdata);
       if (Object.keys(changes).length)
+
         msgArray.push(PacketKeys["selfdata"], changes);
       if (p.newSeenObjectsStatic)
         msgArray.push(PacketKeys["objectupdates"], p.newSeenObjectsStatic);
@@ -681,11 +680,11 @@ class Room {
         msgArray.push(PacketKeys["killfeed"], this.killfeed);
 
       // for normal players and spectator handling
-      if (dataSource.nearbyanimations.length)
-        msgArray.push(PacketKeys["animations"], dataSource.nearbyanimations);
-      if (dataSource.finalbullets)
-        msgArray.push(PacketKeys["bulletdata"], dataSource.finalbullets);
-      if (dataSource.pd.length) msgArray.push(PacketKeys["playerdata"], dataSource.pd);
+      if (p.nearbyanimations.length)
+        msgArray.push(PacketKeys["animations"], p.nearbyanimations);
+      if (p.finalbullets)
+        msgArray.push(PacketKeys["bulletdata"], p.finalbullets);
+      if (filteredPlayers.length) msgArray.push(PacketKeys["playerdata"], filteredPlayers);
 
       // Send message if changed
       if (!msgArray.length) {
@@ -769,31 +768,25 @@ class Room {
     this.loopHandle = setTimeout(loop, tickRateMs);
   }
 
-  startGameLoop(game_tick_rate) {
-    let nextTick = performance.now();
-    const tickRateMs = game_tick_rate;
+  startGameLoop(tickMs) {
+  let nextTick = performance.now();
 
-    const loop = () => {
-      const now = performance.now();
-      const drift = now - nextTick;
+  const loop = () => {
+    const now = performance.now();
 
-      // Run game logic
-      this.update();
-      //  this.timeoutdelaysending = setTimeout(() => {
-      this.sendPlayerPackets();
-      // }, 5);
+    // catch-up if lagging
+    while (now >= nextTick) {
+      this.update();              // simulate
+      this.sendPlayerPackets();   // snapshot send
+      nextTick += tickMs;         // advance tick
+    }
 
-      // Schedule next frame compensating for drift
-      nextTick += tickRateMs;
+    setTimeout(loop, Math.max(0, nextTick - performance.now()));
+  };
 
-      const delay = Math.max(0, tickRateMs - drift);
-
-      this.driftdelay1 = setTimeout(loop, delay);
-    };
-
-    nextTick = performance.now() + tickRateMs;
-    this.driftdelay2 = setTimeout(loop, tickRateMs);
-  }
+  nextTick = performance.now() + tickMs;
+  setTimeout(loop, tickMs);
+}
 }
 
 function cloneGrid(original) {
