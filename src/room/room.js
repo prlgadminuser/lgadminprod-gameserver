@@ -655,11 +655,19 @@ class Room {
 
       filteredPlayers.length = 0;
 
+  //   p.nearbyplayerids_dirty = false
+
       for (const player of p.nearbyplayers) {
-        if (player.dirty || !p.nearbyplayersidslast.includes(player.id)) {
+        const playerNotSeenInLastTick = !p.nearbyplayersidslast.includes(player.id)
+       // const playerNotSeenInNewTick = p.
+        if (player.dirty || playerNotSeenInLastTick) {
           const data = playerData.get(player.id);
           if (data) filteredPlayers.push(data); // if data is dirty or playerid is new from last tick then sent
+
+          
         }
+        
+     //  if (playerNotSeenInLastTick) p.nearbyplayerids_dirty = true , console.log("true")
       }
 
 

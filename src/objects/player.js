@@ -16,8 +16,8 @@ const hitboxYMin = playerhitbox.yMin + added_hitbox;
 const hitboxYMax = playerhitbox.yMax + added_hitbox;
 
 const viewmultiplier = 1;
-const xThreshold = 420 * viewmultiplier;
-const yThreshold = 240 * viewmultiplier;
+const xThreshold = 320 * viewmultiplier;
+const yThreshold = 200 * viewmultiplier;
 
 class Player {
   constructor(ws, playerVerified, room) {
@@ -129,8 +129,11 @@ class Player {
     this.eliminations = [];
     this.nearbyanimations = [];
     this.can_bullets_bounce = false;
+
     this.nearbyplayersids = [];
     this.lastplayerids = [];
+    this.nearbyplayerids_dirty = true
+
     this.isPlayer = true;
 
     // Network methods

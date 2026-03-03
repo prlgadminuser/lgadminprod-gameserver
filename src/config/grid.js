@@ -21,11 +21,12 @@ class GameGrid {
   // Cell Utilities
   // -------------------------
 
- getCellCoords(newPosition) {
-  return {
-    cx: Math.floor(newPosition.x / this.cellSize),
-    cy: Math.floor(newPosition.y / this.cellSize),
-  };
+ getCellCoords(position) {
+//  return {
+ //   cx: Math.floor(position.x / this.cellSize),
+  //  cy: Math.floor(position.y / this.cellSize),
+  //};
+   return this.roundToCells(position.x, position.y);
 }
 
   getCellKeyFromCoords(cx, cy) {
@@ -208,6 +209,14 @@ class GameGrid {
     }
     return true;
   }
+
+  roundToCells(x, y) {
+  return {
+    cx: Math.floor(x / this.cellSize),
+    cy: Math.floor(y / this.cellSize),
+  };
+}
+
 }
 
 module.exports = { GameGrid };

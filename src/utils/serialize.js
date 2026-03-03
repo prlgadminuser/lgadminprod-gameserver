@@ -39,6 +39,10 @@ BuildSelfData(p) {
     spc: p.spectatingPlayerId,
     guns: p.loadout_formatted,
     ht: p.hitmarkers.length > 0 ? p.hitmarkers : undefined,
+
+
+    1: !arraysEqual(p.nearbyplayersids, p.lastplayerids) ? p.nearbyplayersids : undefined,
+   // 1: p.nearbyplayerids_dirty ? p.nearbyplayersids : undefined
   };
 
   p.lastplayerids = p.nearbyplayersids;

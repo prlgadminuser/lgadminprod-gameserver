@@ -504,7 +504,7 @@ function handleBulletFired(room, player, gunType) {
   const baseAngle = gun.useplayerangle ? player.shoot_direction : 0;
 
   for (const bulletConfig of gun.bullets) {
-    const bullet_tick_rate = 1; //Math.min(
+    const bullet_tick_rate = 10; //Math.min(
     //  GlobalRoomConfig.ticks_per_second,
     //5
     //Math.round(bulletConfig.speed * 3),
