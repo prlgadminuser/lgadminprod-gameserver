@@ -801,24 +801,33 @@ function cloneGrid(original) {
   const clone = new GameGrid(
     original.width * original.cellSize,
     original.height * original.cellSize,
+    original.cellSize
   );
 
   clone.nextId = original.nextId;
 
-  // Clone objects
-  for (const [gid, obj] of original.objects.entries()) {
-    const objCopy = { ...obj }; // shallow copy
-    clone.objects.set(gid, objCopy);
+  // clone objects
+  clone.objects = new Map(original.objects);
+
+  // clone grid
+  for (let x = 0; x < original.grid.length; x++) {
+    const row = original.grid[x];
+    if (!row) continue;
+
+    const cloneRow = clone.grid[x];
+
+    for (let y = 0; y < row.length; y++) {
+      const cell = row[y];
+      if (cell) cloneRow[y] = new Set(cell);
+    }
   }
 
-  // Clone grid
-  for (const [key, set] of original.grid.entries()) {
-    clone.grid.set(key, new Set(set));
+  // clone cell lists
+  for (const [gid, cells] of original.objectsCells) {
+    clone.objectsCells.set(gid, cells.slice());
   }
-  // Clone objectsCells
-  for (const [gid, cells] of original.objectsCells.entries()) {
-    clone.objectsCells.set(gid, new Set(cells));
-  }
+
+ // console.log(clone.grid)
 
   return clone;
 }

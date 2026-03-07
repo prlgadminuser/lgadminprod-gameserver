@@ -1,193 +1,126 @@
-const allow_cell_coverage = true;
-
 class GameGrid {
   constructor(width, height, cellSize = 30) {
     this.cellSize = cellSize;
-    this.width = Math.floor(width / cellSize);
-    this.height = Math.floor(height / cellSize);
+    this.invCell = 1 / cellSize;
 
-    this.offsetX = 0;
-    this.offsetY = 0;
+    this.width = (width * this.invCell) | 0;
+    this.height = (height * this.invCell) | 0;
 
-    // Spatial hash
-    this.grid = new Map();          
-    this.objects = new Map();       
-    this.objectsCells = new Map();  
+    // Offsets to allow negative world positions
+    this.offsetX = this.width;
+    this.offsetY = this.height;
+
+    // 2D grid array
+    this.grid = Array.from({ length: this.width * 2 + 1 }, () => []);
+    this.objectsCells = new Map();
 
     this.nextId = 1;
   }
 
-  // -------------------------
-  // Cell Utilities
-  // -------------------------
-
- getCellCoords(position) {
-//  return {
- //   cx: Math.floor(position.x / this.cellSize),
-  //  cy: Math.floor(position.y / this.cellSize),
-  //};
-   return this.roundToCells(position.x, position.y);
-}
-
-  getCellKeyFromCoords(cx, cy) {
-    return `${cx},${cy}`;
+  // ----------------------
+  // Convert world position to grid cell (with offset)
+  // ----------------------
+  _roundToCells(pos) {
+    return {
+      x: ((pos.x * this.invCell) | 0) + this.offsetX,
+      y: ((pos.y * this.invCell) | 0) + this.offsetY,
+    };
   }
 
-  // -------------------------
-  // Core geometry
-  // -------------------------
+  _cellsForObject(obj, pos) {
+    const hw = (obj.width || 0) * 0.5;
+    const hh = (obj.height || 0) * 0.5;
 
- getCellsForObject(obj) {
-     if (!obj.position || typeof obj.position.x !== "number" || typeof obj.position.y !== "number") {
-    throw new Error(`GameGrid error: object ${obj.gid || "unknown"} missing x/y`);
-  }
+    const xMin = pos.x - hw;
+    const xMax = pos.x + hw;
+    const yMin = pos.y - hh;
+    const yMax = pos.y + hh;
 
-  const EPS = 0.0001;
+    const min = this._roundToCells({ x: xMin, y: yMin });
+    const max = this._roundToCells({ x: xMax, y: yMax });
 
-  const width = obj.width || 0;
-  const height = obj.height || 0;
-
-  const xMin = obj.position.x - width / 2;
-  const xMax = obj.position.x + width / 2;
-  const yMin = obj.position.y - height / 2;
-  const yMax = obj.position.y + height / 2;
-
-  const xStart = Math.floor((xMin - EPS) / this.cellSize);
-  const xEnd   = Math.floor((xMax + EPS) / this.cellSize);
-  const yStart = Math.floor((yMin - EPS) / this.cellSize);
-  const yEnd   = Math.floor((yMax + EPS) / this.cellSize);
-
-  const cells = new Set();
-
-  for (let x = xStart; x <= xEnd; x++) {
-    for (let y = yStart; y <= yEnd; y++) {
-      cells.add(`${x},${y}`);
+    const cells = [];
+    for (let x = min.x; x <= max.x; x++) {
+      for (let y = min.y; y <= max.y; y++) {
+        cells.push(x, y);
+      }
     }
+    return cells;
   }
-
-  return cells;
-}
-
-  // -------------------------
-  // Core Operations
-  // -------------------------
 
   addObject(obj) {
-  
-       if (!obj.position || typeof obj.position.x !== "number" || typeof obj.position.y !== "number") {
-      throw new Error("Object must have position: { x, y }");
-    }
-
-
+    if (!obj.position) throw new Error("Object must have position");
     if (!obj.gid) obj.gid = this.nextId++;
 
-    this.objects.set(obj.gid, obj);
-
-    const cells = allow_cell_coverage
-      ? this.getCellsForObject(obj)
-      : new Set([
-          this.getCellKeyFromCoords(
-            ...Object.values(this.getCellCoords(newPosition))
-          ),
-        ]);
-
-    for (const key of cells) {
-      if (!this.grid.has(key)) {
-        this.grid.set(key, new Set());
-      }
-      this.grid.get(key).add(obj.gid);
-    }
-
-    this.objectsCells.set(obj.gid, cells);
-  }
-
-  removeObject(obj) {
-    if (!obj?.gid) return;
-
-    const cells = this.objectsCells.get(obj.gid);
-    if (cells) {
-      for (const key of cells) {
-        const set = this.grid.get(key);
-        if (set) {
-          set.delete(obj.gid);
-          if (set.size === 0) {
-            this.grid.delete(key);
-          }
-        }
-      }
-    }
-
-    this.objectsCells.delete(obj.gid);
-    this.objects.delete(obj.gid);
+    this.updateObject(obj, obj.position);
   }
 
   updateObject(obj, newPosition) {
     if (!obj?.gid) return;
-    if (!obj.position) return
 
-    const oldCells = this.objectsCells.get(obj.gid) || new Set();
+    const gid = obj.gid;
 
+    const oldCells = this.objectsCells.get(gid) || [];
+    const newCells = this._cellsForObject(obj, newPosition);
 
-    const newCells = allow_cell_coverage
-      ? this.getCellsForObject(obj)
-      : new Set([
-          this.getCellKeyFromCoords(
-            ...Object.values(this.getCellCoords(newPosition))
-          ),
-        ]);
-
-    // Fast path
-    if (this._setsEqual(oldCells, newCells)) return;
+    if (this._arraysEqual(oldCells, newCells)) {
+      obj.position = newPosition;
+      return;
+    }
 
     // Remove old cells
-    for (const key of oldCells) {
-      if (!newCells.has(key)) {
-        const set = this.grid.get(key);
-        if (set) {
-          set.delete(obj.gid);
-          if (set.size === 0) this.grid.delete(key);
-        }
-      }
+    for (let i = 0; i < oldCells.length; i += 2) {
+      const x = oldCells[i];
+      const y = oldCells[i + 1];
+
+      const cell = this.grid[x]?.[y];
+      if (cell) cell.delete(obj);
     }
 
     // Add new cells
-    for (const key of newCells) {
-      if (!oldCells.has(key)) {
-        if (!this.grid.has(key)) this.grid.set(key, new Set());
-        this.grid.get(key).add(obj.gid);
-      }
+    for (let i = 0; i < newCells.length; i += 2) {
+      const x = newCells[i];
+      const y = newCells[i + 1];
+
+      if (!this.grid[x]) this.grid[x] = [];
+      if (!this.grid[x][y]) this.grid[x][y] = new Set();
+
+      this.grid[x][y].add(obj);
     }
 
-    this.objectsCells.set(obj.gid, newCells);
+    obj.position = newPosition;
+    this.objectsCells.set(gid, newCells);
   }
 
-  hasObject(obj) {
-    return !!(obj?.gid && this.objects.has(obj.gid));
-  }
+  removeObject(obj) {
+    const cells = this.objectsCells.get(obj.gid);
+    if (!cells) return;
 
-  // -------------------------
-  // Queries (Broadphase ONLY)
-  // -------------------------
+    for (let i = 0; i < cells.length; i += 2) {
+      const x = cells[i];
+      const y = cells[i + 1];
+      const cell = this.grid[x]?.[y];
+      if (cell) cell.delete(obj);
+    }
+
+    this.objectsCells.delete(obj.gid);
+  }
 
   getObjectsInArea(xMin, xMax, yMin, yMax, typeFilter = null) {
-    const EPS = 0.0001;
-
-    const xStart = Math.floor((xMin - EPS) / this.cellSize);
-    const xEnd   = Math.floor((xMax + EPS) / this.cellSize);
-    const yStart = Math.floor((yMin - EPS) / this.cellSize);
-    const yEnd   = Math.floor((yMax + EPS) / this.cellSize);
+    const min = this._roundToCells({ x: xMin, y: yMin });
+    const max = this._roundToCells({ x: xMax, y: yMax });
 
     const result = new Set();
 
-    for (let cx = xStart; cx <= xEnd; cx++) {
-      for (let cy = yStart; cy <= yEnd; cy++) {
-        const key = `${cx},${cy}`;
-        const set = this.grid.get(key);
-        if (!set) continue;
+    for (let x = min.x; x <= max.x; x++) {
+      const row = this.grid[x];
+      if (!row) continue;
 
-        for (const gid of set) {
-          const obj = this.objects.get(gid);
-          if (!obj) continue;
+      for (let y = min.y; y <= max.y; y++) {
+        const cell = row[y];
+        if (!cell) continue;
+
+        for (const obj of cell) {
           if (!typeFilter || obj.objectType === typeFilter) {
             result.add(obj);
           }
@@ -198,25 +131,13 @@ class GameGrid {
     return [...result];
   }
 
-  // -------------------------
-  // Internal Helpers
-  // -------------------------
-
-  _setsEqual(a, b) {
-    if (a.size !== b.size) return false;
-    for (const val of a) {
-      if (!b.has(val)) return false;
+  _arraysEqual(a, b) {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) return false;
     }
     return true;
   }
-
-  roundToCells(x, y) {
-  return {
-    cx: Math.floor(x / this.cellSize),
-    cy: Math.floor(y / this.cellSize),
-  };
-}
-
 }
 
 module.exports = { GameGrid };
