@@ -1,15 +1,6 @@
 "use strict";
 
-const { playerhitbox } = require("../config/player");
-
 const RandomZone = true;
-
-const PLAYER_WIDTH = playerhitbox.zonewidth;
-const PLAYER_HEIGHT = playerhitbox.zoneheight;
-
-/* =========================================================
-   UTILITIES
-========================================================= */
 
 function now() {
   return Date.now();
@@ -22,13 +13,13 @@ function formatTime(ms) {
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
-function isWithinZone(room, position) {
-  const { x: playerX, y: playerY } = position
+function isWithinZone(room, player) {
+  const { x: playerX, y: playerY } = player.position
   return (
-    playerX - PLAYER_WIDTH >= room.zoneStartX &&
-    playerX + PLAYER_WIDTH <= room.zoneEndX &&
-    playerY - PLAYER_HEIGHT >= room.zoneStartY &&
-    playerY + PLAYER_HEIGHT <= room.zoneEndY
+    playerX - player.width >= room.zoneStartX &&
+    playerX + player.width <= room.zoneEndX &&
+    playerY - (player.height / 1.6) >= room.zoneStartY &&
+    playerY + (player.height / 1.6) <= room.zoneEndY
   );
 }
 
@@ -141,7 +132,7 @@ function dealDamage(room) {
 
   for (const player of room.alivePlayers) {
 
-    if (!isWithinZone(room, player.position)) player.damagePlayer(damagePerSecond)
+    if (!isWithinZone(room, player)) player.damagePlayer(damagePerSecond)
   };
 }
 

@@ -1,10 +1,5 @@
 "use strict";
 
-const { playerhitbox } = require("../../config/player");
-const { AddNewUnseenObject } = require("../../utils/game");
-
-const playerWidth = playerhitbox.width;
-const playerHeight = playerhitbox.height;
 
 /* =========================
    VECTOR

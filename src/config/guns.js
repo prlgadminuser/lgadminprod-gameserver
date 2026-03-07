@@ -94,7 +94,7 @@ const gunsconfig = {
     ]),
     cooldown: 600,
     distance: 1200,
-    maxexistingtime: 5000,
+    maxexistingtime: 2000,
     damage: 25,
     width: 33,
     height: 7,
@@ -117,7 +117,7 @@ const gunsconfig = {
     ]),
     cooldown: 300,
     distance: 350,
-    maxexistingtime: 5000,
+    maxexistingtime: 2000,
     damage: 4,
     width: 33,
     height: 6,
@@ -167,32 +167,31 @@ const gunsconfig = {
     },
   },
 
-  DEVLOCKED: {
+  67: {
     // DEV WEAPON - UNRELEASED - DONT USE!!!!!!!
-    cooldown: 300,
-    distance: 250,
-    maxexistingtime: 5000,
-    maxbounces: 5,
-    damage: 6,
-    width: 49,
-    height: 49,
+    // XNITRO SMG
+    modifiers: new Set([
+      // "CanBounce",
+      //  "DestroyWalls"
+    ]),
+    cooldown: 1000,
+    distance: 350,
+    maxexistingtime: 50000,
+    damage: 4,
+    width: 60,
+    height: 60,
     useplayerangle: true,
-    // can_bullets_bounce: true,
+    //can_bullets_bounce: true,
     bullets: [
-      // Shotgun pellets configuration
-      { angle: -8, speed: 25, delay: 0, offset: 40 },
-      { angle: -8, speed: 25, delay: 0, offset: 20 },
-      //  { angle: -8, speed: 25, delay: 0, offset: 0 },
-      //  { angle: -5, speed: 27, delay: 0, offset: 0 },
-      { angle: 0, speed: 13, delay: 0, offset: 0 },
-      // { angle: 5, speed: 27, delay: 0, offset: 0 },
-      //   { angle: 8, speed: 25, delay: 0, offset: 0 }
+      { angle: 0, speed: 1, delay: 0, offset: 0 },
     ],
     damageconfig: [
-      { threshold: 100, damageMultiplier: 1 }, // Layer 4: 1/4 damage if within 100% of max distance
-      // You can add more layers here
+      // { threshold: 50, damageMultiplier: 1 },
+      // { threshold: 100, damageMultiplier: 0.70 },
+      // { threshold: 150, damageMultiplier: 0.40 }
     ],
   },
+
 };
 
 

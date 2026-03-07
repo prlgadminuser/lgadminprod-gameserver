@@ -1,7 +1,6 @@
 "use strict";
 
 
-const { playerhitbox } = require("../../config/player");
 const { gunsconfig} = require("../../config/guns")
 const {
   AddNewUnseenObject,
@@ -530,8 +529,8 @@ function handleBulletFired(room, player, gunType) {
         angle: gun.useplayerangle
           ? bulletConfig.angle + baseAngle
           : bulletConfig.angle,
-        height: gun.height / 3,
-        width: gun.width / 3,
+        height: gun.height,
+        width: gun.width,
         maxtime: Date.now() + gun.maxexistingtime + bulletConfig.delay,
         distance: gun.distance,
         damageconfig: gun.damageconfig || [],

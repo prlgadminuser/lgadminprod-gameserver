@@ -9,13 +9,8 @@ const { createHitmarker, findNearestPlayer } = require("../utils/game");
 const { DIRECTION_VECTORS } = require("../utils/movement");
 const { SerializePlayerData } = require("../utils/serialize");
 
-const added_hitbox = 5;
-const hitboxXMin = playerhitbox.xMin + added_hitbox;
-const hitboxXMax = playerhitbox.xMax + added_hitbox;
-const hitboxYMin = playerhitbox.yMin + added_hitbox;
-const hitboxYMax = playerhitbox.yMax + added_hitbox;
 
-const viewmultiplier = 1;
+const viewmultiplier = 1.1;
 const xThreshold = 320 * viewmultiplier;
 const yThreshold = 200 * viewmultiplier;
 
@@ -49,6 +44,7 @@ class Player {
     // Game state
     this.objectType = "player";
     this.position = {}
+
     this.width = playerhitbox.width;
     this.height = playerhitbox.height;
 
@@ -65,9 +61,9 @@ class Player {
     this.finalrewards_awarded = false;
     this.respawns = room.respawns;
     this.emote = 0;
-    ((this.seenObjectsIds = new Set()),
-      (this.lastNearbyObjects = new Set()),
-      (this.ticksSinceLastChunkUpdate = 100)); // make number high so first chunk update occurs immediately
+    this.seenObjectsIds = new Set(),
+    this.lastNearbyObjects = new Set(),
+    this.ticksSinceLastChunkUpdate = 100; // make number high so first chunk update occurs immediately
     this.TickSinceLastNearby = 20;
 
     this._lastSerializedHash = 0;
@@ -157,7 +153,9 @@ class Player {
     this.spectatingPlayerId = -1;
 
     // Final rewards
-    ((this.finalrewards = []), (this.room = room));
+    this.finalrewards = [], 
+    this.room = room;
+    
     this.UseStartRespawnPoint = false;
   }
 
@@ -267,19 +265,23 @@ class Player {
 
     const { x, y } = this.position;
 
+    const halfWidth = this.width / 2;
+const halfHeight = this.height / 2;
+
     const nearbyWalls = this.room.grid.getObjectsInArea(
-      x - hitboxXMin,
-      x + hitboxXMax,
-      y - hitboxYMin,
-      y + hitboxYMax,
-      "wall",
-    );
+  x - halfWidth,
+  x + halfWidth,
+  y - halfHeight,
+  y + halfHeight,
+  "wall",
+);
+
 
     let newX = x + dx;
     let newY = y + dy;
 
-    if (isCollisionWithWalls(nearbyWalls, newX, y)) newX = x;
-    if (isCollisionWithWalls(nearbyWalls, x, newY)) newY = y;
+    if (isCollisionWithWalls(this, nearbyWalls, newX, y)) newX = x;
+    if (isCollisionWithWalls(this, nearbyWalls, x, newY)) newY = y;
 
       const { mapWidth, mapHeight } = this.room;
   newX = Math.max(-mapWidth, Math.min(mapWidth, newX));
@@ -400,7 +402,7 @@ class Player {
             bullet.id,
             Math.round(bullet.position.x),
             Math.round(bullet.position.y),
-            Math.round(bullet.direction),
+            bullet.direction,
             bullet.gunId,
             bullet.effect,
             bullet.client_render_speed,
