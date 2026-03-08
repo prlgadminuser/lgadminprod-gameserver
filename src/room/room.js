@@ -14,7 +14,7 @@ const {
   SkillbasedMatchmakingEnabled,
   roundSkillpointsToFloorBucket,
 } = require("../config/matchmaking");
-const { GameGrid } = require("../config/grid");
+const { GameGrid, cloneGrid } = require("../config/grid");
 const { gamemodeconfig } = require("../config/gamemodes");
 const { HandleAfflictions } = require("../objects/weapons/weapon-effects");
 const {
@@ -129,7 +129,7 @@ class Matchmaker {
 
     const key = ws.__queueKey;
     const entry = ws.__queueEntry;
-
+ 
     const queue = this.queues.get(key);
     if (!queue) return;
 
@@ -233,6 +233,8 @@ class Room {
 
     this.alivePlayers = new Set();
     this.connectedPlayers = new Set();
+
+    this.aliveDummies = new Set()
 
     this.aliveTeams = 0;
 
@@ -797,40 +799,6 @@ class Room {
 }
 }
 
-function cloneGrid(original) {
-  const clone = new GameGrid(
-    original.width * original.cellSize,
-    original.height * original.cellSize,
-    original.cellSize
-  );
-
-  clone.nextId = original.nextId;
-
-  // clone objects
-  clone.objects = new Map(original.objects);
-
-  // clone grid
-  for (let x = 0; x < original.grid.length; x++) {
-    const row = original.grid[x];
-    if (!row) continue;
-
-    const cloneRow = clone.grid[x];
-
-    for (let y = 0; y < row.length; y++) {
-      const cell = row[y];
-      if (cell) cloneRow[y] = new Set(cell);
-    }
-  }
-
-  // clone cell lists
-  for (const [gid, cells] of original.objectsCells) {
-    clone.objectsCells.set(gid, cells.slice());
-  }
-
- // console.log(clone.grid)
-
-  return clone;
-}
 
 async function setupRoomPlayers(room) {
   let playerNumberID = 0; // Start with player number 0
@@ -843,6 +811,8 @@ async function setupRoomPlayers(room) {
     const spawnIndex = playerNumberID % spawnPositions.length; // Distribute players across spawn positions
 
     const spawn = spawnPositions[spawnIndex];
+
+    new Dummy(room, { health: 100, position: { x: 0, y: 0 } })
 
 // set live position
 player.position.x = spawn.x;
@@ -931,6 +901,7 @@ const {
   startRegeneratingHealth,
 } = require("../modifiers/modifiers");
 const { initializeHealingCircles } = require("../modifiers/healingcircle");
+const Dummy = require("../objects/dummy");
 
 //const modifierHandlers = { startCountdown, initializeHealingCircles, UseZone, AutoHealthRestore, AutoHealthDamage};
 

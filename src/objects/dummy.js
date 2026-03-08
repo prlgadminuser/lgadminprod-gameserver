@@ -1,55 +1,94 @@
+const { playerhitbox } = require("../config/player");
+const { spawnAnimation } = require("../modifiers/animations");
+const { createHitmarker } = require("../utils/game");
 
 
-function handleDummyCollision(room, shootingPlayer, dummyKey, damage) {
+class Dummy {
+  constructor(room, data) {
+    const { health, position } = data;
 
-  const dummy = room.dummies[dummyKey];
+    this.room = room;
 
-  if (!dummy) {
-    console.error(`Dummy with key ${dummyKey} not found.`);
-    return;
-  }
+    this.objectType = "bot";
 
+    this.width = playerhitbox.width;
+    this.height = playerhitbox.height;
 
-  const GUN_BULLET_DAMAGE = Math.min(damage, dummy.health);
+    // store spawn data
+    this.startHealth = health;
+    this.spawnPosition = { x: position.x, y: position.y };
 
-  dummy.health -= GUN_BULLET_DAMAGE;
+    this.health = health;
 
-  const hit = [Math.round(dummy.x), Math.round(dummy.y), GUN_BULLET_DAMAGE]
-
-  shootingPlayer.hitmarkers.push(hit);
-
-  if (dummy.health < 1) {
-    spawnAnimation(room, dummy, "eliminated")
-
-    delete room.dummies[dummyKey];
-
-
-     room.setRoomTimeout(() => {
-      if (room) {
-        respawnDummy(room, dummyKey, dummy, shootingPlayer);
-
-      }
-    }, 4000);
-  }
- 
-}
-
-
-function respawnDummy(room, dummyKey, dummy) {
-
-  if (room) {
-
-    const originalDummy = {
-      ...dummy
+    this.position = {
+      x: position.x,
+      y: position.y,
     };
 
-    originalDummy.health = dummy.starthealth
+    this.alive = true;
+    this.dirty = true;
 
-    if (room) {
-      room.dummies[dummyKey] = originalDummy;
+    this.room.grid.addObject(this);
+    this.room.aliveDummies.add(this);
+  }
+
+  move(position) {
+    this.position.x = position.x;
+    this.position.y = position.y;
+
+    this.room.grid.updateObject(this);
+
+    this.dirty = true;
+  }
+
+  damage(damage, shooter) {
+    const applied = Math.min(damage, this.health);
+
+    this.health -= applied;
+    this.last_dealtdamage_player = shooter;
+
+    createHitmarker(this, shooter, applied);
+
+    if (this.health < 1) {
+      this.die();
     }
+
+    this.dirty = true;
+  }
+
+  die() {
+    this.alive = false;
+
+    this.room.grid.removeObject(this);
+    this.room.aliveDummies.delete(this);
+
+    spawnAnimation(this.room, this, "eliminated");
+
+    this.scheduleRespawn();
+  }
+
+  scheduleRespawn() {
+    this.room.setRoomTimeout(() => {
+
+      this.respawn();
+    }, 4000);
+  }
+
+  respawn() {
+    this.health = this.startHealth;
+
+    this.position.x = this.spawnPosition.x;
+    this.position.y = this.spawnPosition.y;
+
+    this.alive = true;
+
+    this.room.grid.addObject(this);
+    this.room.aliveDummies.add(this);
+
+  spawnAnimation(this.room, this, "respawning");
+
+    this.dirty = true;
   }
 }
 
-
-
+module.exports = Dummy;

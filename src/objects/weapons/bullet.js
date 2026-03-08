@@ -370,7 +370,6 @@ class BulletManager {
                 this.room.activeAfflictions.push({
                   shootingPlayer: bullet.owner,
                   target: obj,
-                  target_type: "player",
                   damage: a.damage,
                   speed: a.waitTime,
                   gunid: bullet.gunId,
@@ -383,6 +382,70 @@ class BulletManager {
               break;
             }
           }
+
+          
+
+       const nearbyDummies = this.room.grid.getObjectsInArea(
+            minX,
+            maxX,
+            minY,
+            maxY,
+            "bot",
+          );
+
+           for (const obj of nearbyDummies) {
+            if (
+              !obj.alive ||
+              obj === bullet.owner //||
+              //this.isAlly(bullet.owner, obj)
+            )
+              continue;
+
+            const res = sweptRectAABB(
+              currPos,
+              nextPos,
+              obj.position,
+              obj.width,
+              obj.height,
+              bullet.width,
+              bullet.height,
+            );
+
+            if (res && res.hit) {
+              const finalDamage = bullet.damageConfig.length
+                ? calculateFinalDamage(
+                    Vec2.distanceSquared(bullet.startPosition, currPos),
+                    bullet.maxDistance,
+                    bullet.damage,
+                    bullet.damageConfig,
+                  )
+                : bullet.damage;
+
+              obj.damage(
+                finalDamage,
+                bullet.owner
+               // bullet.gunId,
+              );
+
+              if (bullet.afflictionConfig) {
+                const a = bullet.afflictionConfig;
+                this.room.activeAfflictions.push({
+                  shootingPlayer: bullet.owner,
+                  target: obj,
+                  damage: a.damage,
+                  speed: a.waitTime,
+                  gunid: bullet.gunId,
+                  nextTick: Date.now() + a.waitTime,
+                  expires: Date.now() + a.activeTime,
+                });
+              }
+
+              bulletDestroyed = true;
+              break;
+            }
+          }
+
+
         }
 
         /* ================= FINAL MOVE / KILL ================= */

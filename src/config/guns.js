@@ -39,7 +39,7 @@ const gunsconfig = {
     height: 7,
     useplayerangle: true,
     bullets: [
-      { angle: 0, speed: 50, delay: 0, offset: 0 },
+      { angle: 0, speed: 20, delay: 0, offset: 0 },
      // { angle: 0, speed: 18, delay: 70, offset: 10 },
 
       /* { angle: 90, speed: 13, delay: 0, offset: 0 },
@@ -84,6 +84,12 @@ const gunsconfig = {
       { threshold: 55, damageMultiplier: 0.7 },
       { threshold: 100, damageMultiplier: 0.4 },
     ],
+
+     afflictionConfig: {
+      damage: 5,
+      waitTime: 1000,
+      activeTime: 10000,
+    },
   },
 
   3: {
