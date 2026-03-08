@@ -314,9 +314,11 @@ class Room {
   }
 
   removePlayer(player) {
+
     if (!player) return;
 
     if (this && !player.eliminated)// && this.state !== "waiting")
+
       player.eliminate();
 
     player.alive = false;

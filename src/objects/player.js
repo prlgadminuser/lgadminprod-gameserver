@@ -436,7 +436,9 @@ const halfHeight = this.height / 2;
 
 
   eliminate() {
-    if (this.room.state !== "playing" || this.room.winner !== -1) return;
+  /// if (this.room.state !== "playing" || this.room.winner !== -1) return;
+ if (this.room.winner !== -1) return;
+
 
     addEntryToKillfeed({
       room: this.room,
