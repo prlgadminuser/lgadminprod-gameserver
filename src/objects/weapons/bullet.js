@@ -592,8 +592,8 @@ function handleBulletFired(room, player, gunType) {
         angle: gun.useplayerangle
           ? bulletConfig.angle + baseAngle
           : bulletConfig.angle,
-        height: gun.height,
-        width: gun.width,
+        height: gun.height / 2,
+        width: gun.width / 2,
         maxtime: Date.now() + gun.maxexistingtime + bulletConfig.delay,
         distance: gun.distance,
         damageconfig: gun.damageconfig || [],

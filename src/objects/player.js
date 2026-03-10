@@ -68,7 +68,7 @@ class Player {
 
     this._lastSerializedHash = 0;
     this.dirty = true;
-    this.nearbyplayersidslast = [];
+    this.nearbyplayersidslast = new Set();
 
     this.lastfinalbulletsSet = new Set();
 

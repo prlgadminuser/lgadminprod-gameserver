@@ -43,6 +43,7 @@ const PacketKeys = {
   objectupdates: 5,
   animations: 6,
   killfeed: 7,
+  dummiesdata: 8,
 };
 
 function StartMatchmaking(ws, gamemode, playerVerified) {
@@ -598,6 +599,7 @@ class Room {
 
     const players = this.connectedPlayers;
     const alivePlayers = this.alivePlayers
+    const aliveDummies = this.aliveDummies
 
     const aliveCount = this.alivePlayers.size;
     this.bulletManager.update();
@@ -662,7 +664,7 @@ class Room {
   //   p.nearbyplayerids_dirty = false
 
       for (const player of p.nearbyplayers) {
-        const playerNotSeenInLastTick = !p.nearbyplayersidslast.includes(player.id)
+        const playerNotSeenInLastTick = !p.nearbyplayersidslast.has(player.id)
        // const playerNotSeenInNewTick = p.
         if (player.dirty || playerNotSeenInLastTick) {
           const data = playerData.get(player.id);
@@ -675,7 +677,7 @@ class Room {
       }
 
 
-     p.nearbyplayersidslast = p.nearbyplayersids;
+     p.nearbyplayersidslast = new Set(p.nearbyplayersids);
 
       // --- Message assembly with buffer reuse ---
       const msgArray = p.msgBuffer;
@@ -697,6 +699,8 @@ class Room {
       if (p.finalbullets)
         msgArray.push(PacketKeys["bulletdata"], p.finalbullets);
       if (filteredPlayers.length) msgArray.push(PacketKeys["playerdata"], filteredPlayers);
+
+     // if (filteredPlayers.length) msgArray.push(PacketKeys["playerdata"], filteredPlayers);
 
       // Send message if changed
       if (!msgArray.length) {
