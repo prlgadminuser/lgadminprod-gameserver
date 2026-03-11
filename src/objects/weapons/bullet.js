@@ -19,13 +19,14 @@ class Bullet {
     this.alive = true;
     this.updatesTick = 1000;
     this.directionChange = data.directionChange || null;
+    this.updates_per_tick = data.updates_per_tick
   }
 
   applyDirectionChange() {
     if (!this.directionChange) return;
     const dc = this.directionChange;
     if (dc.type === 1) this.direction += Math.sin(this.lifeTicks * dc.frequency) * dc.amplitude;
-    if (dc.type === 2) this.direction += dc.turnRate;
+    if (dc.type === 2) this.direction += (dc.turnRate * (GlobalRoomConfig.ticks_per_second / this.updates_per_tick)),
     this.dirVec = Vec2.fromAngle(this.direction - 90);
   }
 
@@ -240,17 +241,19 @@ function handleBulletFired(room, player, gunType) {
   if (player.shooting || now - (player.lastShootTime || 0) < gun.cooldown) return;
   player.shooting = true;
   player.lastShootTime = now;
-  const baseAngle = gun.useplayerangle ? player.shoot_direction : 0;
 
   for (const bulletConfig of gun.bullets) {
     const bullet_tick_rate = 20;
-    room.bulletManager.scheduleBullet(player, {
+
+    const bulletdata = {
+
+      directionChange: bulletConfig.directionChange,
       client_render_speed: Math.round(bulletConfig.speed),
       speed: bulletConfig.speed * (GlobalRoomConfig.ticks_per_second / bullet_tick_rate),
       updates_per_tick: bullet_tick_rate,
       offset: bulletConfig.offset,
       damage: gun.damage,
-      angle: gun.useplayerangle ? bulletConfig.angle + baseAngle : bulletConfig.angle,
+      angle: bulletConfig.usePlayerAngle ? (player.shoot_direction + bulletConfig.angle) : bulletConfig.angle,
       height: gun.height,
       width: gun.width,
       maxtime: Date.now() + gun.maxexistingtime + bulletConfig.delay,
@@ -259,7 +262,10 @@ function handleBulletFired(room, player, gunType) {
       afflictionConfig: gun.afflictionConfig || false,
       gunid: gunType,
       modifiers: gun.modifiers,
-    }, bulletConfig.delay);
+
+    }
+
+    room.bulletManager.scheduleBullet(player, bulletdata, bulletConfig.delay);
   }
 
   room.setRoomTimeout(() => { player.shooting = false; }, gun.cooldown);

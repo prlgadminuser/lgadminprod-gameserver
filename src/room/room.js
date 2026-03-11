@@ -818,7 +818,7 @@ async function setupRoomPlayers(room) {
 
     const spawn = spawnPositions[spawnIndex];
 
-    new Dummy(room, { health: 100, position: { x: 0, y: 0 } })
+   // new Dummy(room, { health: 100, position: { x: 0, y: 0 } })
 
 // set live position
 player.position.x = spawn.x;

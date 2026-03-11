@@ -1,35 +1,23 @@
-
 function bullets(count, options = {}) {
-    const {
-        speed = 13,
-        delay = 0,
-        offset = 0,
-        angleOffset = 0
-    } = options;
+  const { speed = 13, delay = 0, offset = 0, angleOffset = 0 } = options;
 
-    return Array.from({ length: count }, (_, i)  => (
-      
-      {
-      
-        angle: angleOffset + i * (360 / count),
-        speed,
-        delay,
-        offset
-    }));
-
-
+  return Array.from({ length: count }, (_, i) => ({
+    angle: angleOffset + i * (360 / count),
+    speed,
+    delay,
+    offset,
+  }));
 }
 
-  // ...bullets(100, { angle: 45, speed: 13, delay: 0, offset: 0  })
-
+// ...bullets(100, { angle: 45, speed: 13, delay: 0, offset: 0  })
 
 const gunsconfig = {
   1: {
     // Default pistol
     modifiers: new Set([
-  //    "CanBounce",
-    "DestroyWalls",
-   //  "DestroyWalls(DestroySelf)"
+      //    "CanBounce",
+      "DestroyWalls",
+      //  "DestroyWalls(DestroySelf)"
     ]),
     cooldown: 500,
     distance: 300,
@@ -37,10 +25,19 @@ const gunsconfig = {
     damage: 20,
     width: 25,
     height: 7,
-    useplayerangle: true,
     bullets: [
-      { angle: 0, speed: 20, delay: 0, offset: 0 },
-     // { angle: 0, speed: 18, delay: 70, offset: 10 },
+      {
+        angle: 0,
+        usePlayerAngle: true,
+        speed: 20,
+        delay: 0,
+        offset: 0,
+        directionChange: {
+          type: 2,
+          turnRate: 3,
+        },
+      },
+      // { angle: 0, speed: 18, delay: 70, offset: 10 },
 
       /* { angle: 90, speed: 13, delay: 0, offset: 0 },
        { angle: 0, speed: 13, delay: 0, offset: 0 },
@@ -72,12 +69,11 @@ const gunsconfig = {
     damage: 10,
     width: 27,
     height: 6,
-    useplayerangle: true,
     //can_bullets_bounce: false,
     bullets: [
-      { angle: -5, speed: 18, delay: 0, offset: 0 },
-      { angle: 0, speed: 18, delay: 0, offset: 0 },
-      { angle: 5, speed: 18, delay: 0, offset: 0 },
+      { angle: -5, usePlayerAngle: true, speed: 18, delay: 0, offset: 0, },
+      { angle: 0, usePlayerAngle: true,speed: 18, delay: 0, offset: 0 },
+      { angle: 5, usePlayerAngle: true, speed: 18, delay: 0, offset: 0 },
     ],
     damageconfig: [
       { threshold: 25, damageMultiplier: 1 },
@@ -85,7 +81,7 @@ const gunsconfig = {
       { threshold: 100, damageMultiplier: 0.4 },
     ],
 
-     afflictionConfig: {
+    afflictionConfig: {
       damage: 5,
       waitTime: 1000,
       activeTime: 10000,
@@ -104,9 +100,8 @@ const gunsconfig = {
     damage: 25,
     width: 35,
     height: 8,
-    useplayerangle: true,
     //  can_bullets_bounce: true,
-    bullets: [{ angle: 0, speed: 23, delay: 0, offset: 0 }],
+    bullets: [{ angle: 0, usePlayerAngle: true, speed: 23, delay: 0, offset: 0 }],
     damageconfig: [
       { threshold: 45, damageMultiplier: 1 },
       { threshold: 80, damageMultiplier: 0.8 },
@@ -130,9 +125,9 @@ const gunsconfig = {
     useplayerangle: true,
     //can_bullets_bounce: true,
     bullets: [
-      { angle: 0, speed: 3, delay: 0, offset: 0 },
-    //  { angle: 2, speed: 8, delay: 100, offset: 3 },
-     // { angle: -2, speed: 8, delay: 200, offset: 6 },
+      { angle: 0, usePlayerAngle: true, speed: 3, delay: 0, offset: 0 },
+      { angle: 2, usePlayerAngle: true,speed: 8, delay: 100, offset: 3 },
+      { angle: -2, usePlayerAngle: true, speed: 8, delay: 200, offset: 6 },
     ],
     damageconfig: [
       // { threshold: 50, damageMultiplier: 1 },
@@ -173,7 +168,39 @@ const gunsconfig = {
     },
   },
 
-  67: {
+  10: {
+    // ARCADE BLASTER
+    modifiers: new Set([
+      // "Spinning"
+      "CanBounce",
+      "DestroyWalls",
+    ]),
+    //  spinning_speed: 5,
+    cooldown: 700,
+    distance: 1000,
+    maxexistingtime: 5000,
+    damage: 10,
+    width: 63,
+    height: 13,
+    useplayerangle: true,
+    bullets: [
+      { angle: -25, speed: 5, delay: 0, offset: 0 },
+      { angle: 0, speed: 5, delay: 0, offset: 0 },
+      { angle: 25, speed: 5, delay: 0, offset: 0 },
+    ],
+    damageconfig: [
+      //  { threshold: 150, damageMultiplier: 1 },
+      //  { threshold: 300, damageMultiplier: 0.5 }
+    ],
+
+    afflictionConfig: {
+      damage: 5,
+      waitTime: 1000,
+      activeTime: 10000,
+    },
+  },
+
+  DEVLOCKED: {
     // DEV WEAPON - UNRELEASED - DONT USE!!!!!!!
     // XNITRO SMG
     modifiers: new Set([
@@ -188,18 +215,14 @@ const gunsconfig = {
     height: 60,
     useplayerangle: true,
     //can_bullets_bounce: true,
-    bullets: [
-      { angle: 0, speed: 1, delay: 0, offset: 0 },
-    ],
+    bullets: [{ angle: 0, speed: 1, delay: 0, offset: 0 }],
     damageconfig: [
       // { threshold: 50, damageMultiplier: 1 },
       // { threshold: 100, damageMultiplier: 0.70 },
       // { threshold: 150, damageMultiplier: 0.40 }
     ],
   },
-
 };
-
 
 /* 1: {
     cooldown: 800,
@@ -230,9 +253,8 @@ const gunsconfig = {
   },
       */
 
-
 module.exports = {
   gunsconfig,
   //gunsconfig: new Map(Object.entries(gunsconfig)),
-  gunskeys: Object.keys(gunsconfig)
+  gunskeys: Object.keys(gunsconfig),
 };
