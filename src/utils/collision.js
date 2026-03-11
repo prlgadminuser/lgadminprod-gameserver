@@ -3,6 +3,8 @@
 const { rectCircleIntersection, rectRectIntersection } = require("../utils/math");
 
 
+"use strict";
+
 module.exports = {
 
   // -------------------- WALL COLLISIONS --------------------

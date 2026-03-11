@@ -122,7 +122,7 @@ const gunsconfig = {
       //  "DestroyWalls"
     ]),
     cooldown: 300,
-    distance: 350,
+    distance: 950,
     maxexistingtime: 20000,
     damage: 4,
     width: 33,
