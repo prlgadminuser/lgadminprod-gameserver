@@ -20,6 +20,8 @@ class Bullet {
     this.updatesTick = 1000;
     this.directionChange = data.directionChange || null;
     this.updates_per_tick = data.updates_per_tick
+    this.effect = 1;
+    //this.effect = 1
   }
 
   applyDirectionChange() {
@@ -180,6 +182,8 @@ class BulletManager {
 
         if (bulletDestroyed) { toRemove.push(id); }
         else { bullet.prevPosition = prevPos; bullet.position = new Vec2(currPos.x + remainingVec.x, currPos.y + remainingVec.y); bullet.new = false; }
+
+        if (!bullet.new) bullet.effect = 0
       }
     }
 
