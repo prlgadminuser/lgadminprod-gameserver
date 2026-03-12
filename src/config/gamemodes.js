@@ -64,7 +64,7 @@ const gamemodeconfig = {
     playerhealth: 150,
     playerspeed: 2,
 
-    modifiers: new Set(["UseZone"]),
+    modifiers: new Set([]),
 
     weapons_modifiers_override: new Set(["UseZone", "AutoHealthRestore"]),
 
@@ -191,4 +191,5 @@ module.exports = {
   gamemodeconfig: new Map(Object.entries(gamemodeconfig)),
   allowed_gamemodes,
 };
+
 
