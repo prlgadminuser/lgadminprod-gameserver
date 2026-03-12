@@ -127,9 +127,9 @@ const gunsconfig = {
     useplayerangle: true,
     //can_bullets_bounce: true,
     bullets: [
-      { angle: 0, usePlayerAngle: true, speed: 8, delay: 0, offset: 0 },
-      { angle: 2, usePlayerAngle: true, speed: 8, delay: 100, offset: 3 },
-      { angle: -2, usePlayerAngle: true, speed: 8, delay: 200, offset: 6 },
+      { angle: 0, usePlayerAngle: true, speed: 14, delay: 0, offset: 0 },
+      { angle: 2, usePlayerAngle: true, speed: 14, delay: 100, offset: 3 },
+      { angle: -2, usePlayerAngle: true, speed: 14, delay: 200, offset: 6 },
     ],
     damageconfig: [
      // { threshold: 50, damageMultiplier: 1 },
@@ -262,3 +262,4 @@ module.exports = {
   //gunsconfig: new Map(Object.entries(gunsconfig)),
   gunskeys: Object.keys(gunsconfig),
 };
+
