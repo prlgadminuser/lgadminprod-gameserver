@@ -32,10 +32,10 @@ const gunsconfig = {
         speed: 20,
         delay: 0,
         offset: 0,
-        directionChange: {
-          type: 2,
-          turnRate: 3,
-        },
+     //   directionChange: {
+      //    type: 2,
+      //    turnRate: 3,
+      //  },
       },
       // { angle: 0, speed: 18, delay: 70, offset: 10 },
 
@@ -71,9 +71,9 @@ const gunsconfig = {
     height: 6,
     //can_bullets_bounce: false,
     bullets: [
-      { angle: -5, usePlayerAngle: true, speed: 18, delay: 0, offset: 0, },
-      { angle: 0, usePlayerAngle: true,speed: 18, delay: 0, offset: 0 },
-      { angle: 5, usePlayerAngle: true, speed: 18, delay: 0, offset: 0 },
+      { angle: -5, usePlayerAngle: true, speed: 13, delay: 0, offset: 0 },
+      { angle: 0, usePlayerAngle: true, speed: 13, delay: 0, offset: 0 },
+      { angle: 5, usePlayerAngle: true, speed: 13, delay: 0, offset: 0 },
     ],
     damageconfig: [
       { threshold: 25, damageMultiplier: 1 },
@@ -101,7 +101,9 @@ const gunsconfig = {
     width: 35,
     height: 8,
     //  can_bullets_bounce: true,
-    bullets: [{ angle: 0, usePlayerAngle: true, speed: 23, delay: 0, offset: 0 }],
+    bullets: [
+      { angle: 0, usePlayerAngle: true, speed: 17, delay: 0, offset: 0 },
+    ],
     damageconfig: [
       { threshold: 45, damageMultiplier: 1 },
       { threshold: 80, damageMultiplier: 0.8 },
@@ -125,13 +127,13 @@ const gunsconfig = {
     useplayerangle: true,
     //can_bullets_bounce: true,
     bullets: [
-      { angle: 0, usePlayerAngle: true, speed: 3, delay: 0, offset: 0 },
-      { angle: 2, usePlayerAngle: true,speed: 8, delay: 100, offset: 3 },
+      { angle: 0, usePlayerAngle: true, speed: 8, delay: 0, offset: 0 },
+      { angle: 2, usePlayerAngle: true, speed: 8, delay: 100, offset: 3 },
       { angle: -2, usePlayerAngle: true, speed: 8, delay: 200, offset: 6 },
     ],
     damageconfig: [
-      // { threshold: 50, damageMultiplier: 1 },
-      // { threshold: 100, damageMultiplier: 0.70 },
+     // { threshold: 50, damageMultiplier: 1 },
+     // { threshold: 100, damageMultiplier: 0.70 },
       // { threshold: 150, damageMultiplier: 0.40 }
     ],
   },
@@ -152,9 +154,9 @@ const gunsconfig = {
     height: 58,
     useplayerangle: true,
     bullets: [
-      { angle: 0, speed: 25, delay: 0, offset: 0 },
-      { angle: 0, speed: 25, delay: 200, offset: 0 },
-      { angle: 0, speed: 25, delay: 400, offset: 0 },
+      { angle: 0, usePlayerAngle: true, speed: 25, delay: 0, offset: 0 },
+      { angle: 0, usePlayerAngle: true, speed: 25, delay: 200, offset: 0 },
+      { angle: 0, usePlayerAngle: true, speed: 25, delay: 400, offset: 0 },
     ],
     damageconfig: [
       //  { threshold: 150, damageMultiplier: 1 },
@@ -184,9 +186,9 @@ const gunsconfig = {
     height: 13,
     useplayerangle: true,
     bullets: [
-      { angle: -25, speed: 5, delay: 0, offset: 0 },
-      { angle: 0, speed: 5, delay: 0, offset: 0 },
-      { angle: 25, speed: 5, delay: 0, offset: 0 },
+      { angle: -25, usePlayerAngle: true, speed: 5, delay: 0, offset: 0 },
+      { angle: 0, usePlayerAngle: true, speed: 5, delay: 0, offset: 0 },
+      { angle: 25, usePlayerAngle: true, speed: 5, delay: 0, offset: 0 },
     ],
     damageconfig: [
       //  { threshold: 150, damageMultiplier: 1 },
@@ -215,7 +217,9 @@ const gunsconfig = {
     height: 60,
     useplayerangle: true,
     //can_bullets_bounce: true,
-    bullets: [{ angle: 0, speed: 1, delay: 0, offset: 0 }],
+    bullets: [
+      { angle: 0, usePlayerAngle: true, speed: 1, delay: 0, offset: 0 },
+    ],
     damageconfig: [
       // { threshold: 50, damageMultiplier: 1 },
       // { threshold: 100, damageMultiplier: 0.70 },
