@@ -249,7 +249,7 @@ function handleBulletFired(room, player, gunType) {
   player.lastShootTime = now;
 
   for (const bulletConfig of gun.bullets) {
-    const bullet_tick_rate = 40;
+    const bullet_tick_rate = 20;
 
     const bulletdata = {
 
