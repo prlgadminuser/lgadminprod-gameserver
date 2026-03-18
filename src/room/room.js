@@ -42,6 +42,7 @@ const PacketKeys = {
   animations: 6,
   killfeed: 7,
   dummiesdata: 8,
+  bulletremovaldata: 9
 };
 
 function StartMatchmaking(ws, gamemode, playerVerified) {
@@ -696,6 +697,8 @@ class Room {
       if (p.finalbullets)
         msgArray.push(PacketKeys["bulletdata"], p.finalbullets);
       if (filteredPlayers.length) msgArray.push(PacketKeys["playerdata"], filteredPlayers);
+
+      if (p.removedViewBullets.length) msgArray.push(PacketKeys["bulletremovaldata"], p.removedViewBullets)
 
      // if (filteredPlayers.length) msgArray.push(PacketKeys["playerdata"], filteredPlayers);
 

@@ -410,9 +410,7 @@ const halfHeight = this.height / 2;
     if (bullets) {
       for (const bullet of bullets.values()) {
         const alreadySent = lastBulletIds.has(bullet.id);
-        if (alreadySent) {
-          finalBullets.push([bullet.id]);
-        } else {
+        if (!alreadySent) {
           finalBullets.push([
             bullet.id,
             Math.round(bullet.position.x),
@@ -432,6 +430,15 @@ const halfHeight = this.height / 2;
         newLastBulletIds.add(bullet.id);
       }
     }
+
+    const missingBullets = [];
+for (const id of lastBulletIds) {
+  if (!newLastBulletIds.has(id)) {
+    missingBullets.push(id); // store missing bullet IDs
+  }
+}
+
+    this.removedViewBullets = missingBullets
 
     this.finalbullets = finalBullets.length ? finalBullets : undefined;
     this.lastfinalbulletsSet = newLastBulletIds;
