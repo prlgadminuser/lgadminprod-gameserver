@@ -1,14 +1,24 @@
 const { gadgetconfig } = require("../config/gadgets");
 const { playerhitbox } = require("../config/player");
-const { PlayerRateLimiter } = require("../config/server");
 const { UpdatePlayerPlace } = require("../database/ChangePlayerStats");
-const { spawnAnimation } = require("../modifiers/animations");
 const { addEntryToKillfeed } = require("../modifiers/killfeed");
 const { isCollisionWithWalls } = require("../utils/collision");
 const { createHitmarker, findNearestPlayer } = require("../utils/game");
 const { DIRECTION_VECTORS } = require("../utils/movement");
 const { SerializePlayerData } = require("../utils/serialize");
+const { spawnAnimation } = require("./animations");
 
+
+  const DIR = [
+  {x:0, y:-1},
+  {x:1, y:-1},
+  {x:1, y:0},
+  {x:1, y:1},
+  {x:0, y:1},
+  {x:-1, y:1},
+  {x:-1, y:0},
+  {x:-1, y:-1}
+];
 
 const viewmultiplier = 1.1;
 const xThreshold = 320 * viewmultiplier;
@@ -254,14 +264,20 @@ class Player {
     const { x: lastX, y: lastY } = this.position
 
     const dir = this.direction - 90;
+    const speed = this.speed;
     const vec = DIRECTION_VECTORS[dir];
     if (!vec) return;
 
-    const speed = this.speed;
+   //   const rad = (dir * Math.PI) / 180;
+   
+   // const dx = Math.cos(rad) * speed;
+   // const dy = Math.sin(rad) * speed;
 
     // Use exact precalculated direction vector
     const dx = speed * vec.x;
     const dy = speed * vec.y;
+
+   // console.log(dx, dy)
 
     const { x, y } = this.position;
 
@@ -298,12 +314,11 @@ const halfHeight = this.height / 2;
   }
 }
 
+
   updateView() {
-    this.ticksSinceLastChunkUpdate++;
-    const shouldUpdateChunks = this.ticksSinceLastChunkUpdate > 4;
-    // this.ticksSinceLastChunkUpdate++
-    //  if (this.ticksSinceLastChunkUpdate > 5) {
-    //  this.ticksSinceLastChunkUpdate = 0;
+  // this.ticksSinceLastChunkUpdate++;
+  //  const shouldUpdateChunks = this.ticksSinceLastChunkUpdate > 4;
+
     const positionSource = this.spectatingTarget ? this.spectatingTarget : this;
     const centerX = positionSource.position.x;
     const centerY = positionSource.position.y;
@@ -342,8 +357,8 @@ const halfHeight = this.height / 2;
       }
     }
 
-    if (shouldUpdateChunks) {
-      this.ticksSinceLastChunkUpdate = 0;
+  //  if (shouldUpdateChunks) {
+     // this.ticksSinceLastChunkUpdate = 0;
 
       for (const obj of nearbyObjects) {
         switch (obj.objectType) {
@@ -371,7 +386,7 @@ const halfHeight = this.height / 2;
             break;
         }
       }
-    }
+  //  }
 
     // --- 2. Assign results back to player ---
     this.nearbyplayersids = otherPlayersIds;

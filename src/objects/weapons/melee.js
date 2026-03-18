@@ -1,28 +1,10 @@
 "use strict";
 
+const { Vec2 } = require("../../utils/bulletcollision");
 
 /* =========================
    VECTOR
 ========================= */
-class Vec2 {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-  }
-
-  static fromAngle(deg) {
-    const rad = deg * (Math.PI / 180);
-    return new Vec2(Math.cos(rad), Math.sin(rad));
-  }
-
-  add(v) {
-    return new Vec2(this.x + v.x, this.y + v.y);
-  }
-
-  scale(s) {
-    return new Vec2(this.x * s, this.y * s);
-  }
-}
 
 /* =========================
    MELEE ATTACK INSTANCE

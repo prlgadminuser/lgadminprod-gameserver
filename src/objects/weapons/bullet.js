@@ -7,6 +7,7 @@ const {
 } = require("../../utils/game");
 const { GlobalRoomConfig } = require("../../config/server");
 const { sweptSATRectVsRect, Vec2 } = require("../../utils/bulletcollision");
+const { PoisonDamageHandler } = require("./weapon-effects");
 /* =========================
    BULLET
 ========================= */
@@ -94,14 +95,18 @@ class BulletManager {
   }
 
   update() {
+
+  // Handle Bullet Effects
+    PoisonDamageHandler(this.room)
+
     this.processScheduledBullets();
     const toRemove = [];
 
     for (const [id, bullet] of this.bullets.entries()) {
       if (!bullet || !bullet.alive || bullet.isExpired()) { toRemove.push(id); continue; }
-      bullet.updateTicks++;
-      if (bullet.updateTicks > GlobalRoomConfig.ticks_per_second / bullet.updates_per_tick - 1) {
-        bullet.updateTicks = 0;
+     // bullet.updateTicks++;
+      //if (bullet.updateTicks > GlobalRoomConfig.ticks_per_second / bullet.updates_per_tick - 1) {
+     //   bullet.updateTicks = 0;
         if (this.directionChange) this.directionChange.lifeTicks++;
         bullet.applyDirectionChange();
 
@@ -186,7 +191,7 @@ class BulletManager {
 
         if (!bullet.new) bullet.effect = 0
        // if (bulletDestroyed) bullet.effect = 3
-      }
+     // }
     }
 
     for (const id of toRemove) this.killBullet(id);
@@ -249,7 +254,7 @@ function handleBulletFired(room, player, gunType) {
   player.lastShootTime = now;
 
   for (const bulletConfig of gun.bullets) {
-    const bullet_tick_rate = 20;
+    const bullet_tick_rate = 30;
 
     const bulletdata = {
 
@@ -282,5 +287,4 @@ module.exports = {
   handleBulletFired,
   Vec2,
   sweptSATRectVsRect,
-
 };

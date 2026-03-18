@@ -16,14 +16,12 @@ const {
 } = require("../config/matchmaking");
 const { GameGrid, cloneGrid } = require("../config/grid");
 const { gamemodeconfig } = require("../config/gamemodes");
-const { HandleAfflictions } = require("../objects/weapons/weapon-effects");
 const {
   SerializePlayerData,
   BuildSelfData,
   compressMessage,
 } = require("../utils/serialize");
 const { encodePosition } = require("../utils/game");
-
 const rooms = new Map();
 const playerLookup = new Map();
 const roomIndex = new Map();
@@ -603,7 +601,6 @@ class Room {
 
     const aliveCount = this.alivePlayers.size;
     this.bulletManager.update();
-    HandleAfflictions(this);
 
     // ROOM DATA
     const roomdata = [
@@ -908,6 +905,7 @@ const {
 } = require("../modifiers/modifiers");
 const { initializeHealingCircles } = require("../modifiers/healingcircle");
 const Dummy = require("../objects/dummy");
+const { PoisonDamageHandler } = require("../objects/weapons/weapon-effects");
 
 //const modifierHandlers = { startCountdown, initializeHealingCircles, UseZone, AutoHealthRestore, AutoHealthDamage};
 

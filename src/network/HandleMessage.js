@@ -1,5 +1,5 @@
 const { handleBulletFired } = require("../objects/weapons/bullet");
-const { validDirections } = require("../utils/game");
+const { isValidPlayerMoveDirection } = require("../utils/game");
 
 function handleRoomMessage(room, player, message) {
   if (!player) player.wsClose(4000, "message_cant_access_user");
@@ -96,15 +96,10 @@ function handleGadget(room, player) {
     }, player.gadgetcooldown);
   }
 }
-const isValidDirection = (direction) => {
-  const numericDirection = parseFloat(direction);
-  return !isNaN(numericDirection) && validDirections.includes(numericDirection);
-};
-
 function handleMovementData(data, player) {
   const direction = data[1];
 
-  if (isValidDirection(direction)) {
+  if (isValidPlayerMoveDirection(direction)) {
     const validDirection = direction;
     if (validDirection) {
       updatePlayerDirection(player, direction);

@@ -1,4 +1,6 @@
-function HandleAfflictions(room) {
+
+
+function PoisonDamageHandler(room) {
   const now = Date.now();
 
   // Iterate backward to allow safe removal
@@ -48,4 +50,4 @@ function HandleAfflictions(room) {
   }
 }
 
-module.exports = { HandleAfflictions };
+module.exports = { PoisonDamageHandler };

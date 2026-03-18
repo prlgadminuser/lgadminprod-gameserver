@@ -1,6 +1,6 @@
 const { playerhitbox } = require("../config/player");
-const { spawnAnimation } = require("../modifiers/animations");
 const { createHitmarker } = require("../utils/game");
+const { spawnAnimation } = require("./animations");
 
 
 class Dummy {

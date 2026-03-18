@@ -1,12 +1,11 @@
-module.exports = {
-  validDirections: [-90, 0, 180, -180, 90, 45, 135, -135, -45],
 
-  isValidDirection(direction) {
-    const numericDirection = parseFloat(direction);
-    return (
-      !isNaN(numericDirection) &&
-      this.validDirections.includes(numericDirection)
-    );
+const playerValidMoveDirections = new Set([-90, 0, 180, -180, 90, 45, 135, -135, -45])
+
+module.exports = {
+
+  isValidPlayerMoveDirection(direction) {
+    const numericDirection = Number(direction);
+    return playerValidMoveDirections.has(numericDirection)
   },
 
   encodePosition(num) {

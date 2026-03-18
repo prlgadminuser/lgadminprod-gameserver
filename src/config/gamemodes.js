@@ -111,8 +111,8 @@ const gamemodeconfig = {
     teamsize: 1,
     respawns_allowed: 1,
 
-    playerhealth: 50,
-    playerspeed: 2,
+    playerhealth: 9999,
+    playerspeed: 3,
 
     modifiers: new Set([
    //    "UseZone",
