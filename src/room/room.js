@@ -705,9 +705,7 @@ class Room {
       // Send message if changed
       if (!msgArray.length) {
         if (!p.emptySent) {
-          p.lastcompressedmessage = CachedEmptyMsg;
-          p.tick_send_allow = true;
-          p.emptySent = true;
+          p.tick_send_allow = false;
         } else {
           p.tick_send_allow = false;
         }
