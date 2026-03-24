@@ -46,7 +46,7 @@ const gadgetconfig = {
             
             player.room.setRoomTimeout(() => {
               disableGadget(player);
-            }, 5000);
+            }, 50000);
 
         }
     },
