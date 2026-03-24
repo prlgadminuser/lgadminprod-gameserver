@@ -40,7 +40,7 @@ const gadgetconfig = {
         use_limit: 3,
         cooldown: 10000,
         gadget(player) {
-            const boostedSpeed = player.speed + player.speed / 2;
+            const boostedSpeed = player.speed + 7;
             enableGadget(player, { speed: boostedSpeed });
 
             
