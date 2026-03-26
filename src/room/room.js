@@ -476,6 +476,7 @@ class Room {
       this.OnlyAllowEmoteAllPlayers = true;
       for (const player of this.connectedPlayers) {
         player.moving = false;
+        player.dirty = true
       }
 
       let winner;
@@ -704,17 +705,13 @@ class Room {
 
       // Send message if changed
       if (!msgArray.length) {
-        if (!p.emptySent) {
           p.tick_send_allow = false;
-        } else {
-          p.tick_send_allow = false;
-        }
+        
       } else {
         const compressed = compressMessage(msgArray);
         p.lastcompressedmessage = compressed;
         p.lastnotemptymessage = compressed;
         p.tick_send_allow = true;
-        p.emptySent = false;
       }
     }
 
@@ -791,7 +788,9 @@ class Room {
     // catch-up if lagging
     while (now >= nextTick) {
       this.update();              // simulate
+      //if (Math.random() > 0.3) {
       this.sendPlayerPackets();   // snapshot send
+    //  }
       nextTick += tickMs;         // advance tick
     }
 

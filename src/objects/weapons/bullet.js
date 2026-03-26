@@ -5,7 +5,7 @@ const {
   AddNewUnseenObject,
   isPositionOutsideMapBounds,
 } = require("../../utils/game");
-const { GlobalRoomConfig } = require("../../config/server");
+const { GlobalRoomConfig, GlobalServerConfig } = require("../../config/server");
 const { sweptSATRectVsRect, Vec2 } = require("../../utils/bulletcollision");
 const { PoisonDamageHandler } = require("./weapon-effects");
 /* =========================
@@ -254,7 +254,7 @@ function handleBulletFired(room, player, gunType) {
   player.lastShootTime = now;
 
   for (const bulletConfig of gun.bullets) {
-    const bullet_tick_rate = 30;
+    const bullet_tick_rate = GlobalRoomConfig.ticks_per_second
 
     const bulletdata = {
 

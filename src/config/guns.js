@@ -6,6 +6,7 @@ function bullets(count, options = {}) {
     speed,
     delay,
     offset,
+    usePlayerAngle: true
   }));
 }
 
@@ -92,17 +93,19 @@ const gunsconfig = {
     // Default Sniper
     modifiers: new Set([
       //  "CanBounce",
-      // "DestroyWalls"
+      "DestroyWalls"
     ]),
     cooldown: 600,
     distance: 1200,
-    maxexistingtime: 10000,
+    maxexistingtime: 2000,
     damage: 25,
     width: 35,
     height: 8,
     //  can_bullets_bounce: true,
     bullets: [
-      { angle: 0, usePlayerAngle: true, speed: 16, delay: 0, offset: 0 },
+      { angle: 0, usePlayerAngle: true, speed: 17, delay: 0, offset: 0 },
+      { angle: 20, usePlayerAngle: true, speed: 17, delay: 0, offset: 0 },
+       { angle: -20, usePlayerAngle: true, speed: 17, delay: 0, offset: 0 },
     ],
     damageconfig: [
       { threshold: 45, damageMultiplier: 1 },
@@ -127,9 +130,9 @@ const gunsconfig = {
     useplayerangle: true,
     //can_bullets_bounce: true,
     bullets: [
-      { angle: 0, usePlayerAngle: true, speed: 8, delay: 0, offset: 0 },
-      { angle: 2, usePlayerAngle: true, speed: 8, delay: 100, offset: 3 },
-      { angle: -2, usePlayerAngle: true, speed: 8, delay: 200, offset: 6 },
+      { angle: 0, usePlayerAngle: true, speed: 18, delay: 0, offset: 0 },
+      { angle: 2, usePlayerAngle: true, speed: 18, delay: 50, offset: 3 },
+      { angle: -2, usePlayerAngle: true, speed: 18, delay: 100, offset: 6 },
     ],
     damageconfig: [
      // { threshold: 50, damageMultiplier: 1 },
