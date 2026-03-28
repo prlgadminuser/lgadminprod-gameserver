@@ -61,7 +61,7 @@ class BulletManager {
     const perpDir = Vec2.fromAngle(bulletData.angle - 90);
     const initialPosition = new Vec2(player.position.x, player.position.y)
       .add(baseDir.scale(bulletData.offset))
-      .add(perpDir.scale(40));
+      .add(perpDir.scale(25));
 
     const bullet = new Bullet({
       id,
