@@ -3,7 +3,7 @@ const { playerhitbox } = require("../config/player");
 const { UpdatePlayerPlace } = require("../database/ChangePlayerStats");
 const { addEntryToKillfeed } = require("../modifiers/killfeed");
 const { isCollisionWithWalls } = require("../utils/collision");
-const { createHitmarker, findNearestPlayer } = require("../utils/game");
+const { createHitmarker, findNearestPlayer, encodeBulletPosition } = require("../utils/game");
 const { DIRECTION_VECTORS } = require("../utils/movement");
 const { SerializePlayerData } = require("../utils/serialize");
 const { spawnAnimation } = require("./animations");
@@ -413,8 +413,8 @@ const halfHeight = this.height / 2;
         if (!alreadySent) {
           finalBullets.push([
             bullet.id,
-            Math.round(bullet.position.x),
-            Math.round(bullet.position.y),
+            encodeBulletPosition(bullet.position.x),
+            encodeBulletPosition(bullet.position.y),
             bullet.direction,
             bullet.gunId,
             bullet.effect,
