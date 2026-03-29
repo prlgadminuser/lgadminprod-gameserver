@@ -103,7 +103,7 @@ const gunsconfig = {
     height: 8,
     //  can_bullets_bounce: true,
     bullets: [
-      { angle: 0, usePlayerAngle: true, speed: 17, delay: 0, offset: 0 },
+      { angle: 0, usePlayerAngle: true, speed: 17, delay: 0, offset: 0 } ,
       { angle: 20, usePlayerAngle: true, speed: 17, delay: 0, offset: 0 },
        { angle: -20, usePlayerAngle: true, speed: 17, delay: 0, offset: 0 },
     ],
