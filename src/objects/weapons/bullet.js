@@ -104,9 +104,9 @@ class BulletManager {
 
     for (const [id, bullet] of this.bullets.entries()) {
       if (!bullet || !bullet.alive || bullet.isExpired()) { toRemove.push(id); continue; }
-     // bullet.updateTicks++;
-      //if (bullet.updateTicks > GlobalRoomConfig.ticks_per_second / bullet.updates_per_tick - 1) {
-     //   bullet.updateTicks = 0;
+     bullet.updateTicks++;
+      if (bullet.updateTicks > GlobalRoomConfig.ticks_per_second / bullet.updates_per_tick - 1) {
+       bullet.updateTicks = 0;
         if (this.directionChange) this.directionChange.lifeTicks++;
         bullet.applyDirectionChange();
 
@@ -191,7 +191,7 @@ class BulletManager {
 
         if (!bullet.new) bullet.effect = 0
        // if (bulletDestroyed) bullet.effect = 3
-     // }
+      }
     }
 
     for (const id of toRemove) this.killBullet(id);
@@ -254,7 +254,7 @@ function handleBulletFired(room, player, gunType) {
   player.lastShootTime = now;
 
   for (const bulletConfig of gun.bullets) {
-    const bullet_tick_rate = GlobalRoomConfig.ticks_per_second
+    const bullet_tick_rate = GlobalRoomConfig.ticks_per_second / 2
 
     const bulletdata = {
 
