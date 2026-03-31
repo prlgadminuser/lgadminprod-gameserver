@@ -141,7 +141,12 @@ return {1, oldSid or false, now}
 
 // Cache the script SHA for better performance (optional but recommended)
 
-const scriptSha = await redisClient.scriptLoad(FORCE_CLAIM_LUA);
+
+
+let scriptSha;
+(async () => {
+ scriptSha = await redisClient.script("LOAD", FORCE_CLAIM_LUA);
+})();
 
 
 async function forceClaimSession(redisClient, userId, SERVER_INSTANCE_ID) {
