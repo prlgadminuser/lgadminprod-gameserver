@@ -118,7 +118,9 @@ function setupWebSocketServer(wss, server) {
       }
       userId = playerVerified.userId;
 
-       await forceClaimSession(userId);
+      const claimResult  = await forceClaimSession(userId);
+
+      if (!claimResult)  ws.close(4001, "cooldown");
 
       if (!DEV_MODE) await addSession(userId);
 
