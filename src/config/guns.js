@@ -97,15 +97,16 @@ const gunsconfig = {
     ]),
     cooldown: 600,
     distance: 1200,
-    maxexistingtime: 2000,
+    maxexistingtime: 200000,
     damage: 25,
     width: 35,
     height: 8,
     //  can_bullets_bounce: true,
     bullets: [
-      { angle: 0, usePlayerAngle: true, speed: 17, delay: 0, offset: 0 } ,
-      { angle: 20, usePlayerAngle: true, speed: 17, delay: 0, offset: 0 },
-       { angle: -20, usePlayerAngle: true, speed: 17, delay: 0, offset: 0 },
+    //  { angle: 0, usePlayerAngle: true, speed: 17, delay: 0, offset: 0 } ,
+      //{ angle: 20, usePlayerAngle: true, speed: 17, delay: 0, offset: 0 },
+      // { angle: -20, usePlayerAngle: true, speed: 17, delay: 0, offset: 0 },
+      ...bullets(10, { angle: 0, speed: 1, delay: 0, offset: 0  })
     ],
     damageconfig: [
       { threshold: 45, damageMultiplier: 1 },

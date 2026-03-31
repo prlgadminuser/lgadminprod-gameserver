@@ -3,26 +3,29 @@ const { playerhitbox } = require("../config/player");
 const { UpdatePlayerPlace } = require("../database/ChangePlayerStats");
 const { addEntryToKillfeed } = require("../modifiers/killfeed");
 const { isCollisionWithWalls } = require("../utils/collision");
-const { createHitmarker, findNearestPlayer, encodeBulletPosition } = require("../utils/game");
+const {
+  createHitmarker,
+  findNearestPlayer,
+  encodeBulletPosition,
+} = require("../utils/game");
 const { DIRECTION_VECTORS } = require("../utils/movement");
 const { SerializePlayerData } = require("../utils/serialize");
 const { spawnAnimation } = require("./animations");
 
-
-  const DIR = [
-  {x:0, y:-1},
-  {x:1, y:-1},
-  {x:1, y:0},
-  {x:1, y:1},
-  {x:0, y:1},
-  {x:-1, y:1},
-  {x:-1, y:0},
-  {x:-1, y:-1}
+const DIR = [
+  { x: 0, y: -1 },
+  { x: 1, y: -1 },
+  { x: 1, y: 0 },
+  { x: 1, y: 1 },
+  { x: 0, y: 1 },
+  { x: -1, y: 1 },
+  { x: -1, y: 0 },
+  { x: -1, y: -1 },
 ];
 
-const viewmultiplier = 1.1;
+const viewmultiplier = 1.2;
 const xThreshold = 320 * viewmultiplier;
-const yThreshold = 200 * viewmultiplier;
+const yThreshold = 160 * viewmultiplier;
 
 class Player {
   constructor(ws, playerVerified, room) {
@@ -49,11 +52,11 @@ class Player {
     this.top = top;
     this.player_color = player_color;
     this.hat_color = hat_color;
-    this.top_color = top_color
+    this.top_color = top_color;
 
     // Game state
     this.objectType = "player";
-    this.position = {}
+    this.position = {};
 
     this.width = playerhitbox.width;
     this.height = playerhitbox.height;
@@ -71,9 +74,9 @@ class Player {
     this.finalrewards_awarded = false;
     this.respawns = room.respawns;
     this.emote = 0;
-    this.seenObjectsIds = new Set(),
-    this.lastNearbyObjects = new Set(),
-    this.ticksSinceLastChunkUpdate = 100; // make number high so first chunk update occurs immediately
+    ((this.seenObjectsIds = new Set()),
+      (this.lastNearbyObjects = new Set()),
+      (this.ticksSinceLastChunkUpdate = 100)); // make number high so first chunk update occurs immediately
     this.TickSinceLastNearby = 20;
 
     this._lastSerializedHash = 0;
@@ -138,7 +141,7 @@ class Player {
 
     this.nearbyplayersids = [];
     this.lastplayerids = [];
-    this.nearbyplayerids_dirty = true
+    this.nearbyplayerids_dirty = true;
 
     this.isPlayer = true;
 
@@ -163,9 +166,8 @@ class Player {
     this.spectatingPlayerId = -1;
 
     // Final rewards
-    this.finalrewards = [], 
-    this.room = room;
-    
+    ((this.finalrewards = []), (this.room = room));
+
     this.UseStartRespawnPoint = false;
   }
 
@@ -204,12 +206,11 @@ class Player {
     this.last_damaged_time = Date.now();
 
     //   createHitmarker(this, this, damage);
-     if (this.health !== lastHealth) this.dirty = true;
+    if (this.health !== lastHealth) this.dirty = true;
 
     if (this.health > 0) return;
 
     // now we know that player has no health left
-
 
     if (this.IsEliminationAllowed()) {
       this.eliminate();
@@ -261,63 +262,63 @@ class Player {
     // HANDLE MOVEMENT
     if (!this.moving) return;
 
-    const { x: lastX, y: lastY } = this.position
+    const { x: lastX, y: lastY } = this.position;
 
-    const dir = this.direction - 90;
+    const angle = this.direction - 90;
     const speed = this.speed;
-    const vec = DIRECTION_VECTORS[dir];
-    if (!vec) return;
 
-   //   const rad = (dir * Math.PI) / 180;
-   
-   // const dx = Math.cos(rad) * speed;
-   // const dy = Math.sin(rad) * speed;
+    const rad = (angle * Math.PI) / 180;
 
-    // Use exact precalculated direction vector
-    const dx = speed * vec.x;
-    const dy = speed * vec.y;
+    // compute direction vector
+    const dirX = Math.cos(rad);
+    const dirY = Math.sin(rad);
 
-   // console.log(dx, dy)
+    const dx = dirX * speed; //* dt;
+    const dy = dirY * speed; //* dt;
+
+    // console.log(dx, dy)
 
     const { x, y } = this.position;
 
     const halfWidth = this.width / 2;
-const halfHeight = this.height / 2;
-
-    const nearbyWalls = this.room.grid.getObjectsInArea(
-  x - halfWidth,
-  x + halfWidth,
-  y - halfHeight,
-  y + halfHeight,
-  "wall",
-);
-
+    const halfHeight = this.height / 2;
 
     let newX = x + dx;
     let newY = y + dy;
 
+    const minX = Math.min(x, newX) - halfWidth;
+    const maxX = Math.max(x, newX) + halfWidth;
+    const minY = Math.min(y, newY) - halfHeight;
+    const maxY = Math.max(y, newY) + halfHeight;
+
+    const nearbyWalls = this.room.grid.getObjectsInArea(
+      minX,
+      maxX,
+      minY,
+      maxY,
+      "wall",
+    );
+
     if (isCollisionWithWalls(this, nearbyWalls, newX, y)) newX = x;
     if (isCollisionWithWalls(this, nearbyWalls, x, newY)) newY = y;
 
-      const { mapWidth, mapHeight } = this.room;
-  newX = Math.max(-mapWidth, Math.min(mapWidth, newX));
-  newY = Math.max(-mapHeight, Math.min(mapHeight, newY));
+    const { mapWidth, mapHeight } = this.room;
+    newX = Math.max(-mapWidth, Math.min(mapWidth, newX));
+    newY = Math.max(-mapHeight, Math.min(mapHeight, newY));
 
+    this.position.x = newX;
+    this.position.y = newY;
 
-   this.position.x = newX;
-   this.position.y = newY;
-
-  // change detection (numeric, deterministic)
-  if (newX !== lastX || newY !== lastY) {
-    this.room.grid.updateObject(this, this.position);
-    this.dirty = true;
+    // change detection (numeric, deterministic)
+    if (newX !== lastX || newY !== lastY) {
+      this.room.grid.updateObject(this, this.position);
+      this.dirty = true;
+    }
   }
-}
-
 
   updateView() {
-  // this.ticksSinceLastChunkUpdate++;
-  //  const shouldUpdateChunks = this.ticksSinceLastChunkUpdate > 4;
+    // this.ticksSinceLastChunkUpdate++;
+    //  const shouldUpdateChunks = this.ticksSinceLastChunkUpdate > 4;
 
     const positionSource = this.spectatingTarget ? this.spectatingTarget : this;
     const centerX = positionSource.position.x;
@@ -357,36 +358,36 @@ const halfHeight = this.height / 2;
       }
     }
 
-  //  if (shouldUpdateChunks) {
-     // this.ticksSinceLastChunkUpdate = 0;
+    //  if (shouldUpdateChunks) {
+    // this.ticksSinceLastChunkUpdate = 0;
 
-      for (const obj of nearbyObjects) {
-        switch (obj.objectType) {
-          case "static_obj":
-            // --- track "first-time seen" static objects ---
-            if (!this.seenObjectsIds.has(obj.id)) {
-              this.seenObjectsIds.add(obj.id);
-              staticObjects.push([1, obj.sendx, obj.sendy]);
-            }
-            break;
+    for (const obj of nearbyObjects) {
+      switch (obj.objectType) {
+        case "static_obj":
+          // --- track "first-time seen" static objects ---
+          if (!this.seenObjectsIds.has(obj.id)) {
+            this.seenObjectsIds.add(obj.id);
+            staticObjects.push([1, obj.sendx, obj.sendy]);
+          }
+          break;
 
-          case "realtime_obj":
-            // --- track other realtime spawns not seen in last tick ---
-            if (!this.lastNearbyObjects.has(obj.id)) {
-              RealtimeObjects.push([
-                obj.id,
-                obj.objectType,
-                obj.position.x,
-                obj.position.y,
-                obj.hp,
-                obj.rotation,
-              ]);
-            }
+        case "realtime_obj":
+          // --- track other realtime spawns not seen in last tick ---
+          if (!this.lastNearbyObjects.has(obj.id)) {
+            RealtimeObjects.push([
+              obj.id,
+              obj.objectType,
+              obj.position.x,
+              obj.position.y,
+              obj.hp,
+              obj.rotation,
+            ]);
+          }
 
-            break;
-        }
+          break;
       }
-  //  }
+    }
+    //  }
 
     // --- 2. Assign results back to player ---
     this.nearbyplayersids = otherPlayersIds;
@@ -419,12 +420,14 @@ const halfHeight = this.height / 2;
             bullet.gunId,
             bullet.effect,
             bullet.client_render_speed,
-            bullet.directionChange ? Object.values(bullet.directionChange) : undefined
+            bullet.directionChange
+              ? Object.values(bullet.directionChange)
+              : undefined,
 
             /// (GlobalRoomConfig.room_tick_rate_ms / GlobalRoomConfig.bullet_updates_per_tick),
           ]);
 
-        //  console.log( bullet.directionChange ? [Object.values(bullet.directionChange)] : undefined)
+          //  console.log( bullet.directionChange ? [Object.values(bullet.directionChange)] : undefined)
         }
 
         newLastBulletIds.add(bullet.id);
@@ -432,13 +435,13 @@ const halfHeight = this.height / 2;
     }
 
     const missingBullets = [];
-for (const id of lastBulletIds) {
-  if (!newLastBulletIds.has(id)) {
-    missingBullets.push(id); // store missing bullet IDs
-  }
-}
+    for (const id of lastBulletIds) {
+      if (!newLastBulletIds.has(id)) {
+        missingBullets.push(id); // store missing bullet IDs
+      }
+    }
 
-    this.removedViewBullets = missingBullets
+    this.removedViewBullets = missingBullets;
 
     this.finalbullets = finalBullets.length ? finalBullets : undefined;
     this.lastfinalbulletsSet = newLastBulletIds;
@@ -453,14 +456,9 @@ for (const id of lastBulletIds) {
     }
   }
 
-
-
-
-
   eliminate() {
-  /// if (this.room.state !== "playing" || this.room.winner !== -1) return;
- if (this.room.winner !== -1) return;
-
+    /// if (this.room.state !== "playing" || this.room.winner !== -1) return;
+    if (this.room.winner !== -1) return;
 
     addEntryToKillfeed({
       room: this.room,
@@ -504,11 +502,7 @@ for (const id of lastBulletIds) {
       this.room.lastEliminatedPlayer = this;
       UpdatePlayerPlace(this, playerPlace, this.room);
     }
-
   }
-
-
-
 
   respawn() {
     addEntryToKillfeed({
@@ -542,7 +536,7 @@ for (const id of lastBulletIds) {
         for (const teamplayer of this.team.players) {
           if (teamplayer.alive) {
             this.position.x = teamplayer.position.x;
-            this.position.y = teamplayer.position.y
+            this.position.y = teamplayer.position.y;
             continue;
           }
         }
@@ -563,10 +557,6 @@ for (const id of lastBulletIds) {
       });
     }, 5000);
   }
-
-
-
-
 
   startSpectating(initialTarget = null) {
     this.spectating = true;
