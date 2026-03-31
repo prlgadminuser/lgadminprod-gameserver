@@ -111,7 +111,6 @@ async function forceClaimSession(userId) {
   }
 
   // Overwrite session atomically
-  await redisClient.set(userKey, sessionValue, 'EX', 3600);
 
   // Notify old server to disconnect
   if (oldSid) {
@@ -120,6 +119,8 @@ async function forceClaimSession(userId) {
       JSON.stringify({ type: "disconnect", uid: userId })
     );
   }
+
+   await redisClient.set(userKey, sessionValue, 'EX', 3600);
 
   // Success — this server now owns the session
   return true;
