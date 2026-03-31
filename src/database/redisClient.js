@@ -148,7 +148,7 @@ async function forceClaimSession(redisClient, userId, SERVER_INSTANCE_ID) {
 
 
   // Execute atomically
-  const result = await redisClient.evalsha(
+  const result = await redisClient.eval(
     FORCE_CLAIM_LUA,
     1,                          // number of keys
     userKey,                    // KEYS[1]
