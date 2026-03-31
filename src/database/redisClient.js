@@ -143,46 +143,70 @@ return {1, oldSid or false, now}
 
 
 async function forceClaimSession(redisClient, userId, SERVER_INSTANCE_ID) {
-  const userKey = `user:${userId}`;   // Change prefix if needed
+  const userKey = `user:${userId}`;
   const now = Date.now();
+  const cooldown = 3000;
 
+  while (true) {
+    await redisClient.watch(userKey);
 
-  // Execute atomically
-  const result = await redisClient.eval(
-    FORCE_CLAIM_LUA,
-    1,                          // number of keys
-    userKey,                    // KEYS[1]
-    SERVER_INSTANCE_ID,         // ARGV[1]
-    now.toString(),             // ARGV[2]
-    '3000'                      // ARGV[3] - cooldown in ms
-  );
+    const existingRaw = await redisClient.get(userKey);
 
-  const [success, oldSid] = result;
+    let oldSid = null;
+    let oldTime = 0;
 
-  if (success === 0) {
-    console.log(`⏳ Session claim for user ${userId} rejected (cooldown)`);
-    return false;
-  }
-
-  // Notify old server to kick the player (if different server)
-  if (oldSid && oldSid !== SERVER_INSTANCE_ID) {
-    try {
-      await redisClient.publish(
-        `server:${oldSid}`,
-        JSON.stringify({
-          type: "disconnect",
-          uid: userId,
-          reason: "session_claimed_by_another_server"
-        })
-      );
-      console.log(`📢 Sent disconnect to old server ${oldSid} for user ${userId}`);
-    } catch (err) {
-      console.warn(`⚠️ Failed to publish disconnect for user ${userId}`, err);
+    if (existingRaw) {
+      try {
+        const data = JSON.parse(existingRaw);
+        oldSid = data.sid;
+        oldTime = Number(data.time) || 0;
+      } catch {
+        // corrupted data → ignore safely
+      }
     }
-  }
 
-  console.log(`✅ Session claimed successfully for user ${userId} on ${SERVER_INSTANCE_ID}`);
-  return true;
+    // cooldown check
+    if (now - oldTime < cooldown) {
+      await redisClient.unwatch();
+      console.log(`⏳ Cooldown active for user ${userId}`);
+      return false;
+    }
+
+    const newSession = JSON.stringify({
+      sid: SERVER_INSTANCE_ID,
+      time: now
+    });
+
+    const multi = redisClient.multi();
+
+    multi.set(userKey, newSession, 'EX', 3600);
+
+    const result = await multi.exec();
+
+    // If null → someone modified key → retry
+    if (result === null) {
+      continue;
+    }
+
+    // success
+    if (oldSid && oldSid !== SERVER_INSTANCE_ID) {
+      try {
+        await redisClient.publish(
+          `server:${oldSid}`,
+          JSON.stringify({
+            type: "disconnect",
+            uid: userId,
+            reason: "session_claimed_by_another_server"
+          })
+        );
+      } catch (err) {
+        console.warn("Publish failed:", err);
+      }
+    }
+
+    console.log(`✅ Session claimed for user ${userId}`);
+    return true;
+  }
 }
 
 
