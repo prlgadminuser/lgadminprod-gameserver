@@ -23,7 +23,7 @@ function kickPlayerBan(username) {
 
    if (player && player.close) {
     player.send("client_kick");
-    console.log("suspended")
+  //  console.log("suspended")
     player.close(4009, "You have been banned.");
   }
   
@@ -41,7 +41,7 @@ function kickPlayerNewConnection(username) {
 
 sub.on("message", (channel, message) => {
     const data = JSON.parse(message);
-    console.log(data)
+   // console.log(data)
     const type = data.type;
     const username = data.uid
     switch (type) {
