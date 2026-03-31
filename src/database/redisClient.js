@@ -97,23 +97,33 @@ function startHeartbeat() {
 
 async function forceClaimSession(userId) {
   const userKey = `${REDIS_KEYS.USER_PREFIX}${userId}`;
-
   const now = Date.now();
+
   const sessionValue = JSON.stringify({ sid: SERVER_INSTANCE_ID, time: now });
 
-  // Get old session before overwriting
+  // Fetch existing session
   const existingSession = await redisClient.get(userKey);
   let oldSid = null;
+  let oldTime = 0;
+
   if (existingSession) {
     try {
-      oldSid = JSON.parse(existingSession).sid;
+      const parsed = JSON.parse(existingSession);
+      oldSid = parsed.sid;
+      oldTime = parsed.time || 0;
     } catch {}
   }
 
-  // Overwrite session atomically
+  // Check 3-second cooldown
+  if (now - oldTime < 3000) {
+    // Too soon — cannot force claim yet
+    return false;
+  }
+
+  // Atomically overwrite session
   await redisClient.set(userKey, sessionValue, 'EX', 3600);
 
-  // Notify old server to disconnect
+  // Notify old server to disconnect, if different
   if (oldSid) {
     await redisClient.publish(
       `server:${oldSid}`,
