@@ -95,45 +95,97 @@ function startHeartbeat() {
   setInterval(heartbeat, HEARTBEAT_INTERVAL_MS);
 }
 
-async function forceClaimSession(userId) {
-  const userKey = `${REDIS_KEYS.USER_PREFIX}${userId}`;
+// forceClaimSession.js
+// Single file atomic session claim using Redis Lua script
+// Prevents double logins / double players across multiple game servers
+
+const FORCE_CLAIM_LUA = `
+-- Atomic force claim session with cooldown
+-- KEYS[1]   = user session key
+-- ARGV[1]   = new server ID
+-- ARGV[2]   = current timestamp (ms)
+-- ARGV[3]   = cooldown milliseconds (default 3000)
+
+local key       = KEYS[1]
+local newSid    = ARGV[1]
+local now       = tonumber(ARGV[2])
+local cooldown  = tonumber(ARGV[3]) or 3000
+
+-- Read existing session
+local existing = redis.call('GET', key)
+local oldSid = nil
+local oldTime = 0
+
+if existing then
+    local data = cjson.decode(existing)
+    oldSid = data.sid
+    oldTime = tonumber(data.time) or 0
+end
+
+-- Cooldown protection
+if now - oldTime < cooldown then
+    return {0, oldSid or false, oldTime}   -- 0 = failed (cooldown)
+end
+
+-- Atomically write new session (1 hour TTL)
+local sessionValue = cjson.encode({
+    sid  = newSid,
+    time = now
+})
+
+redis.call('SET', key, sessionValue, 'EX', 3600)
+
+-- Return success + old server ID (for disconnect notification)
+return {1, oldSid or false, now}
+`;
+
+// Cache the script SHA for better performance (optional but recommended)
+
+
+async function forceClaimSession(redisClient, userId, SERVER_INSTANCE_ID) {
+  const userKey = `user:${userId}`;   // Change prefix if needed
   const now = Date.now();
 
-  const sessionValue = JSON.stringify({ sid: SERVER_INSTANCE_ID, time: now });
 
-  // Fetch existing session
-  const existingSession = await redisClient.get(userKey);
-  let oldSid = null;
-  let oldTime = 0;
+  // Execute atomically
+  const result = await redisClient.evalsha(
+    FORCE_CLAIM_LUA,
+    1,                          // number of keys
+    userKey,                    // KEYS[1]
+    SERVER_INSTANCE_ID,         // ARGV[1]
+    now.toString(),             // ARGV[2]
+    '3000'                      // ARGV[3] - cooldown in ms
+  );
 
-  if (existingSession) {
-    try {
-      const parsed = JSON.parse(existingSession);
-      oldSid = parsed.sid;
-      oldTime = parsed.time || 0;
-    } catch {}
-  }
+  const [success, oldSid] = result;
 
-  // Check 3-second cooldown
-  if (now - oldTime < 3000) {
-    // Too soon — cannot force claim yet
+  if (success === 0) {
+    console.log(`⏳ Session claim for user ${userId} rejected (cooldown)`);
     return false;
   }
 
-  // Atomically overwrite session
-  await redisClient.set(userKey, sessionValue, 'EX', 3600);
-
-  // Notify old server to disconnect, if different
-  if (oldSid) {
-    await redisClient.publish(
-      `server:${oldSid}`,
-      JSON.stringify({ type: "disconnect", uid: userId })
-    );
+  // Notify old server to kick the player (if different server)
+  if (oldSid && oldSid !== SERVER_INSTANCE_ID) {
+    try {
+      await redisClient.publish(
+        `server:${oldSid}`,
+        JSON.stringify({
+          type: "disconnect",
+          uid: userId,
+          reason: "session_claimed_by_another_server"
+        })
+      );
+      console.log(`📢 Sent disconnect to old server ${oldSid} for user ${userId}`);
+    } catch (err) {
+      console.warn(`⚠️ Failed to publish disconnect for user ${userId}`, err);
+    }
   }
 
-  // Success — this server now owns the session
+  console.log(`✅ Session claimed successfully for user ${userId} on ${SERVER_INSTANCE_ID}`);
   return true;
 }
+
+export { forceClaimSession, loadScript };
 
 async function addSession(username) {
   const userKey = `${REDIS_KEYS.USER_PREFIX}${username}`;
