@@ -14,16 +14,17 @@ redisClient.on("error", (err) => console.error("Redis command client error:", er
 
 sub.subscribe(`server:${SERVER_INSTANCE_ID}`, (err) => {
   if (err) console.error("Failed to subscribe to bans channel:", err);
-  else console.log("Subscribed to bans channel.");
+  else console.log("Subscribed to bans channel.", SERVER_INSTANCE_ID);
 });
 
 
 function kickPlayerBan(username) {
    const player = playerLookup.get(username);
 
-   if (player && player.wsClose) {
+   if (player && player.close) {
     player.send("client_kick");
-    player.wsClose(4009, "You have been banned.");
+    console.log("suspended")
+    player.close(4009, "You have been banned.");
   }
   
 } 
@@ -31,20 +32,21 @@ function kickPlayerBan(username) {
 function kickPlayerNewConnection(username) {
    const player = playerLookup.get(username);
 
-   if (player && player.wsClose) {
+   if (player && player.close) {
     player.send("code:double");
-    player.wsClose(4009, "Reasigned Connection");
+    player.close(4009, "Reasigned Connection");
   }
 }
 
 
 sub.on("message", (channel, message) => {
     const data = JSON.parse(message);
+    console.log(data)
     const type = data.type;
     const username = data.uid
     switch (type) {
       case "ban":
-        kickPlayerBan(username);
+      kickPlayerBan(username);
         break;
       case "disconnect":
         kickPlayerNewConnection(username);    
