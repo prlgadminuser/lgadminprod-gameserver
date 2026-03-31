@@ -120,7 +120,10 @@ function setupWebSocketServer(wss, server) {
 
       const claimResult  = await forceClaimSession(userId);
 
-      if (!claimResult)  ws.close(4001, "cooldown");
+      if (!claimResult)  {
+        ws.close(4001, "cooldown");
+          return;
+      }
 
       if (!DEV_MODE) await addSession(userId);
 
