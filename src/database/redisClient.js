@@ -185,7 +185,6 @@ async function forceClaimSession(redisClient, userId, SERVER_INSTANCE_ID) {
   return true;
 }
 
-export { forceClaimSession, loadScript };
 
 async function addSession(username) {
   const userKey = `${REDIS_KEYS.USER_PREFIX}${username}`;
