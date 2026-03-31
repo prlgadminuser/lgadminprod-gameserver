@@ -118,14 +118,14 @@ function setupWebSocketServer(wss, server) {
       }
       userId = playerVerified.userId;
 
-      const claimResult  = await forceClaimSession(userId);
+      const claimResult = await forceClaimSession(userId);
 
       if (!claimResult)  {
         ws.close(4001, "cooldown");
           return;
       }
 
-      if (!DEV_MODE) await addSession(userId);
+    //  if (!DEV_MODE) await addSession(userId);
 
       const joinResult = StartMatchmaking(ws, gamemode, playerVerified);
       if (!joinResult) {
