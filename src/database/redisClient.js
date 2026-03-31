@@ -95,6 +95,36 @@ function startHeartbeat() {
   setInterval(heartbeat, HEARTBEAT_INTERVAL_MS);
 }
 
+async function forceClaimSession(userId) {
+  const userKey = `${REDIS_KEYS.USER_PREFIX}${userId}`;
+
+  const now = Date.now();
+  const sessionValue = JSON.stringify({ sid: SERVER_INSTANCE_ID, time: now });
+
+  // Get old session before overwriting
+  const existingSession = await redisClient.get(userKey);
+  let oldSid = null;
+  if (existingSession) {
+    try {
+      oldSid = JSON.parse(existingSession).sid;
+    } catch {}
+  }
+
+  // Overwrite session atomically
+  await redisClient.set(userKey, sessionValue, 'EX', 3600);
+
+  // Notify old server to disconnect
+  if (oldSid) {
+    await redisClient.publish(
+      `server:${oldSid}`,
+      JSON.stringify({ type: "disconnect", uid: userId })
+    );
+  }
+
+  // Success — this server now owns the session
+  return true;
+}
+
 async function addSession(username) {
   const userKey = `${REDIS_KEYS.USER_PREFIX}${username}`;
   const sessionValue = JSON.stringify({ 
@@ -150,5 +180,6 @@ module.exports = {
   addSession,
   removeSession,
   checkExistingSession,
-  kickPlayerNewConnection
+  kickPlayerNewConnection,
+  forceClaimSession
 };

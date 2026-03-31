@@ -4,7 +4,6 @@ require("dotenv").config();
 const http = require("http");
 const WebSocket = require("ws");
 const { RateLimiterMemory } = require("rate-limiter-flexible");
-
 const {
   ALLOWED_ORIGINS,
   GAME_MODES,
@@ -21,6 +20,7 @@ const {
   checkExistingSession,
   redisClient,
   startHeartbeat,
+  forceClaimSession,
 } = require("./src/database/redisClient");
 const { playerLookup, StartMatchmaking } = require("./src/room/room");
 const { connectToMongoDB } = require("./src/database/mongoClient");
@@ -118,15 +118,7 @@ function setupWebSocketServer(wss, server) {
       }
       userId = playerVerified.userId;
 
-      // Check for existing session
-      let existingSid = await checkExistingSession(userId);
-
-      if (existingSid) {
-          await redisClient.publish(
-            `server:${existingSid}`,
-            JSON.stringify({ type: "disconnect", uid: userId })
-          );
-      }
+       await forceClaimSession(userId);
 
       if (!DEV_MODE) await addSession(userId);
 
