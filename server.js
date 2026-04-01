@@ -22,7 +22,7 @@ const {
   startHeartbeat,
   forceClaimSession,
 } = require("./src/database/redisClient");
-const { playerLookup, StartMatchmaking } = require("./src/room/room");
+const {  connectedPlayers, StartMatchmaking } = require("./src/room/room");
 const { connectToMongoDB } = require("./src/database/mongoClient");
 const { handleRoomMessage, handlePong } = require("./src/network/HandleMessage");
 const RateLimiter = require("./src/utils/ratelimit");
@@ -119,38 +119,26 @@ function setupWebSocketServer(wss, server) {
       userId = playerVerified.userId;
 
             // Check for existing session
-      let existingSid = playerLookup.has(userId)
-        ? SERVER_INSTANCE_ID
-        : await checkExistingSession(userId);
+     const existing = connectedPlayers.get(username);
 
-      if (existingSid) {
-        if (existingSid === SERVER_INSTANCE_ID) {
-          const existingConnection = playerLookup.get(userId);
-          if (existingConnection && existingConnection.wsClose) {
-            existingConnection.send("code:double");
-            existingConnection.wsClose(4009, "Reassigned Connection");
-            playerLookup.delete(userId);
-          }
-        } else {
-          await redisClient.publish(
-            `server:${existingSid}`,
-            JSON.stringify({ type: "disconnect", uid: userId })
-          );
-        }
-      }
+if (existing && existing.readyState === WebSocket.OPEN) {
+  try {
+    existing.send("code:double");
+    existing.close(4009, "duplicate connection");
+  } catch {}
+}
 
-      if (!DEV_MODE) await addSession(userId);
+      await addSession(username);
 
     //  if (!DEV_MODE) await addSession(userId);
 
       const joinResult = StartMatchmaking(ws, gamemode, playerVerified);
       if (!joinResult) {
-        if (!DEV_MODE) await removeSession(userId);
         ws.close(4001, "Invalid token");
         return;
       }
 
-      playerLookup.set(userId, ws);
+       connectedPlayers.set(userId, ws);
       global.playerCount++;
 
       ws.on("message", (message) => {
@@ -178,11 +166,18 @@ function setupWebSocketServer(wss, server) {
 });
 
       ws.on("close", async () => {
-        activeSockets.delete(ws);
-        playerLookup.delete(userId);
+
+          const current = connectedPlayers.get(username);
+
+  // ONLY delete if this socket is still the active one
+  if (current && current === ws) {
+      activeSockets.delete(ws);
+      connectedPlayers.delete(userId);
+      global.playerCount--;
+       await removeSession(userId);
+  }
+  
         if (ws.player && ws.room) ws.room.removePlayer(ws.player);
-        if (!DEV_MODE) await removeSession(userId);
-        global.playerCount--;
       });
 
       ws.on("error", (err) => {
