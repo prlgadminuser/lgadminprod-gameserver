@@ -119,7 +119,7 @@ function setupWebSocketServer(wss, server) {
       userId = playerVerified.userId;
 
             // Check for existing session
-     const existing = connectedPlayers.get(username);
+     const existing = connectedPlayers.get(userId);
 
 if (existing && existing.readyState === WebSocket.OPEN) {
   try {
@@ -128,7 +128,7 @@ if (existing && existing.readyState === WebSocket.OPEN) {
   } catch {}
 }
 
-      await addSession(username);
+      await addSession(userId);
 
     //  if (!DEV_MODE) await addSession(userId);
 
