@@ -167,7 +167,7 @@ if (existing && existing.readyState === WebSocket.OPEN) {
 
       ws.on("close", async () => {
 
-          const current = connectedPlayers.get(username);
+          const current = connectedPlayers.get(userId);
 
   // ONLY delete if this socket is still the active one
   if (current && current === ws) {
