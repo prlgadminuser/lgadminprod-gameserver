@@ -118,12 +118,28 @@ function setupWebSocketServer(wss, server) {
       }
       userId = playerVerified.userId;
 
-      const claimResult = await forceClaimSession(userId);
+            // Check for existing session
+      let existingSid = playerLookup.has(userId)
+        ? SERVER_INSTANCE_ID
+        : await checkExistingSession(userId);
 
-      if (!claimResult)  {
-        ws.close(4001, "cooldown");
-          return;
+      if (existingSid) {
+        if (existingSid === SERVER_INSTANCE_ID) {
+          const existingConnection = playerLookup.get(userId);
+          if (existingConnection && existingConnection.wsClose) {
+            existingConnection.send("code:double");
+            existingConnection.wsClose(4009, "Reassigned Connection");
+            playerLookup.delete(userId);
+          }
+        } else {
+          await redisClient.publish(
+            `server:${existingSid}`,
+            JSON.stringify({ type: "disconnect", uid: userId })
+          );
+        }
       }
+
+      if (!DEV_MODE) await addSession(userId);
 
     //  if (!DEV_MODE) await addSession(userId);
 
