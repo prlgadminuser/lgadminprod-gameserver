@@ -23,7 +23,7 @@ const {
 } = require("../utils/serialize");
 const { encodePosition } = require("../utils/game");
 const rooms = new Map();
-const playerLookup = new Map();
+const  connectedPlayers = new Map();
 const roomIndex = new Map();
 
 const state_map = {
@@ -305,7 +305,7 @@ class Room {
   addPlayer(ws, playerVerified) {
     const newPlayer = new Player(ws, playerVerified, this);
 
-    playerLookup.set(newPlayer.playerId, newPlayer);
+     connectedPlayers.set(newPlayer.playerId, newPlayer);
     this.connectedPlayers.add(newPlayer);
     this.alivePlayers.add(newPlayer);
 
@@ -328,7 +328,7 @@ class Room {
     this.alivePlayers.delete(player);
 
     player.wsClose();
-    playerLookup.delete(player.playerId);
+    connectedPlayers.delete(player.playerId);
 
     if (player.kills > 0 || player.damage > 0)
       UpdatePlayerKillsAndDamage(player);
@@ -986,7 +986,7 @@ function startMatch(room, roomId) {
 module.exports = {
   Room,
   rooms,
-  playerLookup,
+   connectedPlayers,
   roomIndex,
   StartMatchmaking,
   startMatch,
