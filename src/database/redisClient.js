@@ -158,9 +158,9 @@ async function addSession(username) {
 
   try {
     await redisClient.eval(luaEnforceSession, 1, userKey, newSid, username);
-    console.log(`🔒 Single session enforced for ${username} on server ${newSid} (new connection wins)`);
+   // console.log(`🔒 Single session enforced for ${username} on server ${newSid} (new connection wins)`);
   } catch (err) {
-    console.error(`Session enforcement failed for ${username}:`, err);
+  //  console.error(`Session enforcement failed for ${username}:`, err);
     throw err;
   }
 }
