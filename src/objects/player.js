@@ -1,5 +1,6 @@
 const { gadgetconfig } = require("../config/gadgets");
 const { playerhitbox } = require("../config/player");
+const { GlobalServerConfig, GlobalRoomConfig } = require("../config/server");
 const { UpdatePlayerPlace } = require("../database/ChangePlayerStats");
 const { addEntryToKillfeed } = require("../modifiers/killfeed");
 const { isCollisionWithWalls } = require("../utils/collision");
@@ -8,20 +9,10 @@ const {
   findNearestPlayer,
   encodeBulletPosition,
 } = require("../utils/game");
-const { DIRECTION_VECTORS } = require("../utils/movement");
+
 const { SerializePlayerData } = require("../utils/serialize");
 const { spawnAnimation } = require("./animations");
 
-const DIR = [
-  { x: 0, y: -1 },
-  { x: 1, y: -1 },
-  { x: 1, y: 0 },
-  { x: 1, y: 1 },
-  { x: 0, y: 1 },
-  { x: -1, y: 1 },
-  { x: -1, y: 0 },
-  { x: -1, y: -1 },
-];
 
 const viewmultiplier = 1.2;
 const xThreshold = 320 * viewmultiplier;
@@ -58,6 +49,7 @@ class Player {
     this.objectType = "player";
     this.position = {};
 
+
     this.width = playerhitbox.width;
     this.height = playerhitbox.height;
 
@@ -74,13 +66,24 @@ class Player {
     this.finalrewards_awarded = false;
     this.respawns = room.respawns;
     this.emote = 0;
-    ((this.seenObjectsIds = new Set()),
-      (this.lastNearbyObjects = new Set()),
-      (this.ticksSinceLastChunkUpdate = 100)); // make number high so first chunk update occurs immediately
+    this.seenObjectsIds = new Set(),
+    this.lastNearbyObjects = new Set(),
+    this.ticksSinceLastChunkUpdate = 100; // make number high so first chunk update occurs immediately
     this.TickSinceLastNearby = 20;
 
     this._lastSerializedHash = 0;
+
     this.dirty = true;
+
+    this.dirty = {
+      id: true,
+      x: true,
+      y: true,
+      health: true,
+      
+    }
+
+
     this.nearbyplayersidslast = new Set();
 
     this.lastfinalbulletsSet = new Set();
@@ -265,7 +268,8 @@ class Player {
     const { x: lastX, y: lastY } = this.position;
 
     const angle = this.direction - 90;
-    const speed = this.speed;
+
+const speed = this.speed * (30 / GlobalRoomConfig.ticks_per_second);
 
     const rad = (angle * Math.PI) / 180;
 

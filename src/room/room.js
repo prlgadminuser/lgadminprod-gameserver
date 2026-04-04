@@ -788,9 +788,9 @@ class Room {
     // catch-up if lagging
     while (now >= nextTick) {
       this.update();              // simulate
-      //if (Math.random() > 0.3) {
+    //  if (Math.random() > 0.3) {
       this.sendPlayerPackets();   // snapshot send
-    //  }
+    //}
       nextTick += tickMs;         // advance tick
     }
 
