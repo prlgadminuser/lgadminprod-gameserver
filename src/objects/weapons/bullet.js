@@ -78,26 +78,17 @@ class BulletManager {
       position: initialPosition,
       startPosition: initialPosition,
       direction: bulletData.angle,
-      speed: bulletData.speed,
-      directionChange: bulletData.directionChange,
-      height: bulletData.height,
-      width: bulletData.width,
-      maxTime: bulletData.maxtime,
-      maxDistance: bulletData.distance,
-      damage: bulletData.damage,
-      damageConfig: bulletData.damageconfig || [],
-      afflictionConfig: bulletData.afflictionConfig || false,
-      gunId: bulletData.gunid,
-      modifiers: bulletData.modifiers,
+      ...bulletData,
+      maxTime: bulletData.maxTime,
+      gunId: bulletData.gunId,
       owner: player,
       x: initialPosition.x,
       y: initialPosition.y,
       objectType: "bullet",
       updateTicks: 0,
-      updates_per_tick: bulletData.updates_per_tick,
-      client_render_speed: bulletData.client_render_speed,
       effect: 1,
     });
+
 
     this.bullets.set(id, bullet);
     this.room.grid.addObject(bullet);
@@ -323,9 +314,7 @@ class BulletManager {
   }
 }
 
-/* =========================
-   HELPERS
-========================= */
+
 function DestroyWall(wall, room) {
   room.grid.removeObject(wall);
   AddNewUnseenObject(room, {
@@ -365,25 +354,17 @@ function handleBulletFired(room, player, gunType) {
     const bullet_tick_rate = GlobalRoomConfig.ticks_per_second /// 3;
 
     const bulletdata = {
-      directionChange: bulletConfig.directionChange,
+      ...bulletConfig,
+      ...gun,
       client_render_speed: Math.round(bulletConfig.speed),
-      speed:
-        bulletConfig.speed *
-        (GlobalRoomConfig.ticks_per_second / bullet_tick_rate),
+      speed: bulletConfig.speed * (GlobalRoomConfig.ticks_per_second / bullet_tick_rate),
       updates_per_tick: bullet_tick_rate,
-      offset: bulletConfig.offset,
-      damage: gun.damage,
+ 
       angle: bulletConfig.usePlayerAngle
         ? player.shoot_direction + bulletConfig.angle
         : bulletConfig.angle,
-      height: gun.height,
-      width: gun.width,
-      maxtime: Date.now() + gun.maxexistingtime + bulletConfig.delay,
-      distance: gun.distance,
-      damageconfig: gun.damageconfig || [],
-      afflictionConfig: gun.afflictionConfig || false,
-      gunid: gunType,
-      modifiers: gun.modifiers,
+      maxTime: Date.now() + gun.maxexistingtime + bulletConfig.delay,
+      gunId: gunType,
     };
 
     room.bulletManager.scheduleBullet(player, bulletdata, bulletConfig.delay);
