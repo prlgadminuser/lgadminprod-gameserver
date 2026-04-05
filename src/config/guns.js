@@ -21,8 +21,8 @@ const gunsconfig = {
       //  "DestroyWalls(DestroySelf)"
     ]),
     cooldown: 500,
-    distance: 300,
-    maxexistingtime: 50000,
+    maxDistance: 300,
+    maxTime: 50000,
     damage: 20,
     width: 25,
     height: 7,
@@ -51,7 +51,7 @@ const gunsconfig = {
  
        */
     ],
-    damageconfig: [
+    damageConfig: [
       { threshold: 35, damageMultiplier: 1 },
       { threshold: 60, damageMultiplier: 0.7 },
       { threshold: 100, damageMultiplier: 0.25 },
@@ -65,8 +65,8 @@ const gunsconfig = {
       //   "DestroyWalls"
     ]),
     cooldown: 800,
-    distance: 250,
-    maxexistingtime: 500,
+     maxDistance: 300,
+    maxTime: 50000,
     damage: 10,
     width: 27,
     height: 6,
@@ -76,7 +76,7 @@ const gunsconfig = {
       { angle: 0, usePlayerAngle: true, speed: 13, delay: 0, offset: 0 },
       { angle: 5, usePlayerAngle: true, speed: 13, delay: 0, offset: 0 },
     ],
-    damageconfig: [
+    damageConfig: [
       { threshold: 25, damageMultiplier: 1 },
       { threshold: 55, damageMultiplier: 0.7 },
       { threshold: 100, damageMultiplier: 0.4 },
@@ -96,19 +96,19 @@ const gunsconfig = {
      // "DestroyWalls"
     ]),
     cooldown: 600,
-    distance: 1200,
-    maxexistingtime: 200000,
+     maxDistance: 300,
+    maxTime: 50000,
     damage: 25,
     width: 35,
     height: 8,
     //  can_bullets_bounce: true,
     bullets: [
-    { angle: 0, usePlayerAngle: true, speed: 23, delay: 0, offset: 0 } ,
+    { angle: 0, usePlayerAngle: true, speed: 1, delay: 0, offset: 0 } ,
     // { angle: 20, usePlayerAngle: true, speed: 1, delay: 0, offset: 0 },
       //{ angle: -20, usePlayerAngle: true, speed: 1, delay: 0, offset: 0 },
     //  ...bullets(10, { angle: 0, speed: 1, delay: 0, offset: 0  })
     ],
-    damageconfig: [
+    damageConfig: [
       { threshold: 45, damageMultiplier: 1 },
       { threshold: 80, damageMultiplier: 0.8 },
       { threshold: 100, damageMultiplier: 0.7 },
@@ -123,8 +123,8 @@ const gunsconfig = {
       //  "DestroyWalls"
     ]),
     cooldown: 300,
-    distance: 950,
-    maxexistingtime: 20000,
+     maxDistance: 300,
+    maxTime: 50000,
     damage: 4,
     width: 33,
     height: 6,
@@ -135,7 +135,7 @@ const gunsconfig = {
       { angle: 2, usePlayerAngle: true, speed: 18, delay: 50, offset: 3 },
       { angle: -2, usePlayerAngle: true, speed: 18, delay: 100, offset: 6 },
     ],
-    damageconfig: [
+    damageConfig: [
      // { threshold: 50, damageMultiplier: 1 },
      // { threshold: 100, damageMultiplier: 0.70 },
       // { threshold: 150, damageMultiplier: 0.40 }
@@ -151,8 +151,8 @@ const gunsconfig = {
     ]),
     //  spinning_speed: 5,
     cooldown: 700,
-    distance: 1000,
-    maxexistingtime: 500,
+     maxDistance: 300,
+    maxTime: 50000,
     damage: 10,
     width: 14,
     height: 58,
@@ -162,7 +162,7 @@ const gunsconfig = {
       { angle: 0, usePlayerAngle: true, speed: 25, delay: 200, offset: 0 },
       { angle: 0, usePlayerAngle: true, speed: 25, delay: 400, offset: 0 },
     ],
-    damageconfig: [
+    damageConfig: [
       //  { threshold: 150, damageMultiplier: 1 },
       //  { threshold: 300, damageMultiplier: 0.5 }
     ],
@@ -183,8 +183,8 @@ const gunsconfig = {
     ]),
     //  spinning_speed: 5,
     cooldown: 700,
-    distance: 1000,
-    maxexistingtime: 5000,
+     maxDistance: 300,
+    maxTime: 50000,
     damage: 10,
     width: 63,
     height: 13,
@@ -194,7 +194,7 @@ const gunsconfig = {
       { angle: 0, usePlayerAngle: true, speed: 5, delay: 0, offset: 0 },
       { angle: 25, usePlayerAngle: true, speed: 5, delay: 0, offset: 0 },
     ],
-    damageconfig: [
+    damageConfig: [
       //  { threshold: 150, damageMultiplier: 1 },
       //  { threshold: 300, damageMultiplier: 0.5 }
     ],
@@ -214,8 +214,8 @@ const gunsconfig = {
       //  "DestroyWalls"
     ]),
     cooldown: 1000,
-    distance: 350,
-    maxexistingtime: 50000,
+     maxDistance: 300,
+    maxTime: 50000,
     damage: 4,
     width: 60,
     height: 60,
@@ -224,7 +224,7 @@ const gunsconfig = {
     bullets: [
       { angle: 0, usePlayerAngle: true, speed: 1, delay: 0, offset: 0 },
     ],
-    damageconfig: [
+    damageConfig: [
       // { threshold: 50, damageMultiplier: 1 },
       // { threshold: 100, damageMultiplier: 0.70 },
       // { threshold: 150, damageMultiplier: 0.40 }
