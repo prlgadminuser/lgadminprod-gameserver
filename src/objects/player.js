@@ -35,7 +35,7 @@ class Player {
     const gamemodeSettings = room.gameconfig;
     const gadgetselected = gadget || 1;
     this.gadgetdata = gadgetconfig[gadgetselected];
-    const fallbackloadout = { slot1: "1", slot2: "2", slot3: "3" };
+    const fallbackloadout = { slot1: "3", slot2: "3", slot3: "3" };
 
     this.playerId = userId;
     this.playername = playername.replace(/[:$]/g, "");
@@ -113,7 +113,7 @@ class Player {
     this.moveInterval = null;
 
     // Loadout & gadgets
-    this.loadout = loadout || fallbackloadout;
+    this.loadout = fallbackloadout;//loadout || fallbackloadout;
     this.loadout_formatted = [
       this.loadout["slot1"],
       this.loadout["slot2"],
@@ -427,6 +427,7 @@ const speed = this.speed * (30 / GlobalRoomConfig.ticks_per_second);
             bullet.directionChange
               ? Object.values(bullet.directionChange)
               : undefined,
+              bullet.teamid
 
             /// (GlobalRoomConfig.room_tick_rate_ms / GlobalRoomConfig.bullet_updates_per_tick),
           ]);

@@ -78,31 +78,30 @@ const gunsconfig = {
       { threshold: 100, damageMultiplier: 0.4 },
     ],
 
-    afflictionConfig: {
-      damage: 5,
-      waitTime: 1000,
-      activeTime: 10000,
-    },
+    //afflictionConfig: {
+   //   damage: 5,
+   ///  activeTime: 10000,
+    //},
   },
 
   3: {
     // Default Sniper
     modifiers: new Set([
       //  "CanBounce",
-     // "DestroyWalls"
+      "DestroyWalls"
     ]),
     cooldown: 600,
      maxDistance: 300,
-    maxTime: 5000,
+    maxTime: 50000,
     damage: 25,
     width: 35,
-    height: 8,
+    height: 14,
     //  can_bullets_bounce: true,
     bullets: [
-    { angle: 0, usePlayerAngle: true, speed: 10, delay: 0, offset: 0 } ,
-    // { angle: 20, usePlayerAngle: true, speed: 1, delay: 0, offset: 0 },
-      //{ angle: -20, usePlayerAngle: true, speed: 1, delay: 0, offset: 0 },
-    //  ...bullets(10, { angle: 0, speed: 1, delay: 0, offset: 0  })
+    { angle: 0, usePlayerAngle: true, speed: 23, delay: 0, offset: 0 } ,
+  // { angle: 20, usePlayerAngle: true, speed: 10, delay: 0, offset: 0 },
+    // { angle: -20, usePlayerAngle: true, speed: 10, delay: 0, offset: 0 },
+  ...bullets(10, { angle: 0, speed: 10, delay: 0, offset: 0  })
     ],
     damageConfig: [
       { threshold: 45, damageMultiplier: 1 },

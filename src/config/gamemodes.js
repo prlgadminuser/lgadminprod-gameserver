@@ -63,6 +63,7 @@ const gamemodeconfig = {
 
     playerhealth: 150,
     playerspeed: 3,
+    onlygunallowed: 4,
 
     modifiers: new Set(["UseZone"]),
 

@@ -71,7 +71,10 @@ class BulletManager {
       .add(baseDir.scale(bulletData.offset || 0))
       .add(perpDir.scale(25));
 
-    const bullet = new Bullet({ id, position, startPosition: position, direction: bulletData.angle, owner: player, objectType: "bullet", ...bulletData });
+      const teamid = player.team.id
+
+
+    const bullet = new Bullet({ id, position, startPosition: position, direction: bulletData.angle, owner: player, objectType: "bullet", teamid: teamid, ...bulletData });
     this.bullets.set(id, bullet);
     this.room.grid.addObject(bullet);
     return bullet;

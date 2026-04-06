@@ -852,7 +852,7 @@ async function CreateTeams(room) {
   let ThisIndexTeamCreated = false;
 
   for (const player of room.connectedPlayers) {
-    const teamId = teamIDs[teamIndex] || `Team-${teamIndex + 1}`;
+    const teamId = teamIndex + 1;//teamIDs[teamIndex] || `Team-${teamIndex + 1}`;
 
     if (!ThisIndexTeamCreated) {
       team = {
