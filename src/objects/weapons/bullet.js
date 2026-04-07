@@ -109,6 +109,8 @@ class BulletManager {
       let remainingVec = nextPos.subtract(currPos);
       let destroyed = false;
 
+       const isGhost = bullet.modifiers?.has("GhostBullet");
+
       for (const hit of potentialHits) {
         const hitPos = currPos.add(remainingVec.scale(hit.t));
 
@@ -116,11 +118,10 @@ class BulletManager {
         else if (hit.type === "entity" && !bullet.collidedEntities.has(hit.obj)) destroyed = this.handleEntityHit(hit.obj, bullet, currPos);
 
         currPos = hitPos;
-        if (destroyed) break;
+        if (destroyed && !isGhost) break;
         remainingVec = nextPos.subtract(currPos);
       }
 
-      const isGhost = bullet.modifiers?.has("GhostBullet");
 
       if (destroyed && !isGhost) toRemove.push(id);
       else { bullet.prevPosition = prevPos; bullet.position = currPos.add(remainingVec); bullet.new = false; }
