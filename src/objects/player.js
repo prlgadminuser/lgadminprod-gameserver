@@ -113,7 +113,7 @@ class Player {
     this.moveInterval = null;
 
     // Loadout & gadgets
-    this.loadout = fallbackloadout;//loadout || fallbackloadout;
+    this.loadout = loadout || fallbackloadout;
     this.loadout_formatted = [
       this.loadout["slot1"],
       this.loadout["slot2"],
@@ -258,6 +258,9 @@ class Player {
       this.eliminations.push(ElimMessage);
 
       targetPlayer.respawn();
+
+      this.kills += 1;
+      room.allplayerkillscount += 1;
     }
   }
 
@@ -371,7 +374,8 @@ const speed = this.speed * (30 / GlobalRoomConfig.ticks_per_second);
           // --- track "first-time seen" static objects ---
           if (!this.seenObjectsIds.has(obj.id)) {
             this.seenObjectsIds.add(obj.id);
-            staticObjects.push([1, obj.sendx, obj.sendy]);
+            staticObjects.push([1, obj.id]);
+            console.log(obj.id)
           }
           break;
 

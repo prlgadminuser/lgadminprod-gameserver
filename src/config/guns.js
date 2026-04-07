@@ -17,7 +17,7 @@ const gunsconfig = {
     // Default pistol
     modifiers: new Set([
       //    "CanBounce",
-     // "DestroyWalls",
+    // "DestroyWalls",
       //  "DestroyWalls(DestroySelf)"
     ]),
     cooldown: 500,
@@ -88,8 +88,8 @@ const gunsconfig = {
     // Default Sniper
     modifiers: new Set([
       //  "CanBounce",
-      "DestroyWalls",
-      "GhostBullet",
+     // "DestroyWalls",
+      //"GhostBullet",
     ]),
     cooldown: 600,
      maxDistance: 300,

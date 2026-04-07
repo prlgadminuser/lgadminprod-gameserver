@@ -98,6 +98,7 @@ let mapsconfig = {
        wall.x / wallWithId.height,
        wall.y / wallWithId.width,
        Number(wall.type),
+       wallWithId.id
       // walkableFlag
       // wall.effect
     ]
