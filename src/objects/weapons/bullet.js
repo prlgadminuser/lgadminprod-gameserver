@@ -113,7 +113,7 @@ class BulletManager {
         const hitPos = currPos.add(remainingVec.scale(hit.t));
 
         if (hit.type === "wall") destroyed = this.handleWallHit(hit.obj, bullet);
-        else if (hit.type === "entity" && !this.collidedEntities.has(hit.obj)) destroyed = this.handleEntityHit(hit.obj, bullet, currPos);
+        else if (hit.type === "entity" && bullet.collidedEntities.has(hit.obj)) destroyed = this.handleEntityHit(hit.obj, bullet, currPos);
 
         currPos = hitPos;
         if (destroyed) break;
@@ -160,7 +160,7 @@ class BulletManager {
 
   handleEntityHit(entity, bullet, currPos) {
 
-    this.collidedEntities.add(entity)
+    bullet.collidedEntities.add(entity)
 
     const finalDamage = bullet.damageConfig?.length
       ? calculateFinalDamage(Vec2.distanceSquared(bullet.startPosition, currPos), bullet.maxDistance, bullet.damage, bullet.damageConfig)
