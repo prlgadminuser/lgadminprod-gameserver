@@ -88,7 +88,8 @@ const gunsconfig = {
     // Default Sniper
     modifiers: new Set([
       //  "CanBounce",
-      "DestroyWalls"
+      "DestroyWalls",
+      "GhostBullet",
     ]),
     cooldown: 600,
      maxDistance: 300,
@@ -101,7 +102,7 @@ const gunsconfig = {
     { angle: 0, usePlayerAngle: true, speed: 23, delay: 0, offset: 0 } ,
   // { angle: 20, usePlayerAngle: true, speed: 10, delay: 0, offset: 0 },
     // { angle: -20, usePlayerAngle: true, speed: 10, delay: 0, offset: 0 },
-  ...bullets(10, { angle: 0, speed: 10, delay: 0, offset: 0  })
+  //...bullets(10, { angle: 0, speed: 10, delay: 0, offset: 0  })
     ],
     damageConfig: [
       { threshold: 45, damageMultiplier: 1 },

@@ -19,7 +19,8 @@ class Bullet {
     this.updateTicks = 0;
     this.lifeTicks = 0;
     this.effect = 1;
-    this.new = true;
+    this.new = true
+    this.collidedEntities = new Set()
   }
 
   applyDirectionChange() {
@@ -102,7 +103,7 @@ class BulletManager {
 
       this.room.grid.updateObject(bullet, nextPos);
 
-      const potentialHits = this.getPotentialHits(bullet, prevPos, nextPos);
+      const potentialHits = this.getPotentialHits(bullet, prevPos, nextPos) 
 
       let currPos = prevPos;
       let remainingVec = nextPos.subtract(currPos);
@@ -112,14 +113,16 @@ class BulletManager {
         const hitPos = currPos.add(remainingVec.scale(hit.t));
 
         if (hit.type === "wall") destroyed = this.handleWallHit(hit.obj, bullet);
-        else if (hit.type === "entity") destroyed = this.handleEntityHit(hit.obj, bullet, currPos);
+        else if (hit.type === "entity" && !this.collidedEntities.has(hit.obj)) destroyed = this.handleEntityHit(hit.obj, bullet, currPos);
 
         currPos = hitPos;
         if (destroyed) break;
         remainingVec = nextPos.subtract(currPos);
       }
 
-      if (destroyed) toRemove.push(id);
+      const isGhost = bullet.modifiers?.has("GhostBullet");
+
+      if (destroyed && !isGhost) toRemove.push(id);
       else { bullet.prevPosition = prevPos; bullet.position = currPos.add(remainingVec); bullet.new = false; }
 
       if (!bullet.new) bullet.effect = 0;
@@ -156,6 +159,9 @@ class BulletManager {
   }
 
   handleEntityHit(entity, bullet, currPos) {
+
+    this.collidedEntities.add(entity)
+
     const finalDamage = bullet.damageConfig?.length
       ? calculateFinalDamage(Vec2.distanceSquared(bullet.startPosition, currPos), bullet.maxDistance, bullet.damage, bullet.damageConfig)
       : bullet.damage;
