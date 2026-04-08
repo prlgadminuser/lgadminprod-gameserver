@@ -33,7 +33,7 @@ function spawnAnimation(room, player, type) {
 
     const positionSource = player.spectatingTarget ? player.spectatingTarget : player;
     
-   const { x, y } = positionSource
+   const { x, y } = positionSource.position
 
   const isNearby  = x >= xMin && x <= xMax && y >= yMin && y <= yMax
 
