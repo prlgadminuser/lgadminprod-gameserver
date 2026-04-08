@@ -57,11 +57,11 @@ const gamemodeconfig = {
     can_hit_dummies: false,
     can_hit_players: true,
 
-    maxplayers: 6,
+    maxplayers: 40,
     teamsize: 3,
     respawns_allowed: 0,
 
-    playerhealth: 150,
+    playerhealth: 150000,
     playerspeed: 3,
     onlygunallowed: 4,
 
