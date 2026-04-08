@@ -23,6 +23,11 @@ SerializePlayerData(p) {
   return arr;
 },
 
+BuildBulletData(b) {
+
+
+},
+
 BuildSelfData(p) {
 
   const selfdata = {

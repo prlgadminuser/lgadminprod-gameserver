@@ -529,12 +529,23 @@ class Room {
     const dummiesFiltered = this.dummies ? this.dummies : undefined;
 
     const RoomData = {
+      mapBounds: {
+      mapWidth: this.mapWidth,
+      mapHeight: this.mapHeight,
+      },
       mapid: this.map,
       type: this.matchtype,
       modifiers: Array.from(this.modifiers), // set needs array converting
       sb: this.scoreboard,
       mapdata: this.mapdata.compressedwalls,
     };
+
+    let playerData = []
+
+    for (const p of players) {
+
+      playerData.push(SerializePlayerData(p));
+    }
 
     const AllData = {};
 
@@ -587,6 +598,7 @@ class Room {
           gadget: p.gadgetid,
         },
         RoomData: RoomData,
+        PlayerGameStartData: playerData
       };
 
       p.send(compressMessage(MessageToSend), { binary: true });
@@ -595,7 +607,6 @@ class Room {
 
   update() {
     if (!this.state === "playing") return;
-    const CachedEmptyMsg = compressMessage([]);
 
     const players = this.connectedPlayers;
     const alivePlayers = this.alivePlayers

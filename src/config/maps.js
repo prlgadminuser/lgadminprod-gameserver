@@ -18,8 +18,8 @@ let mapsconfig = {
 
    training: {
     walls: [{"x":30,"y":0,"type":"3","walkable":"false","effect":"value"},{"x":30,"y":30,"type":"3","walkable":"false","effect":"value"},{"x":30,"y":-30,"type":"3","walkable":"false","effect":"value"},{"x":90,"y":-60,"type":"3","walkable":"false","effect":"value"},{"x":-30,"y":-30,"type":"3","walkable":"false","effect":"value"},{"x":-30,"y":0,"type":"3","walkable":"false","effect":"value"},{"x":-30,"y":30,"type":"3","walkable":"false","effect":"value"},{"x":-60,"y":0,"type":"3","walkable":"false","effect":"value"},{"x":60,"y":0,"type":"3","walkable":"false","effect":"value"},{"x":-90,"y":-60,"type":"3","walkable":"false","effect":"value"},{"x":-90,"y":60,"type":"3","walkable":"false","effect":"value"},{"x":90,"y":60,"type":"3","walkable":"false","effect":"value"},{"x":0,"y":-120,"type":"3","walkable":"false","effect":"value"},{"x":0,"y":120,"type":"3","walkable":"false","effect":"value"}],
-      width: 220,
-      height: 270,
+      width: 240,
+      height: 300,
       spawns: [
         {"x":0,"y":200},
         {"x":0,"y":200},

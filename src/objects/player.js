@@ -75,13 +75,13 @@ class Player {
 
     this.dirty = true;
 
-    this.dirty = {
-      id: true,
-      x: true,
-      y: true,
-      health: true,
+   // this.dirty = {
+   //   id: true,
+    //  x: true,
+     // y: true,
+    //  health: true,
       
-    }
+   // }
 
 
     this.nearbyplayersidslast = new Set();
@@ -428,9 +428,7 @@ const speed = this.speed * (30 / GlobalRoomConfig.ticks_per_second);
             bullet.gunId,
             bullet.effect,
             bullet.client_render_speed,
-            bullet.directionChange
-              ? Object.values(bullet.directionChange)
-              : undefined,
+            bullet.directionChange ? Object.values(bullet.directionChange) : undefined,
               bullet.teamid
 
             /// (GlobalRoomConfig.room_tick_rate_ms / GlobalRoomConfig.bullet_updates_per_tick),

@@ -30,7 +30,7 @@ const gunsconfig = {
       {
         angle: 0,
         usePlayerAngle: true,
-        speed: 20,
+        speed: 10,
         delay: 0,
         offset: 0,
       },
