@@ -21,7 +21,7 @@ async function UpdatePlayerPlace(player, place2, room) {
 
   const place = +place2;
 
-  if (isNaN(place) || place < 1 || place > 10) {
+  if (isNaN(place) || place < 1 || place > 50) {
     return;
   }
 
