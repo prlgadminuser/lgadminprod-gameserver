@@ -173,9 +173,10 @@ if (existing && existing.readyState === WebSocket.OPEN) {
   if (current && current === ws) {
       activeSockets.delete(ws);
       connectedPlayers.delete(userId);
-      global.playerCount--;
        await removeSession(userId);
   }
+
+  global.playerCount--;
   
         if (ws.player && ws.room) ws.room.removePlayer(ws.player);
       });
