@@ -61,7 +61,7 @@ const gamemodeconfig = {
     teamsize: 3,
     respawns_allowed: 0,
 
-    playerhealth: 150000,
+    playerhealth: 150,
     playerspeed: 3,
     onlygunallowed: 4,
 
