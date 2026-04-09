@@ -319,6 +319,7 @@ const speed = this.speed * (30 / GlobalRoomConfig.ticks_per_second);
     // change detection (numeric, deterministic)
     if (newX !== lastX || newY !== lastY) {
       this.room.grid.updateObject(this, this.position);
+      
       this.dirty = true;
     }
   }
@@ -374,8 +375,7 @@ const speed = this.speed * (30 / GlobalRoomConfig.ticks_per_second);
           // --- track "first-time seen" static objects ---
           if (!this.seenObjectsIds.has(obj.id)) {
             this.seenObjectsIds.add(obj.id);
-            staticObjects.push([1, obj.id]);
-            console.log(obj.id)
+            staticObjects.push([1, obj.id - 1]);
           }
           break;
 

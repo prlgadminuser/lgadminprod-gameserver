@@ -63,6 +63,8 @@ class GameGrid {
     const oldCells = this.objectsCells.get(gid) || [];
     const newCells = this._cellsForObject(obj, newPosition);
 
+   // console.log(newCells)
+
     if (this._arraysEqual(oldCells, newCells)) {
       obj.position = newPosition;
       return;

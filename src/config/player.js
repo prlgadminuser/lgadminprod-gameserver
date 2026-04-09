@@ -2,7 +2,7 @@
 
 
 const playerhitbox = {
-  width: 28,
+  width: 26,
   height: 86,
   //zonewidth: 35,
  // zoneheight: 57,

@@ -16,6 +16,9 @@ module.exports = {
   return dx * dx + dy * dy; // squared distance
 },
 
+getRandomNumber(min, max) {
+  return Math.random() * (max - min) + min;
+},
   // --- Utility collision functions ---
 
   // Axis-Aligned Bounding Box (AABB) vs AABB

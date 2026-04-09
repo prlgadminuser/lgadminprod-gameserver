@@ -1,5 +1,46 @@
 
+const { getRandomNumber } = require("../utils/math");
 const { GameGrid } = require("./grid");
+
+function generateMap(mapWidth = 300, mapHeight = 300, tileSize = 30, wallChance = 0.25) {
+  const walls = [];
+
+  const cols = Math.floor(mapWidth / tileSize);
+  const rows = Math.floor(mapHeight / tileSize);
+
+  const offsetX = (cols / 2) * tileSize;
+  const offsetY = (rows / 2) * tileSize;
+
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+
+      const worldX = x * tileSize - offsetX;
+      const worldY = y * tileSize - offsetY;
+
+      const isBorder =
+        x === 0 || y === 0 ||
+        x === cols - 1 || y === rows - 1;
+
+      const isWall = isBorder || Math.random() < wallChance;
+
+      if (isWall) {
+        walls.push({
+          x: worldX,
+          y: worldY,
+          type: Math.round(getRandomNumber(1,3)),
+          walkable: false,
+          effect: "value"
+        });
+      }
+    }
+  }
+
+  return walls;
+}
+
+
+const walls = generateMap()
+
 
 let mapsconfig = {
 
@@ -17,7 +58,7 @@ let mapsconfig = {
     },
 
    training: {
-    walls: [{"x":30,"y":0,"type":"3","walkable":"false","effect":"value"}],
+    walls:  generateMap(240 * 2, 300 * 2), //[{"x":30,"y":0,"type":"3","walkable":"false","effect":"value"}],// {"x":47,"y":12,"type":"3","walkable":"false","effect":"value"}],
       width: 240,
       height: 300,
       spawns: [
@@ -68,9 +109,13 @@ let mapsconfig = {
 // pre render grid
   mapsconfig.forEach((map) => {
 
+
+
  map.compressedwalls = []
 
-  const grid = new GameGrid(map.width, map.height);
+ //map.walls = generateMap(map.width * 2, map.height * 2)
+
+  const grid = new GameGrid(map.width, map.height)
   map.walls.forEach((wall, index) => {
 
     wall.objectType = "wall"

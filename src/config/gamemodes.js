@@ -58,11 +58,11 @@ const gamemodeconfig = {
     can_hit_players: true,
 
     maxplayers: 10,
-    teamsize: 5,
+    teamsize: 1,
     respawns_allowed: 0,
 
     playerhealth: 150,
-    playerspeed: 4,
+    playerspeed: 3,
     onlygunallowed: 4,
 
     modifiers: new Set(["UseZone"]),
