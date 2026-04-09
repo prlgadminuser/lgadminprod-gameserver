@@ -37,11 +37,7 @@ class GameGrid {
     const yMax = pos.y + hh;
 
     const min = this._roundToCells({ x: xMin, y: yMin });
-      const eps = 0.000001;
-    const max = this._roundToCells({ 
-      x: xMax - eps, 
-      y: yMax - eps 
-    });
+    const max = this._roundToCells({ x: xMax, y: yMax });
 
     const cells = [];
     for (let x = min.x; x <= max.x; x++) {
@@ -66,8 +62,6 @@ class GameGrid {
 
     const oldCells = this.objectsCells.get(gid) || [];
     const newCells = this._cellsForObject(obj, newPosition);
-
-    console.log(newCells)
 
     if (this._arraysEqual(oldCells, newCells)) {
       obj.position = newPosition;
