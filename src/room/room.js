@@ -606,7 +606,7 @@ class Room {
   }
 
   update() {
-    if (!this.state === "playing") return;
+    if (this.state !== "playing" && this.state !== "countdown") return;
 
     const players = this.connectedPlayers;
     const alivePlayers = this.alivePlayers
@@ -732,6 +732,7 @@ class Room {
       p.hitmarkers.length = 0;
       p.eliminations.length = 0;
       p.nearbyanimations.length = 0;
+      p.damage_effect = 0
 
       // remove dirty
       p.dirty = false;
