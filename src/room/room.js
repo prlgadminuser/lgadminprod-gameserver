@@ -541,11 +541,14 @@ class Room {
     };
 
     let playerData = []
+    let playerids = []
 
     for (const p of players) {
 
       playerData.push(SerializePlayerData(p));
+      playerids.push(p.id)
     }
+
 
     const AllData = {};
 
@@ -598,7 +601,8 @@ class Room {
           gadget: p.gadgetid,
         },
         RoomData: RoomData,
-        PlayerGameStartData: playerData
+        PlayerGameStartData: playerData,
+        PlayerGameStartIds: playerids
       };
 
       p.send(compressMessage(MessageToSend), { binary: true });
