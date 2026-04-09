@@ -58,7 +58,7 @@ const gamemodeconfig = {
     can_hit_players: true,
 
     maxplayers: 10,
-    teamsize: 1,
+    teamsize: 5,
     respawns_allowed: 0,
 
     playerhealth: 150,
