@@ -94,7 +94,7 @@ const gunsconfig = {
     cooldown: 600,
      maxDistance: 300,
     maxTime: 50000,
-    damage: 25,
+    damage: 1000,
     width: 35,
     height: 14,
     //  can_bullets_bounce: true,
