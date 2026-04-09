@@ -606,7 +606,7 @@ class Room {
   }
 
   update() {
-    if (this.state !== "playing" && this.state !== "countdown") return;
+    if (this.state !== "playing") return;
 
     const players = this.connectedPlayers;
     const alivePlayers = this.alivePlayers
