@@ -233,7 +233,7 @@ function handleBulletFired(room, player, gunType) {
       client_render_speed: Math.round(bulletConfig.speed),
       speed: bulletConfig.speed * (GlobalRoomConfig.ticks_per_second / bullet_tick_rate),
       updates_per_tick: bullet_tick_rate,
-      angle: bulletConfig.usePlayerAngle ? player.shoot_direction + bulletConfig.angle : bulletConfig.angle,
+      angle: Math.round(bulletConfig.usePlayerAngle ? player.shoot_direction + bulletConfig.angle : bulletConfig.angle),
       maxTime: Date.now() + gun.maxexistingtime + bulletConfig.delay,
       gunId: gunType,
     };

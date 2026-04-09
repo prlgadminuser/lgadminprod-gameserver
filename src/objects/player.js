@@ -425,11 +425,12 @@ const speed = this.speed * (30 / GlobalRoomConfig.ticks_per_second);
             encodeBulletPosition(bullet.position.x),
             encodeBulletPosition(bullet.position.y),
             bullet.direction,
-            bullet.gunId,
+            Number(bullet.gunId),
             bullet.effect,
             bullet.client_render_speed,
+            bullet.teamid,
             bullet.directionChange ? Object.values(bullet.directionChange) : undefined,
-              bullet.teamid
+            [bullet.width, bullet.height]
 
             /// (GlobalRoomConfig.room_tick_rate_ms / GlobalRoomConfig.bullet_updates_per_tick),
           ]);
