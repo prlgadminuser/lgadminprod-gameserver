@@ -19,25 +19,40 @@ class GameGrid {
 
   // ----------------------
   // Convert world position to grid cell (with offset)
-  // ----------------------a
+  // Now uses Math.floor for correct negative coordinate handling
+  // ----------------------
   _roundToCells(pos) {
     return {
-      x: ((pos.x * this.invCell) | 0) + this.offsetX,
-      y: ((pos.y * this.invCell) | 0) + this.offsetY,
+      x: Math.floor(pos.x * this.invCell) + this.offsetX,
+      y: Math.floor(pos.y * this.invCell) + this.offsetY,
     };
   }
 
+  // ----------------------
+  // NEW: objects are now positioned by their TOP-LEFT corner
+  // (instead of center). This makes a wall at x=30, y=0 with
+  // width=30, height=30 occupy exactly ONE cell and fit perfectly.
+  // Max uses a tiny epsilon so exact boundary alignment never spills
+  // into the next cell.
+  // ----------------------
   _cellsForObject(obj, pos) {
-    const hw = (obj.width || 0) * 0.5;
-    const hh = (obj.height || 0) * 0.5;
+    const w = (obj.width || 0);
+    const h = (obj.height || 0);
 
-    const xMin = pos.x - hw;
-    const xMax = pos.x + hw;
-    const yMin = pos.y - hh;
-    const yMax = pos.y + hh;
+    const xMin = pos.x;
+    const yMin = pos.y;
+    const xMax = pos.x + w;
+    const yMax = pos.y + h;
 
     const min = this._roundToCells({ x: xMin, y: yMin });
-    const max = this._roundToCells({ x: xMax, y: yMax });
+
+    // Subtract epsilon from max so that a perfect fit (e.g. xMax === 60)
+    // stays inside the current cell instead of spilling to the next one.
+    const eps = 0.000001;
+    const max = this._roundToCells({ 
+      x: xMax - eps, 
+      y: yMax - eps 
+    });
 
     const cells = [];
     for (let x = min.x; x <= max.x; x++) {
