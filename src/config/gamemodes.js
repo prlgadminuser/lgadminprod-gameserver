@@ -62,7 +62,7 @@ const gamemodeconfig = {
     respawns_allowed: 0,
 
     playerhealth: 150,
-    playerspeed: 3,
+    playerspeed: 4,
     onlygunallowed: 4,
 
     modifiers: new Set(["UseZone"]),
