@@ -88,6 +88,8 @@ class BulletManager {
     const toRemove = [];
 
     for (const [id, bullet] of this.bullets.entries()) {
+
+
       if (!bullet.alive || bullet.isExpired()) { toRemove.push(id); continue; }
 
       bullet.updateTicks++;
@@ -122,10 +124,15 @@ class BulletManager {
 
 
       if (destroyed) toRemove.push(id);
-      else { bullet.prevPosition = prevPos; bullet.position = currPos.add(remainingVec); bullet.new = false; }
+      else { bullet.prevPosition = prevPos; bullet.position = currPos.add(remainingVec); }
+
 
       if (!bullet.new) bullet.effect = 0;
+
+     bullet.new = false;
     }
+
+
 
     toRemove.forEach(id => this.killBullet(id));
   }
