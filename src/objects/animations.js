@@ -31,7 +31,7 @@ function spawnAnimation(room, player, type) {
 
   for (const player of room.connectedPlayers) {
 
-    const positionSource = player.spectatingTarget ? player.spectatingTarget : player;
+    const positionSource = player.spectating ? player.spectatingTarget : player;
     
    const { x, y } = positionSource.position
 

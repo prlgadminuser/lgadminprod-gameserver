@@ -328,7 +328,7 @@ const speed = this.speed * (30 / GlobalRoomConfig.ticks_per_second);
     // this.ticksSinceLastChunkUpdate++;
     //  const shouldUpdateChunks = this.ticksSinceLastChunkUpdate > 4;
 
-    const positionSource = this.spectatingTarget ? this.spectatingTarget : this;
+    const positionSource = this.spectating ? this.spectatingTarget : this;
     const centerX = positionSource.position.x;
     const centerY = positionSource.position.y;
 
