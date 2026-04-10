@@ -486,7 +486,10 @@ const speed = this.speed * (30 / GlobalRoomConfig.ticks_per_second);
     this.room.grid.removeObject(this);
     this.room.alivePlayers.delete(this);
 
-    this.startSpectating();
+    this.room.setRoomTimeout(() => {
+      this.startSpectating();
+    }, 1000);
+  
 
     if (this.room.IsTeamMode && this.team.aliveCount === 0) {
       // Find the place for the eliminated team.

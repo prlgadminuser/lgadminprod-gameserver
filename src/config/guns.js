@@ -17,8 +17,8 @@ const gunsconfig = {
     // Default pistol
     modifiers: new Set([
       //    "CanBounce",
-    // "DestroyWalls",
-    "DestroyWalls(DestroySelf)"
+  // "DestroyWalls",
+  "DestroyWalls(DestroySelf)"
     //  "GhostBullet",
     ]),
     cooldown: 500,
@@ -31,9 +31,23 @@ const gunsconfig = {
       {
         angle: 0,
         usePlayerAngle: true,
-        speed: 10,
+        speed: 15,
         delay: 0,
         offset: 0,
+      },
+        {
+        angle: -4,
+        usePlayerAngle: true,
+        speed: 15,
+        delay: 0,
+        offset: -2,
+      },
+      {
+       angle: 4,
+        usePlayerAngle: true,
+        speed: 15,
+        delay: 0,
+        offset: 2,
       },
       // { angle: 0, speed: 18, delay: 70, offset: 10 },
 

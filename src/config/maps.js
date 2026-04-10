@@ -58,7 +58,7 @@ let mapsconfig = {
     },
 
    training: {
-    walls:  generateMap(240 * 2, 300 * 2), //[{"x":30,"y":0,"type":"3","walkable":"false","effect":"value"}],// {"x":47,"y":12,"type":"3","walkable":"false","effect":"value"}],
+    walls:  [{"x":30,"y":0,"type":"3","walkable":"false","effect":"value"}],// {"x":47,"y":12,"type":"3","walkable":"false","effect":"value"}],
       width: 240,
       height: 300,
       spawns: [
