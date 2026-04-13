@@ -169,7 +169,7 @@ class BulletManager {
     bullet.collidedEntities.add(entity)
 
     const finalDamage = bullet.damageConfig?.length
-      ? calculateFinalDamage(Vec2.distanceSquared(bullet.startPosition, currPos), bullet.maxDistance, bullet.damage, bullet.damageConfig)
+      ? calculateFinalDamage(Vec2.distanceSquared(bullet.startPosition, currPos), bullet.damage, bullet.damageConfig)
       : bullet.damage;
 
     if (entity.objectType === "player") bullet.owner.HandleSelfBulletsOtherPlayerCollision(entity, finalDamage, bullet.gunId, this.room);
@@ -214,14 +214,19 @@ function DestroyWall(wall, room) {
   AddNewUnseenObject(room, { objectType: "static_obj", id: wall.gid, position: wall.position, sendx: wall.position.x, sendy: wall.position.y });
 }
 
-function calculateFinalDamage(distanceSq, maxDistance, baseDamage, layers) {
+function calculateFinalDamage(distanceSq, baseDamage, layers) {
   if (!layers.length) return baseDamage;
-  const maxDistSq = maxDistance * maxDistance;
+
   for (const layer of layers) {
-    if (distanceSq <= (layer.threshold / 100) * maxDistSq) return Math.ceil(baseDamage * layer.damageMultiplier);
+    if (distanceSq <= layer.threshold * layer.threshold) {
+      return Math.ceil(baseDamage * layer.damageMultiplier);
+    }
   }
-  return 0;
+
+  // beyond all layers → use last layer
+  return Math.ceil(baseDamage * layers[layers.length - 1].damageMultiplier);
 }
+
 
 function handleBulletFired(room, player, gunType) {
   const gun = gunsconfig[gunType];
