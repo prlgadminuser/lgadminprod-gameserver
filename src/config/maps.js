@@ -58,8 +58,8 @@ let mapsconfig = {
     },
 
    training: {
-    walls:  [{"x":30,"y":0,"type":"3","walkable":"false","effect":"value"}],// {"x":47,"y":12,"type":"3","walkable":"false","effect":"value"}],
-      width: 240,
+    walls: walls, //[{"x":30,"y":0,"type":"3","walkable":"false","effect":"value"}],// {"x":47,"y":12,"type":"3","walkable":"false","effect":"value"}],
+      width: 230,
       height: 300,
       spawns: [
         {"x":0,"y":200},
