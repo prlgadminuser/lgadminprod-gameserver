@@ -116,7 +116,7 @@ const gamemodeconfig = {
     playerspeed: 4,
 
     modifiers: new Set([
-  "UseZone",
+//  "UseZone",
        "AutoHealthRestore",
       //"HealingCircles",
       "countdown"
