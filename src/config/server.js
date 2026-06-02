@@ -1,5 +1,5 @@
 
-const TICK_RATE = 20;
+const TICK_RATE = 30;
 
 function ToMilliseconds(seconds) {
   return seconds * 60 * 1000;
